@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Emoji support */
+.emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "EmojiFont", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure emojis display properly in all elements */
+span, div, p {
+  font-family: inherit, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "EmojiFont", sans-serif;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(220, 14%, 10%);

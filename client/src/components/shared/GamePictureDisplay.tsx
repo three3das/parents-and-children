@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { type Word } from "@shared/schema";
 import { PICTURE_EMOJIS } from "@/lib/constants";
+import { extractEmojiFromImage } from "@/lib/utils"; // added import
+
 
 interface GamePictureDisplayProps {
   word: Word;
@@ -11,21 +13,27 @@ interface GamePictureDisplayProps {
 
 const sizeClasses = {
   sm: 'text-6xl',
-  md: 'text-8xl', 
+  md: 'text-8xl',
   lg: 'text-10xl'
 };
 
-export function GamePictureDisplay({ 
-  word, 
-  disabled = false, 
+export function GamePictureDisplay({
+  word,
+  disabled = false,
   size = 'md',
-  animate = true 
+  animate = true
 }: GamePictureDisplayProps) {
-  const emoji = PICTURE_EMOJIS[word.image] || '❓';
+
+  // Debug: log missing words
+  if (!PICTURE_EMOJIS[word.image]) {
+    console.log('Missing emoji for word:', word.image);
+  }
+
+  const emoji = extractEmojiFromImage(word.image);
 
   const handleSpeakerClick = () => {
     if (disabled) return;
-    
+
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(word.word);
       utterance.lang = 'ru-RU';
@@ -43,7 +51,7 @@ export function GamePictureDisplay({
       >
         {emoji}
       </motion.div>
-      <motion.div 
+      <motion.div
         className={`text-4xl mb-2 transition-transform ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-110'}`}
         whileHover={!disabled ? { scale: 1.1 } : {}}
         whileTap={!disabled ? { scale: 0.95 } : {}}

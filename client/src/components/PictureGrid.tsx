@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { type Word } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
 import { PICTURE_EMOJIS, ANIMATION_VARIANTS, GAME_CONFIG } from "@/lib/constants";
-
+import { extractEmojiFromImage } from "@/lib/utils";
+// ... остальной код компонента
 interface PictureGridProps {
   correctWord: Word;
   distractors: Word[];
@@ -11,13 +12,12 @@ interface PictureGridProps {
   disabled?: boolean;
   selectedPicture?: Word | null;
 }
-
-export function PictureGrid({ 
-  correctWord, 
-  distractors, 
-  onPictureSelect, 
+export function PictureGrid({
+  correctWord,
+  distractors,
+  onPictureSelect,
   disabled,
-  selectedPicture 
+  selectedPicture
 }: PictureGridProps) {
   const { playTryAgain } = useAudio();
 
@@ -34,7 +34,7 @@ export function PictureGrid({
     console.log('handlePictureClick called for:', word.word, 'disabled:', disabled, 'selectedPicture:', selectedPicture);
     console.log('onPictureSelect function:', onPictureSelect);
     if (disabled || selectedPicture) return; // Prevent multiple clicks
-    
+
     const isCorrect = word.id === correctWord.id;
     console.log('Calling onPictureSelect with:', word.word, 'isCorrect:', isCorrect);
     if (!isCorrect) {
@@ -57,16 +57,16 @@ export function PictureGrid({
   }
 
   return (
-    <motion.div 
+    <motion.div
       className={`grid ${gridClasses} gap-4 sm:gap-6 max-w-4xl mx-auto`}
       {...ANIMATION_VARIANTS.stagger}
     >
       {shuffledOptions.map((word, index) => {
         const isCorrect = word.id === correctWord.id;
         const isSelected = selectedPicture?.id === word.id;
-        
+
         console.log('Rendering word:', word.word, 'isSelected:', isSelected, 'selectedPicture:', selectedPicture?.word);
-        
+
         return (
           <div
             key={word.id}
@@ -80,24 +80,24 @@ export function PictureGrid({
           >
             <div className="w-full h-full flex items-center justify-center rounded-xl bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
               {/* Background glow effect */}
-              <motion.div 
+              <motion.div
                 className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0"
                 whileHover={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               />
-              
+
               {/* Emoji */}
-              <motion.span 
+              <motion.span
                 className="text-4xl sm:text-6xl relative z-10"
-                whileHover={{ 
+                whileHover={{
                   scale: 1.1,
                   rotate: [0, -5, 5, 0],
                   transition: { duration: 0.3 }
                 }}
               >
-                {PICTURE_EMOJIS[word.image] || '❓'}
+                {extractEmojiFromImage(word.image)}
               </motion.span>
-              
+
               {/* Success/Error overlay */}
               {isSelected && (
                 <motion.div
@@ -113,7 +113,7 @@ export function PictureGrid({
                 </motion.div>
               )}
             </div>
-            
+
           </div>
         );
       })}
