@@ -12,3 +12,34 @@ export function extractEmojiFromImage(image: string): string {
     console.log('extractEmojiFromImage: returning:', result);
     return result;
 }
+// Функция для разделения русского слова на слоги
+export function splitIntoSyllables(word: string): string[] {
+    // Правила разделения на слоги для русского языка
+    const vowels = ['а', 'о', 'у', 'ы', 'э', 'е', 'ё', 'и', 'ю', 'я'];
+    const syllables: string[] = [];
+    let currentSyllable = '';
+    for (let i = 0; i < word.length; i++) {
+        const char = word[i].toLowerCase();
+        currentSyllable += word[i];
+        // Если текущая буква - гласная, заканчиваем слог
+        if (vowels.includes(char)) {
+            // Проверяем, есть ли следующая буква и не является ли она гласной
+            if (i < word.length - 1 && !vowels.includes(word[i + 1].toLowerCase())) {
+                // Если следующая буква согласная, добавляем её к текущему слогу
+                currentSyllable += word[i + 1];
+                i++; // Пропускаем следующую букву
+            }
+            syllables.push(currentSyllable);
+            currentSyllable = '';
+        }
+    }
+    // Добавляем оставшиеся согласные в последний слог
+    if (currentSyllable) {
+        if (syllables.length > 0) {
+            syllables[syllables.length - 1] += currentSyllable;
+        } else {
+            syllables.push(currentSyllable);
+        }
+    }
+    return syllables.length > 0 ? syllables : [word];
+}

@@ -1,4 +1,4 @@
-import { type Word, type InsertWord, type GameProgress, type InsertGameProgress, type UserAnswer, type InsertUserAnswer, words, userAnswers } from "@shared/schema";
+import { type Word, type InsertWord, type SentenceAndPhrase, type InsertSentence, type GameProgress, type InsertGameProgress, type UserAnswer, type InsertUserAnswer, words, sentencesAndPhrases, userAnswers } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt, sql, notInArray } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -16,17 +16,27 @@ export interface IStorage {
   getAllWords(): Promise<Word[]>;
   getWord(id: string): Promise<Word | undefined>;
   createWord(word: InsertWord): Promise<Word>;
-  
+
+  // Sentence and phrase management
+  getAllSentences(): Promise<SentenceAndPhrase[]>;
+  getSentence(id: string): Promise<SentenceAndPhrase | undefined>;
+  createSentence(sentence: InsertSentence): Promise<SentenceAndPhrase>;
+  getSentencesByCategory(category: string): Promise<SentenceAndPhrase[]>;
+  getSentencesByDifficulty(difficulty: string): Promise<SentenceAndPhrase[]>;
+
+  // Material world calendar management
+  getMaterialWorldActivities(): Promise<any[]>;
+
   // Game progress management
   getGameProgress(id: string): Promise<GameProgress | undefined>;
   createGameProgress(progress: InsertGameProgress): Promise<GameProgress>;
   updateGameProgress(id: string, progress: Partial<GameProgress>): Promise<GameProgress | undefined>;
-  
+
   // User answer tracking
   recordAnswer(answer: InsertUserAnswer): Promise<UserAnswer>;
   getCorrectAnswersInLastMonth(sessionId: string): Promise<string[]>;
   getTodayCorrectAnswersCount(sessionId: string): Promise<number>;
-  
+
   // Game logic helpers
   getRandomWords(excludeId: string, count: number): Promise<Word[]>;
   getAvailableWords(sessionId: string): Promise<Word[]>;
@@ -47,16 +57,17 @@ export class DatabaseStorage implements IStorage {
 
   // Filter words to exclude blacklisted ones
   private filterBlacklistedWords(words: Word[]): Word[] {
-    return words.filter(word => 
-      !this.isWordBlacklisted(word.word) && 
+    return words.filter(word =>
+      !this.isWordBlacklisted(word.word) &&
       !this.containsBlacklistedLetters(word.word)
     );
   }
 
   private async ensureInitialized() {
     if (this.initialized) return;
-    
+
     await this.initializeWords();
+    await this.initializeSentences();
     this.initialized = true;
   }
 
@@ -67,11 +78,11 @@ export class DatabaseStorage implements IStorage {
       // Check if we need to add new words (current count vs expected)
       const currentCount = await db.select({ count: sql<number>`count(*)` }).from(words);
       const expectedCount = 69; // Original 39 + 30 new words
-      
+
       if (Number(currentCount[0]?.count || 0) >= expectedCount) {
         return; // Already has all words
       }
-      
+
       // Need to reinitialize with new words
       console.log('Adding new words to existing database...');
     }
@@ -117,7 +128,7 @@ export class DatabaseStorage implements IStorage {
       { word: "ЛЯГУШКА", image: "frog", audio: "lyagushka.mp3" },
       { word: "БАБОЧКА", image: "butterfly", audio: "babochka.mp3" },
       { word: "ПЧЕЛА", image: "bee", audio: "pchela.mp3" },
-      
+
       // Additional 30 words for more practice
       { word: "МАМА", image: "mother", audio: "mama.mp3" },
       { word: "ПАПА", image: "father", audio: "papa.mp3" },
@@ -170,6 +181,67 @@ export class DatabaseStorage implements IStorage {
   async createWord(insertWord: InsertWord): Promise<Word> {
     const [word] = await db.insert(words).values(insertWord).returning();
     return word;
+  }
+
+  // Sentence and phrase methods
+  private async initializeSentences() {
+    // Check if sentences already exist
+    const existingSentences = await db.select().from(sentencesAndPhrases).limit(1);
+    if (existingSentences.length > 0) {
+      return; // Already has sentences
+    }
+
+    const initialSentences: InsertSentence[] = [
+      // Easy sentences
+      { sentence: "Мама дома", translation: "Mom is home", audio: "mama_doma.mp3", difficulty: "easy", category: "family" },
+      { sentence: "Папа работает", translation: "Dad works", audio: "papa_rabotaet.mp3", difficulty: "easy", category: "family" },
+      { sentence: "Солнце светит", translation: "The sun shines", audio: "solntse_svetit.mp3", difficulty: "easy", category: "nature" },
+      { sentence: "Кот спит", translation: "The cat sleeps", audio: "kot_spit.mp3", difficulty: "easy", category: "animals" },
+      { sentence: "Я играю", translation: "I play", audio: "ya_igrayu.mp3", difficulty: "easy", category: "general" },
+
+      // Medium sentences
+      { sentence: "Мы идём в школу", translation: "We go to school", audio: "mi_idyom_v_shkolu.mp3", difficulty: "medium", category: "education" },
+      { sentence: "Дождь идёт", translation: "It's raining", audio: "dozhd_idyot.mp3", difficulty: "medium", category: "nature" },
+      { sentence: "Мальчик читает книгу", translation: "The boy reads a book", audio: "malchik_chitaet_knigu.mp3", difficulty: "medium", category: "education" },
+      { sentence: "Собака бежит", translation: "The dog runs", audio: "sobaka_bezhit.mp3", difficulty: "medium", category: "animals" },
+      { sentence: "Цветы красивые", translation: "The flowers are beautiful", audio: "cvety_krasivye.mp3", difficulty: "medium", category: "nature" },
+
+      // Hard sentences
+      { sentence: "Вечером мы смотрим телевизор", translation: "In the evening we watch TV", audio: "vecherom_mi_smotrim_televizor.mp3", difficulty: "hard", category: "general" },
+      { sentence: "Зимой холодно, а летом тепло", translation: "It's cold in winter and warm in summer", audio: "zimoy_holodno_a_letom teplo.mp3", difficulty: "hard", category: "nature" },
+      { sentence: "Бабушка печёт пироги", translation: "Grandmother bakes pies", audio: "babushka_pechyot_pirogi.mp3", difficulty: "hard", category: "family" },
+      { sentence: "Самолёт летит высоко", translation: "The airplane flies high", audio: "samolyot_letit_vysoko.mp3", difficulty: "hard", category: "transport" },
+      { sentence: "В библиотеке много книг", translation: "There are many books in the library", audio: "v_biblioteke_mnogo_knig.mp3", difficulty: "hard", category: "education" }
+    ];
+
+    // Insert all sentences at once
+    await db.insert(sentencesAndPhrases).values(initialSentences);
+  }
+
+  async getAllSentences(): Promise<SentenceAndPhrase[]> {
+    await this.ensureInitialized();
+    return await db.select().from(sentencesAndPhrases);
+  }
+
+  async getSentence(id: string): Promise<SentenceAndPhrase | undefined> {
+    await this.ensureInitialized();
+    const [sentence] = await db.select().from(sentencesAndPhrases).where(eq(sentencesAndPhrases.id, id));
+    return sentence || undefined;
+  }
+
+  async createSentence(insertSentence: InsertSentence): Promise<SentenceAndPhrase> {
+    const [sentence] = await db.insert(sentencesAndPhrases).values(insertSentence).returning();
+    return sentence;
+  }
+
+  async getSentencesByCategory(category: string): Promise<SentenceAndPhrase[]> {
+    await this.ensureInitialized();
+    return await db.select().from(sentencesAndPhrases).where(eq(sentencesAndPhrases.category, category));
+  }
+
+  async getSentencesByDifficulty(difficulty: string): Promise<SentenceAndPhrase[]> {
+    await this.ensureInitialized();
+    return await db.select().from(sentencesAndPhrases).where(eq(sentencesAndPhrases.difficulty, difficulty));
   }
 
   async getGameProgress(id: string): Promise<GameProgress | undefined> {
@@ -230,9 +302,9 @@ export class DatabaseStorage implements IStorage {
 
   async getAvailableWords(sessionId: string): Promise<Word[]> {
     await this.ensureInitialized();
-    
+
     const correctWordIds = await this.getCorrectAnswersInLastMonth(sessionId);
-    
+
     if (correctWordIds.length === 0) {
       return await this.getAllWords();
     }
@@ -244,7 +316,7 @@ export class DatabaseStorage implements IStorage {
       .where(notInArray(words.id, correctWordIds));
 
     const filteredWords = this.filterBlacklistedWords(availableWords);
-    
+
     // If no words available (user completed all), return all words to keep playing
     if (filteredWords.length === 0) {
       console.log('All words completed! Returning all words for continued practice.');
@@ -256,16 +328,16 @@ export class DatabaseStorage implements IStorage {
 
   async getRandomWords(excludeId: string, count: number): Promise<Word[]> {
     await this.ensureInitialized();
-    
+
     // First get the word we're excluding to know its emoji
     const excludedWord = await db
       .select()
       .from(words)
       .where(eq(words.id, excludeId))
       .limit(1);
-    
+
     const excludedImage = excludedWord[0]?.image;
-    
+
     // Get more words than needed to account for filtering
     const allWords = await db
       .select()
@@ -276,13 +348,13 @@ export class DatabaseStorage implements IStorage {
 
     // Filter out blacklisted words
     const filteredWords = this.filterBlacklistedWords(allWords);
-    
+
     // Filter out words with duplicate emojis
     const seenImages = new Set<string>();
     if (excludedImage) {
       seenImages.add(excludedImage);
     }
-    
+
     const uniqueEmojiWords: Word[] = [];
     for (const word of filteredWords) {
       if (!seenImages.has(word.image)) {
@@ -293,8 +365,25 @@ export class DatabaseStorage implements IStorage {
         }
       }
     }
-    
+
     return uniqueEmojiWords;
+  }
+
+  // Material world management
+  async getMaterialWorldActivities(): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT id, event, syllables, image
+        FROM public.material_world
+        ORDER BY id
+      `);
+
+      console.log('Material world activities result:', result.rows);
+      return result.rows || [];
+    } catch (error) {
+      console.error('Error fetching material world activities:', error);
+      return [];
+    }
   }
 }
 

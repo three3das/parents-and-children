@@ -11,7 +11,8 @@ import { ExtraLetterGame } from "@/components/ExtraLetterGame";
 import { SpellWordGame } from "@/components/SpellWordGame";
 import { MixGame } from "@/components/MixGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
-
+import { SyllablesGame } from "@/components/SyllablesGame";
+import { SentenceGame } from "@/components/SentenceGame";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
@@ -34,7 +35,7 @@ export default function Game() {
     localStorage.setItem('russian-game-session', newSessionId);
     return newSessionId;
   });
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -93,13 +94,24 @@ export default function Game() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Fetch syllable options for current word (syllables mode)
+  const { data: syllableData, isLoading: syllableLoading } = useQuery<{
+    firstSyllable: string;
+    options: string[];
+    correctAnswer: string;
+  }>({
+    queryKey: ["/api/words", currentWord?.id, "syllables"],
+    enabled: !!currentWord?.id && gameType === 'syllables',
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Handle mix game answers
   const handleMixAnswer = (isCorrect: boolean) => {
     // Prevent multiple selections while processing
     if (selectedPicture || showCelebration) return;
-    
+
     setSelectedPicture({ id: 'mix-complete', word: 'mix-complete', image: '', audio: '' } as Word);
-    
+
     // Record the answer in the database
     if (currentWord) {
       recordAnswerMutation.mutate({
@@ -108,7 +120,7 @@ export default function Game() {
         sessionId,
       });
     }
-    
+
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
@@ -139,9 +151,9 @@ export default function Game() {
   const handlePictureSelect = (word: Word, isCorrect: boolean) => {
     // Prevent multiple selections while processing
     if (selectedPicture || showCelebration) return;
-    
+
     setSelectedPicture(word);
-    
+
     // Record the answer in the database
     if (currentWord) {
       recordAnswerMutation.mutate({
@@ -150,7 +162,7 @@ export default function Game() {
         sessionId,
       });
     }
-    
+
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
@@ -165,9 +177,9 @@ export default function Game() {
   const handleLetterSelect = (letter: string, isCorrect: boolean) => {
     // Prevent multiple selections while processing
     if (selectedPicture || showCelebration) return;
-    
+
     setSelectedPicture({ id: letter, word: letter, image: '', audio: '' } as Word);
-    
+
     // Record the answer in the database
     if (currentWord) {
       recordAnswerMutation.mutate({
@@ -176,7 +188,7 @@ export default function Game() {
         sessionId,
       });
     }
-    
+
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
@@ -191,9 +203,9 @@ export default function Game() {
   const handleLetterRemove = (letterIndex: number, isCorrect: boolean) => {
     // Prevent multiple selections while processing
     if (selectedPicture || showCelebration) return;
-    
+
     setSelectedPicture({ id: `remove-${letterIndex}`, word: `remove-${letterIndex}`, image: '', audio: '' } as Word);
-    
+
     // Record the answer in the database
     if (currentWord) {
       recordAnswerMutation.mutate({
@@ -202,7 +214,7 @@ export default function Game() {
         sessionId,
       });
     }
-    
+
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
@@ -217,9 +229,9 @@ export default function Game() {
   const handleWordComplete = (isCorrect: boolean) => {
     // Prevent multiple selections while processing
     if (selectedPicture || showCelebration) return;
-    
+
     setSelectedPicture({ id: 'spell-complete', word: 'spell-complete', image: '', audio: '' } as Word);
-    
+
     // Record the answer in the database
     if (currentWord) {
       recordAnswerMutation.mutate({
@@ -228,7 +240,7 @@ export default function Game() {
         sessionId,
       });
     }
-    
+
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
@@ -240,19 +252,66 @@ export default function Game() {
     }
   };
 
+  const handleSyllableSelect = (syllable: string, isCorrect: boolean) => {
+    if (selectedPicture || showCelebration) return;
+
+    setSelectedPicture({ id: syllable, word: syllable, image: '', audio: '' } as Word);
+
+    if (currentWord) {
+      recordAnswerMutation.mutate({
+        wordId: currentWord.id,
+        isCorrect,
+        sessionId,
+      });
+    }
+
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setShowCelebration(true);
+    } else {
+      setTimeout(() => {
+        setSelectedPicture(null);
+      }, 1500);
+    }
+  };
+
+  const handleSentenceAnswer = (isCorrect: boolean) => {
+    if (selectedPicture || showCelebration) return;
+
+    setSelectedPicture({ id: 'sentence-complete', word: 'sentence-complete', image: '', audio: '' } as Word);
+
+    if (currentWord) {
+      recordAnswerMutation.mutate({
+        wordId: currentWord.id,
+        isCorrect,
+        sessionId,
+      });
+    }
+
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setShowCelebration(true);
+    } else {
+      setTimeout(() => {
+        setSelectedPicture(null);
+      }, 1500);
+    }
+  };
+
   const handleNextWord = () => {
     setShowCelebration(false);
     setSelectedPicture(null);
-    
+
     // Invalidate words query to get updated list (after celebration is done)
     queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId] });
-    
+
     if (currentWordIndex + 1 >= words.length) {
       setGameCompleted(true);
     } else {
       setCurrentWordIndex(prev => prev + 1);
     }
   };
+
 
   const handleSettingsClick = () => {
     toast({
@@ -310,7 +369,7 @@ export default function Game() {
   if (gameCompleted) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center bg-white rounded-3xl p-8 shadow-2xl mx-4 max-w-md"
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -324,7 +383,7 @@ export default function Game() {
           <p className="text-xl text-secondary mb-6 font-semibold">
             Сегодня правильных ответов: {todayProgress?.correctAnswersToday || 0}
           </p>
-          
+
           <div className="space-y-4">
             <motion.button
               onClick={handleRestartGame}
@@ -342,7 +401,7 @@ export default function Game() {
 
   // Show loading only if we don't have the current word at all
   const isInitialLoading = !currentWord;
-    
+
   if (isInitialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -364,7 +423,7 @@ export default function Game() {
       />
 
       <main className="flex-1 overflow-y-auto max-w-6xl mx-auto px-4 pb-8 w-full">
-        <GameMenu 
+        <GameMenu
           currentGameType={gameType}
           onGameTypeChange={handleGameTypeChange}
           currentMixType={currentMixType}
@@ -373,11 +432,11 @@ export default function Game() {
         {gameType === 'picture-match' && (
           <>
             <WordDisplay word={currentWord.word} />
-            
+
             {distractorsLoading ? (
               <div className="text-center py-8">
-                <div className="text-2xl">⏳</div>
-                <p className="text-sm text-gray-500">Загружаем варианты...</p>
+                <div className="text-2xl"> </div>
+                <p className="text-sm text-gray-500">...</p>
               </div>
             ) : (
               <PictureGrid
@@ -391,12 +450,12 @@ export default function Game() {
             <div className="text-center mt-8">
               <motion.div
                 className="text-6xl"
-                animate={{ 
+                animate={{
                   rotate: [-10, 10, -10],
                   scale: [1, 1.1, 1]
                 }}
-                transition={{ 
-                  duration: 2, 
+                transition={{
+                  duration: 2,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -465,8 +524,31 @@ export default function Game() {
             onMixTypeChange={setCurrentMixType}
           />
         )}
-      </main>
 
+        {gameType === 'syllables' && (
+          syllableLoading ? (
+            <div className="text-center py-8">
+              <div className="text-2xl">⏳</div>
+              <p className="text-sm text-gray-500">Загружаем слоги...</p>
+            </div>
+          ) : (
+            <SyllablesGame
+              word={currentWord}
+              syllables={syllableData.syllables}
+              correctSyllables={syllableData.correctSyllables}
+              onSyllableSelect={handleSyllableSelect}
+              disabled={!!selectedPicture || showCelebration}
+            />
+          )
+        )}
+
+        {gameType === 'sentence-game' && (
+          <SentenceGame
+            onAnswer={handleSentenceAnswer}
+            disabled={!!selectedPicture || showCelebration}
+          />
+        )}
+      </main>
       <CelebrationOverlay
         key={`celebration-${currentWord?.id}-${correctAnswers}`}
         isVisible={showCelebration}

@@ -13,7 +13,7 @@ export function useAudio() {
       audioRef.current.currentTime = 0;
       audioRef.current = null;
     }
-    
+
     // Stop all active audio sources
     activeSourcesRef.current.forEach(source => {
       try {
@@ -23,7 +23,7 @@ export function useAudio() {
       }
     });
     activeSourcesRef.current.clear();
-    
+
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
@@ -42,13 +42,13 @@ export function useAudio() {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
-      
+
       const audio = new Audio(audioFile);
       audio.volume = AUDIO_CONFIG.defaultVolume;
       audio.preload = 'auto';
-      
+
       audioRef.current = audio;
-      
+
       await audio.play();
     } catch (error) {
       console.warn('Failed to play custom audio:', error);
@@ -58,9 +58,9 @@ export function useAudio() {
   const playLetterSound = useCallback((letter: string) => {
     // Use Russian audio folder for Cyrillic letters
     const customAudioPath = `/audio/letters/рос/${letter.toUpperCase()}.mp3`;
-    
+
     const audio = new Audio(customAudioPath);
-    
+
     audio.addEventListener('error', () => {
       console.log(`Russian audio not found for letter: ${letter}, using Web Speech API`);
       // Fallback to Web Speech API
@@ -74,7 +74,7 @@ export function useAudio() {
         console.warn('Speech synthesis not available:', error);
       }
     });
-    
+
     audio.addEventListener('canplaythrough', () => {
       console.log(`Playing Russian audio for letter: ${letter}`);
     });
@@ -112,22 +112,38 @@ export function useAudio() {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
+        audioRef.current = null;
       }
-      
-      const audio = new Audio('/audio/success.mp3');
+
+      const audioPath = '/audio/success.mp3';
+      const audio = new Audio(audioPath);
       audio.volume = AUDIO_CONFIG.defaultVolume;
       audio.preload = 'auto';
-      
+
       audioRef.current = audio;
-      
+
       // Play for 1.5 seconds max
-      audio.play();
-      setTimeout(() => {
-        if (audio === audioRef.current) {
-          audio.pause();
-          audio.currentTime = 0;
-        }
-      }, 1500);
+      const playPromise = audio.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Only set timeout if play was successful
+            setTimeout(() => {
+              if (audioRef.current === audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                audioRef.current = null;
+              }
+            }, 1500);
+          })
+          .catch((error) => {
+            console.warn('Failed to play applause sound:', error);
+            if (audioRef.current === audio) {
+              audioRef.current = null;
+            }
+          });
+      }
     } catch (error) {
       console.warn('Failed to play applause sound:', error);
     }
@@ -143,12 +159,12 @@ export function useAudio() {
       const sampleRate = audioContext.sampleRate;
       const buffer = audioContext.createBuffer(1, duration * sampleRate, sampleRate);
       const data = buffer.getChannelData(0);
-      
+
       // Generate a gentle descending sound
       for (let i = 0; i < data.length; i++) {
         const time = i / sampleRate;
         let sample = 0;
-        
+
         // Two descending tones: G4 to E4 (gentle disappointment)
         if (time < 0.3) {
           sample += Math.sin(2 * Math.PI * 392 * time) * Math.exp(-time * 4) * 0.2; // G4
@@ -156,19 +172,19 @@ export function useAudio() {
         if (time >= 0.2 && time < 0.6) {
           sample += Math.sin(2 * Math.PI * 329.63 * (time - 0.2)) * Math.exp(-(time - 0.2) * 4) * 0.2; // E4
         }
-        
+
         data[i] = sample;
       }
-      
+
       const source = audioContext.createBufferSource();
       source.buffer = buffer;
-      
+
       // Track active sources for cleanup
       activeSourcesRef.current.add(source);
       source.addEventListener('ended', () => {
         activeSourcesRef.current.delete(source);
       });
-      
+
       source.connect(audioContext.destination);
       source.start();
     } catch (error) {
