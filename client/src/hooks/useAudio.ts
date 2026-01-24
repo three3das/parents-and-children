@@ -115,7 +115,7 @@ export function useAudio() {
         audioRef.current = null;
       }
 
-      const audioPath = '/audio/success.mp3';
+      const audioPath = '/audio/pobeda.mp3';
       const audio = new Audio(audioPath);
       audio.volume = AUDIO_CONFIG.defaultVolume;
       audio.preload = 'auto';

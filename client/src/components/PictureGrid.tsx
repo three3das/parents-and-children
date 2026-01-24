@@ -23,12 +23,19 @@ export function PictureGrid({
 
   // Memoize shuffled options to prevent unnecessary reshuffling
   const shuffledOptions = useMemo(() => {
-    if (correctWord && distractors.length > 0) {
-      const allOptions = [correctWord, ...distractors];
+    if (correctWord) {
+      // Проверяем, что distractors существует и является массивом
+      const safeDistractors = Array.isArray(distractors) ? distractors : [];
+      const allOptions = [correctWord, ...safeDistractors];
+
+      // Если distractors не загружены, добавляем заглушки
+      if (safeDistractors.length === 0) {
+        return [correctWord];
+      }
       return [...allOptions].sort(() => Math.random() - 0.5);
     }
     return [];
-  }, [correctWord.id, distractors.length]);
+  }, [correctWord, distractors]);
 
   const handlePictureClick = useCallback((word: Word) => {
     console.log('handlePictureClick called for:', word.word, 'disabled:', disabled, 'selectedPicture:', selectedPicture);

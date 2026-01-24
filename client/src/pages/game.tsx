@@ -103,6 +103,35 @@ export default function Game() {
     queryKey: ["/api/words", currentWord?.id, "syllables"],
     enabled: !!currentWord?.id && gameType === 'syllables',
     staleTime: 5 * 60 * 1000,
+    select: (data: any) => {
+      // Transform API response {syllables, correctSyllables} to component format
+      console.log('🔍 Syllables API response:', data);
+
+      if (!data || !data.syllables || !data.correctSyllables) {
+        console.log('🔍 Invalid syllables data:', data);
+        return null;
+      }
+
+      // Если syllables это строка, разбиваем на массив по запятым
+      let syllablesArray: string[];
+      if (typeof data.syllables === 'string') {
+        // Разбиваем строку по запятым и убираем пробелы
+        syllablesArray = data.syllables.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      } else if (Array.isArray(data.syllables)) {
+        syllablesArray = data.syllables;
+      } else {
+        // Превращаем в строку и разбиваем по запятым
+        syllablesArray = String(data.syllables).split(',').map(s => s.trim()).filter(s => s.length > 0);
+      }
+
+      console.log('🔍 Transformed syllables:', syllablesArray);
+
+      return {
+        firstSyllable: data.correctSyllables[0] || '',
+        options: syllablesArray,
+        correctAnswer: data.correctSyllables.join('')
+      };
+    }
   });
 
   // Handle mix game answers
@@ -441,7 +470,7 @@ export default function Game() {
             ) : (
               <PictureGrid
                 correctWord={currentWord}
-                distractors={distractors}
+                distractors={distractors || []}
                 onPictureSelect={handlePictureSelect}
                 disabled={!!selectedPicture || showCelebration}
               />
@@ -534,9 +563,10 @@ export default function Game() {
           ) : (
             <SyllablesGame
               word={currentWord}
-              syllables={syllableData.syllables}
-              correctSyllables={syllableData.correctSyllables}
-              onSyllableSelect={handleSyllableSelect}
+              firstSyllable={syllableData.firstSyllable}
+              options={syllableData.options}
+              correctAnswer={syllableData.correctAnswer}
+              onAnswer={handleSyllableAnswer}
               disabled={!!selectedPicture || showCelebration}
             />
           )
