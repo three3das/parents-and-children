@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Word, type GameType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { GAME_CONFIG } from "@/lib/constants";
 import { GameHeader } from "@/components/GameHeader";
 import { GameMenu } from "@/components/GameMenu";
 import { WordDisplay } from "@/components/WordDisplay";
@@ -376,6 +377,35 @@ export default function Game() {
     setGameType(newGameType);
     setSelectedPicture(null);
     setShowCelebration(false);
+  };
+
+  const handleSyllableAnswer = (isCorrect: boolean) => {
+    if (selectedPicture || showCelebration) return;
+
+    setSelectedPicture({ id: 'syllable-answer', word: 'syllable-answer', image: '', audio: '' } as Word);
+
+    // Record the answer in the database
+    if (currentWord) {
+      recordAnswerMutation.mutate({
+        wordId: currentWord.id,
+        isCorrect,
+        sessionId,
+      });
+    }
+
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setShowCelebration(true);
+      setTimeout(() => {
+        setShowCelebration(false);
+        handleNextWord();
+      }, GAME_CONFIG.CELEBRATION_DURATION);
+    } else {
+      // Reset selection after a moment
+      setTimeout(() => {
+        setSelectedPicture(null);
+      }, 1500);
+    }
   };
 
   if (wordsLoading || progressLoading) {

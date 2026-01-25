@@ -177,11 +177,57 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
         loadMaterialWorldActivities();
     };
 
+    // Функция для озвучивания слогов
+    const speakSyllable = (syllable: string) => {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(syllable);
+            utterance.lang = 'ru-RU';
+            utterance.rate = 0.8;
+            utterance.pitch = 1.2;
+            utterance.volume = 0.8;
+
+            // Выбираем женский голос
+            const voices = speechSynthesis.getVoices();
+            const femaleVoice = voices.find(voice =>
+                voice.lang.includes('ru') &&
+                (voice.name.includes('Female') || voice.name.includes('Tatyana') || voice.name.includes('Elena'))
+            );
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+
+            speechSynthesis.speak(utterance);
+        }
+    };
+
+    // Функция для озвучивания слов
+    const speakWord = (word: string) => {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.lang = 'ru-RU';
+            utterance.rate = 0.7;
+            utterance.pitch = 1.1;
+            utterance.volume = 0.8;
+
+            // Выбираем женский голос
+            const voices = speechSynthesis.getVoices();
+            const femaleVoice = voices.find(voice =>
+                voice.lang.includes('ru') &&
+                (voice.name.includes('Female') || voice.name.includes('Tatyana') || voice.name.includes('Elena'))
+            );
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+
+            speechSynthesis.speak(utterance);
+        }
+    };
+
     const currentActivity = activities[currentActivityIndex];
     const progress = totalQuestions > 0 ? (currentActivityIndex / totalQuestions) * 100 : 0;
 
     return (
-        <div className="flex flex-col items-center p-8">
+        <div className="flex flex-col items-center px-8 pt-2 pb-8">
             {gameState === 'completed' && (() => {
                 const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
@@ -229,14 +275,14 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
 
             {currentActivity && gameState === 'playing' && (
                 <>
-                    <div className="w-full max-w-2xl mb-6">
+                    <div className="w-full max-w-2xl mb-2">
                         <Progress value={progress} className="h-2" />
                         <p className="text-center text-sm text-gray-600 mt-2">
                             Вопрос {currentActivityIndex + 1} из {totalQuestions}
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4 mb-8">
+                    <div className="grid grid-cols-4 gap-4 mb-2">
                         {imageOptions.length > 0 ? (
                             imageOptions.map((activity) => {
                                 const imagePath = activity.image.startsWith('/images/') ? activity.image : `/images/${activity.image}`;
@@ -258,7 +304,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                                                 : 'border-gray-200 hover:border-blue-400'
                                             }`}
                                     >
-                                        <div className="w-20 h-20 bg-gray-100 flex items-center justify-center">
+                                        <div className="w-30 h-30 bg-gray-100 flex items-center justify-center">
                                             {activity.image ? (
                                                 <img
                                                     src={encodedImagePath}
@@ -293,9 +339,9 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                         )}
                     </div>
 
-                    <div className="text-center mb-8">
-                        <Card className="p-6 mb-4 bg-blue-50 border-blue-200">
-                            <h3 className="text-2xl font-bold text-primary mb-4">
+                    <div className="text-center mb-2">
+                        <Card className="p-3 mb-2 bg-blue-50 border-blue-200">
+                            <h3 className="text-base font-bold text-primary mb-2">
                                 Событие:
                             </h3>
                             <p className="text-xl text-gray-800">
@@ -303,20 +349,48 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                             </p>
                         </Card>
 
-                        <Card className="p-6 bg-green-50 border-green-200">
-                            <h3 className="text-2xl font-bold text-green-700 mb-4">
+                        <Card className="p-3 bg-green-50 border-green-200">
+                            <h3 className="text-base font-bold text-green-700 mb-2">
                                 Слоги:
                             </h3>
                             <div className="flex flex-wrap justify-center gap-2">
-                                {currentActivity.syllables && currentActivity.syllables.trim() !== ''
-                                    ? currentActivity.syllables.split('-').map((syllable, index) => (
-                                        <span key={index} className="bg-white px-3 py-2 rounded-lg border border-green-300 text-lg font-medium">
-                                            {syllable}
-                                        </span>
-                                    ))
-                                    : <span className="text-gray-500">Слоги не указаны</span>
-                                }
+                                {currentActivity.syllables && (() => {
+                                    // Разделяем слова по пробелам, затем каждое слово на слоги по дефисам
+                                    const words = currentActivity.syllables.trim().split(' ');
+
+                                    return words.map((word, wordIndex) => (
+                                        <div key={wordIndex} className="inline-flex bg-white rounded-lg border-2 border-green-400 p-2">
+                                            {word.split('-').map((syllable, syllableIndex) => (
+                                                <motion.button
+                                                    key={syllableIndex}
+                                                    onClick={() => speakSyllable(syllable)}
+                                                    className="bg-green-100 hover:bg-green-200 border border-green-300 rounded px-2 py-1 mx-1 text-lg font-medium transition-colors cursor-pointer"
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    title={`Нажмите чтобы услышать слог "${syllable}"`}
+                                                >
+                                                    {syllable}
+                                                </motion.button>
+                                            ))}
+                                        </div>
+                                    ));
+                                })() || (
+                                        <span className="text-gray-500">Слоги не указаны</span>
+                                    )}
                             </div>
+                            {currentActivity.syllables && currentActivity.syllables.trim() !== '' && (
+                                <div className="mt-4 text-center">
+                                    <motion.button
+                                        onClick={() => speakWord(currentActivity.syllables.replace(/[-\s]/g, ''))}
+                                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        title={`Нажмите чтобы услышать всё слово`}
+                                    >
+                                        🔊 Слушать всё слово
+                                    </motion.button>
+                                </div>
+                            )}
                         </Card>
                     </div>
 
@@ -324,14 +398,14 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                         <Button
                             onClick={handleNext}
                             disabled={showResult && isCorrect}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 disabled:opacity-50"
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 h-10 disabled:opacity-50"
                         >
                             Далее
                         </Button>
                         <Button
                             onClick={handleSkip}
                             variant="outline"
-                            className="px-6"
+                            className="px-6 py-2 h-10"
                         >
                             Пропустить
                         </Button>

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { type Word } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
 import { PICTURE_EMOJIS, ANIMATION_VARIANTS, GAME_CONFIG } from "@/lib/constants";
-import { extractEmojiFromImage } from "@/lib/utils";
+import { extractEmojiFromImage, getImagePath } from "@/lib/utils";
 // ... остальной код компонента
 interface PictureGridProps {
   correctWord: Word;
@@ -65,14 +65,17 @@ export function PictureGrid({
 
   return (
     <motion.div
-      className={`grid ${gridClasses} gap-4 sm:gap-6 max-w-4xl mx-auto`}
+      className={`grid ${gridClasses} gap-2 sm:gap-4 max-w-7xl mx-auto`}
       {...ANIMATION_VARIANTS.stagger}
     >
       {shuffledOptions.map((word, index) => {
         const isCorrect = word.id === correctWord.id;
         const isSelected = selectedPicture?.id === word.id;
+        const imagePath = getImagePath(word.image);
+        const emoji = extractEmojiFromImage(word.image);
 
-        console.log('Rendering word:', word.word, 'isSelected:', isSelected, 'selectedPicture:', selectedPicture?.word);
+        console.log('Rendering word:', word.word, 'image:', word.image, 'imagePath:', imagePath, 'emoji:', emoji);
+        console.log('isSelected:', isSelected, 'selectedPicture:', selectedPicture?.word);
 
         return (
           <div
@@ -80,7 +83,7 @@ export function PictureGrid({
             onClick={() => handlePictureClick(word)}
             style={{ cursor: 'pointer' }}
             className={`
-              w-40 h-40 cursor-pointer border-4 rounded-2xl flex items-center justify-center
+              w-full cursor-pointer border-4 rounded-2xl flex items-center justify-center aspect-square
               ${disabled ? 'opacity-50' : ''}
               ${isSelected ? (isCorrect ? 'bg-green-400 border-green-600' : 'bg-red-400 border-red-600') : 'bg-white border-gray-300'}
             `}
@@ -93,17 +96,33 @@ export function PictureGrid({
                 transition={{ duration: 0.3 }}
               />
 
-              {/* Emoji */}
-              <motion.span
-                className="text-4xl sm:text-6xl relative z-10"
-                whileHover={{
-                  scale: 1.1,
-                  rotate: [0, -5, 5, 0],
-                  transition: { duration: 0.3 }
-                }}
-              >
-                {extractEmojiFromImage(word.image)}
-              </motion.span>
+              {/* Image or Emoji */}
+              {imagePath ? (
+                <motion.img
+                  src={imagePath}
+                  alt={word.word}
+                  className="w-full h-full object-contain relative z-10"
+                  whileHover={{
+                    scale: 1.05,
+                    transition: { duration: 0.3 }
+                  }}
+                  onError={(e) => {
+                    console.error('Failed to load image:', imagePath);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <motion.span
+                  className="text-6xl sm:text-8xl relative z-10"
+                  whileHover={{
+                    scale: 1.1,
+                    rotate: [0, -5, 5, 0],
+                    transition: { duration: 0.3 }
+                  }}
+                >
+                  {emoji || '❓'}
+                </motion.span>
+              )}
 
               {/* Success/Error overlay */}
               {isSelected && (

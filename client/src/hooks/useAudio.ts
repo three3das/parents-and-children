@@ -4,7 +4,7 @@ import { AUDIO_CONFIG } from '@/lib/constants';
 export function useAudio() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const activeSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
+  const activeSourcesRef = useRef<Set<AudioBufferSourceNode | OscillatorNode>>(new Set());
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -192,10 +192,57 @@ export function useAudio() {
     }
   }, [getAudioContext]);
 
+  const playVictory = useCallback(() => {
+    try {
+      // Stop current audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+
+      // Create victory sound using Web Audio API
+      const audioContext = getAudioContext();
+      if (!audioContext) return;
+
+      // Create a simple victory melody
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (victory fanfare)
+      const noteDuration = 0.2;
+      const totalDuration = notes.length * noteDuration;
+
+      notes.forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+
+        const startTime = audioContext.currentTime + index * noteDuration;
+        const endTime = startTime + noteDuration;
+
+        gainNode.gain.setValueAtTime(0.3, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, endTime);
+
+        oscillator.start(startTime);
+        oscillator.stop(endTime);
+
+        activeSourcesRef.current.add(oscillator);
+        oscillator.onended = () => {
+          activeSourcesRef.current.delete(oscillator);
+        };
+      });
+    } catch (error) {
+      console.warn('Failed to play victory sound:', error);
+    }
+  }, [getAudioContext]);
+
   return {
     playLetterSound,
     playApplause,
     playTryAgain,
+    playVictory,
     playCustomAudio,
     cleanup
   };

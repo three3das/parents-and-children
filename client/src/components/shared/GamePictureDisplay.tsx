@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
 import { type Word } from "@shared/schema";
 import { PICTURE_EMOJIS } from "@/lib/constants";
-import { extractEmojiFromImage } from "@/lib/utils"; // added import
-
+import { extractEmojiFromImage, getImagePath } from "@/lib/utils";
 
 interface GamePictureDisplayProps {
   word: Word;
@@ -12,9 +11,9 @@ interface GamePictureDisplayProps {
 }
 
 const sizeClasses = {
-  sm: 'text-6xl',
-  md: 'text-8xl',
-  lg: 'text-10xl'
+  sm: 'w-24 h-24',
+  md: 'w-32 h-32',
+  lg: 'w-48 h-48'
 };
 
 export function GamePictureDisplay({
@@ -30,6 +29,7 @@ export function GamePictureDisplay({
   }
 
   const emoji = extractEmojiFromImage(word.image);
+  const imagePath = getImagePath(word.image);
 
   const handleSpeakerClick = () => {
     if (disabled) return;
@@ -49,7 +49,21 @@ export function GamePictureDisplay({
         animate={{ scale: 1 }}
         className={`mb-4 ${sizeClasses[size]}`}
       >
-        {emoji}
+        {imagePath ? (
+          <img
+            src={imagePath}
+            alt={word.word}
+            className="w-full h-full object-contain rounded-lg"
+            onError={(e) => {
+              console.error('Failed to load image:', imagePath);
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : (
+          <span className="flex items-center justify-center w-full h-full text-8xl">
+            {emoji || '❓'}
+          </span>
+        )}
       </motion.div>
       <motion.div
         className={`text-4xl mb-2 transition-transform ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-110'}`}
