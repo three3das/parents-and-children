@@ -5,8 +5,6 @@ import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { type Word } from "@shared/schema";
 import { getImagePath, extractEmojiFromImage } from "@/lib/utils";
-import { useAudio } from "@/hooks/useAudio";
-
 // Helper function to split word into syllables (simplified)
 function splitIntoSyllables(word: string): string[] {
     const vowels = ['а', 'о', 'у', 'ы', 'э', 'е', 'ё', 'и', 'ю', 'я'];
@@ -148,9 +146,6 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
 
         if (correct) {
             setCorrectAnswers(prev => prev + 1);
-            // Звук и анимация управляются на уровне страницы в game.tsx
-        } else {
-            // Убрали playError() чтобы избежать ошибки
         }
     };
 

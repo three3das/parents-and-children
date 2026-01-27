@@ -396,10 +396,6 @@ export default function Game() {
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
-      setTimeout(() => {
-        setShowCelebration(false);
-        handleNextWord();
-      }, GAME_CONFIG.CELEBRATION_DURATION);
     } else {
       // Reset selection after a moment
       setTimeout(() => {
