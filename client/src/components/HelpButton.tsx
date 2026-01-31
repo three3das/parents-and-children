@@ -1,35 +1,43 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { type GameType } from "@shared/schema";
+import { useLanguage } from "@/lib/i18n";
 
 interface HelpButtonProps {
   gameType: GameType;
   currentMixType?: string;
 }
 
-const GAME_INSTRUCTIONS: Record<string, string> = {
-  'picture-match': 'Посмотри на слово и найди правильную картинку. Нажми на картинку, которая соответствует слову.',
-  'missing-letter': 'В слове пропущена одна буква. Выбери правильную букву из предложенных вариантов.',
-  'extra-letter': 'В слове есть лишняя буква. Найди и нажми на лишнюю букву, чтобы убрать её.',
-  'spell-word': 'Посмотри на картинку и составь слово. Перетаскивай буквы или нажимай на них, чтобы написать слово.',
-  'mix': 'В этом режиме каждое новое слово будет другой игрой. Следуй инструкциям для каждого задания.'
-};
-
 export function HelpButton({ gameType, currentMixType }: HelpButtonProps) {
   const [showHelp, setShowHelp] = useState(false);
+  const { t } = useLanguage();
 
   const getInstructions = () => {
     if (gameType === 'mix' && currentMixType) {
-      return GAME_INSTRUCTIONS[currentMixType] || GAME_INSTRUCTIONS['mix'];
+      const key = currentMixType.replace('-', '') as keyof typeof t.instructions;
+      if (key === 'picturematch') return t.instructions.pictureMatch;
+      if (key === 'missingletter') return t.instructions.missingLetter;
+      if (key === 'extraletter') return t.instructions.extraLetter;
+      if (key === 'spellword') return t.instructions.spellWord;
+      return t.instructions.mix;
     }
-    return GAME_INSTRUCTIONS[gameType] || 'Следуй инструкциям на экране.';
+
+    if (gameType === 'picture-match') return t.instructions.pictureMatch;
+    if (gameType === 'missing-letter') return t.instructions.missingLetter;
+    if (gameType === 'extra-letter') return t.instructions.extraLetter;
+    if (gameType === 'spell-word') return t.instructions.spellWord;
+    if (gameType === 'syllables') return t.instructions.syllables;
+    if (gameType === 'sentences') return t.instructions.sentences;
+    if (gameType === 'mix') return t.instructions.mix;
+
+    return t.instructions.default;
   };
 
   return (
     <>
       {/* Help Button */}
       <motion.button
-        className="w-12 h-12 bg-blue-500 text-white rounded-full text-xl font-bold hover:bg-blue-600 transition-colors shadow-lg"
+        className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 text-white rounded-xl text-lg sm:text-xl font-bold hover:bg-blue-600 transition-colors shadow-lg"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setShowHelp(!showHelp)}
@@ -55,7 +63,7 @@ export function HelpButton({ gameType, currentMixType }: HelpButtonProps) {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-4xl mb-4">💡</div>
-              <h3 className="text-xl font-bold mb-4 text-gray-800">Как играть</h3>
+              <h3 className="text-xl font-bold mb-4 text-gray-800">{t.howToPlay}</h3>
               <p className="text-gray-700 leading-relaxed mb-6">
                 {getInstructions()}
               </p>
@@ -65,7 +73,7 @@ export function HelpButton({ gameType, currentMixType }: HelpButtonProps) {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowHelp(false)}
               >
-                Понятно!
+                {t.gotIt}
               </motion.button>
             </motion.div>
           </motion.div>

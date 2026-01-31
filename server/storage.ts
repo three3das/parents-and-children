@@ -1,4 +1,4 @@
-import { type Word, type InsertWord, type SentenceAndPhrase, type InsertSentence, type GameProgress, type InsertGameProgress, type UserAnswer, type InsertUserAnswer, words, sentencesAndPhrases, userAnswers } from "@shared/schema";
+import { type Word, type InsertWord, type SentenceAndPhrase, type InsertSentence, type GameProgress, type InsertGameProgress, type UserAnswer, type InsertUserAnswer, type User, type InsertUser, type PasswordResetToken, type WordTranslation, words, sentencesAndPhrases, userAnswers, users, passwordResetTokens, wordTranslations } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt, sql, notInArray } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -7,11 +7,22 @@ import { randomUUID } from "crypto";
 // These are words with non-standard spelling or rare letters that are 
 // exceptions and too complicated for beginner language learners
 const LEARNING_BLACKLIST = {
-  words: ['СОЛНЦЕ', 'СТОЛ'],   // silent 'л' - difficult for beginners, СТОЛ removed per user request
+  words: [] as string[],   // No words blacklisted - show all 150 words
   letters: ['Ъ']       // hard sign - rare and complex usage rules
 } as const;
 
 export interface IStorage {
+  // User management
+  createUser(user: InsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserById(id: string): Promise<User | undefined>;
+  updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
+
+  // Password reset tokens
+  createPasswordResetToken(userId: string): Promise<string>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  markTokenAsUsed(tokenId: string): Promise<void>;
+
   // Word management
   getAllWords(): Promise<Word[]>;
   getWord(id: string): Promise<Word | undefined>;
@@ -40,6 +51,13 @@ export interface IStorage {
   // Game logic helpers
   getRandomWords(excludeId: string, count: number): Promise<Word[]>;
   getAvailableWords(sessionId: string): Promise<Word[]>;
+
+  // Word translations
+  getWordTranslation(wordId: string, language: string): Promise<WordTranslation | undefined>;
+  getWordTranslations(wordId: string): Promise<WordTranslation[]>;
+  createWordTranslation(wordId: string, language: string, translation: string): Promise<WordTranslation>;
+  getWordWithTranslation(wordId: string, language: string): Promise<(Word & { translatedWord?: string }) | undefined>;
+  getAllWordsWithTranslations(language: string): Promise<(Word & { translatedWord?: string })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -61,6 +79,57 @@ export class DatabaseStorage implements IStorage {
       !this.isWordBlacklisted(word.word) &&
       !this.containsBlacklistedLetters(word.word)
     );
+  }
+
+  // User management methods
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async getUserById(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    await db.update(users).set({ password: hashedPassword }).where(eq(users.id, userId));
+  }
+
+  // Password reset token methods
+  async createPasswordResetToken(userId: string): Promise<string> {
+    const token = randomUUID() + '-' + randomUUID(); // Generate a long unique token
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+    await db.insert(passwordResetTokens).values({
+      userId,
+      token,
+      expiresAt,
+      used: false,
+    });
+
+    return token;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db.select().from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.token, token),
+          eq(passwordResetTokens.used, false),
+          gt(passwordResetTokens.expiresAt, new Date())
+        )
+      );
+    return resetToken || undefined;
+  }
+
+  async markTokenAsUsed(tokenId: string): Promise<void> {
+    await db.update(passwordResetTokens).set({ used: true }).where(eq(passwordResetTokens.id, tokenId));
   }
 
   private async ensureInitialized() {
@@ -384,6 +453,83 @@ export class DatabaseStorage implements IStorage {
       console.error('Error fetching material world activities:', error);
       return [];
     }
+  }
+
+  // Word translations methods
+  async getWordTranslation(wordId: string, language: string): Promise<WordTranslation | undefined> {
+    const [translation] = await db.select().from(wordTranslations)
+      .where(and(
+        eq(wordTranslations.wordId, wordId),
+        eq(wordTranslations.language, language)
+      ));
+    return translation || undefined;
+  }
+
+  async getWordTranslations(wordId: string): Promise<WordTranslation[]> {
+    return await db.select().from(wordTranslations)
+      .where(eq(wordTranslations.wordId, wordId));
+  }
+
+  async createWordTranslation(wordId: string, language: string, translation: string): Promise<WordTranslation> {
+    const [wordTranslation] = await db.insert(wordTranslations).values({
+      wordId,
+      language,
+      translation,
+    }).returning();
+    return wordTranslation;
+  }
+
+  async getWordWithTranslation(wordId: string, language: string): Promise<(Word & { translatedWord?: string }) | undefined> {
+    await this.ensureInitialized();
+
+    const result = await db.execute(sql`
+      SELECT w.*, wt.translation as translated_word
+      FROM words w
+      LEFT JOIN word_translations wt ON w.id = wt.word_id AND wt.language = ${language}
+      WHERE w.id = ${wordId}
+    `);
+
+    if (!result.rows || result.rows.length === 0) {
+      return undefined;
+    }
+
+    const row = result.rows[0] as any;
+    return {
+      id: row.id,
+      word: row.word,
+      image: row.image,
+      audio: row.audio,
+      word_english: row.word_english,
+      translatedWord: row.translated_word || undefined,
+    };
+  }
+
+  async getAllWordsWithTranslations(language: string): Promise<(Word & { translatedWord?: string })[]> {
+    await this.ensureInitialized();
+
+    const result = await db.execute(sql`
+      SELECT w.*, wt.translation as translated_word
+      FROM words w
+      LEFT JOIN word_translations wt ON w.id = wt.word_id AND wt.language = ${language}
+    `);
+
+    if (!result.rows) {
+      return [];
+    }
+
+    const allWords = result.rows.map((row: any) => ({
+      id: row.id,
+      word: row.word,
+      image: row.image,
+      audio: row.audio,
+      word_english: row.word_english,
+      translatedWord: row.translated_word || undefined,
+    }));
+
+    return this.filterBlacklistedWords(allWords as Word[]).map(w => ({
+      ...w,
+      translatedWord: allWords.find(aw => aw.id === w.id)?.translatedWord,
+    }));
   }
 }
 

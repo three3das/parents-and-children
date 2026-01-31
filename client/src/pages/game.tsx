@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Word, type GameType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { GAME_CONFIG } from "@/lib/constants";
+import { useLanguage } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { GameHeader } from "@/components/GameHeader";
 import { GameMenu } from "@/components/GameMenu";
 import { WordDisplay } from "@/components/WordDisplay";
@@ -14,6 +16,8 @@ import { MixGame } from "@/components/MixGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { SyllablesGame } from "@/components/SyllablesGame";
 import { SentenceGame } from "@/components/SentenceGame";
+import { LoginModal } from "@/components/LoginModal";
+import { CreateAccountModal } from "@/components/CreateAccountModal";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
@@ -25,6 +29,8 @@ export default function Game() {
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
   const [gameType, setGameType] = useState<GameType>('picture-match');
   const [currentMixType, setCurrentMixType] = useState<string>('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
   const [sessionId] = useState(() => {
     // Check if we have a session ID in localStorage
     const stored = localStorage.getItem('russian-game-session');
@@ -39,11 +45,20 @@ export default function Game() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t, language } = useLanguage();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
-  // Fetch available words (excluding correctly answered ones)
-  const { data: words = [], isLoading: wordsLoading } = useQuery<Word[]>({
-    queryKey: ["/api/words", sessionId],
-    queryFn: () => fetch(`/api/words?sessionId=${sessionId}`).then(res => res.json()),
+  // Extended Word type with optional translation
+  type WordWithTranslation = Word & { translatedWord?: string };
+
+  // Fetch all words (with all=true to get ALL words from the table)
+  // Pass language to get translated words when not Russian
+  const { data: words = [], isLoading: wordsLoading } = useQuery<WordWithTranslation[]>({
+    queryKey: ["/api/words", sessionId, "all", language],
+    queryFn: () => {
+      const langParam = language !== 'ru' ? `&lang=${language}` : '';
+      return fetch(`/api/words?sessionId=${sessionId}&all=true${langParam}`).then(res => res.json());
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
@@ -333,7 +348,7 @@ export default function Game() {
     setSelectedPicture(null);
 
     // Invalidate words query to get updated list (after celebration is done)
-    queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId] });
+    queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId, "all"] });
 
     if (currentWordIndex + 1 >= words.length) {
       setGameCompleted(true);
@@ -345,14 +360,14 @@ export default function Game() {
 
   const handleSettingsClick = () => {
     toast({
-      title: "Настройки 🔧",
-      description: "Чтобы сбросить прогресс и начать заново, нажмите здесь",
+      title: t.settingsTitle,
+      description: t.settingsDescription,
       action: (
         <button
           onClick={handleResetProgress}
           className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm"
         >
-          Сбросить прогресс
+          {t.resetProgress}
         </button>
       ),
     });
@@ -377,6 +392,19 @@ export default function Game() {
     setGameType(newGameType);
     setSelectedPicture(null);
     setShowCelebration(false);
+  };
+
+  const handleLoginClick = () => setShowLoginModal(true);
+  const handleCreateAccountClick = () => setShowCreateAccountModal(true);
+
+  const switchToCreateAccount = () => {
+    setShowLoginModal(false);
+    setShowCreateAccountModal(true);
+  };
+
+  const switchToLogin = () => {
+    setShowCreateAccountModal(false);
+    setShowLoginModal(true);
   };
 
   const handleSyllableAnswer = (isCorrect: boolean) => {
@@ -404,6 +432,83 @@ export default function Game() {
     }
   };
 
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            className="text-6xl mb-4"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          >
+            📚
+          </motion.div>
+          <p className="text-2xl font-bold text-child-text">{t.loading}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100">
+        <motion.div
+          className="text-center bg-white rounded-3xl p-8 shadow-2xl mx-4 max-w-md"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        >
+          <div className="text-8xl mb-6">📚</div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent mb-4">
+            KidRead
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            {t.auth.loginRequired || "Please log in to play"}
+          </p>
+
+          <div className="space-y-4">
+            <motion.button
+              onClick={() => setShowLoginModal(true)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full text-xl transition-colors duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {t.auth.login}
+            </motion.button>
+            <motion.button
+              onClick={() => setShowCreateAccountModal(true)}
+              className="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-4 px-8 rounded-full text-xl transition-colors duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {t.auth.createAccount}
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Auth Modals */}
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onSwitchToCreateAccount={() => {
+            setShowLoginModal(false);
+            setShowCreateAccountModal(true);
+          }}
+        />
+        <CreateAccountModal
+          isOpen={showCreateAccountModal}
+          onClose={() => setShowCreateAccountModal(false)}
+          onSwitchToLogin={() => {
+            setShowCreateAccountModal(false);
+            setShowLoginModal(true);
+          }}
+        />
+      </div>
+    );
+  }
+
   if (wordsLoading || progressLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -415,7 +520,7 @@ export default function Game() {
           >
             📚
           </motion.div>
-          <p className="text-2xl font-bold text-child-text">Загружаем слова...</p>
+          <p className="text-2xl font-bold text-child-text">{t.loadingWords}</p>
         </div>
       </div>
     );
@@ -431,12 +536,12 @@ export default function Game() {
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
         >
           <div className="text-8xl mb-6">🏆</div>
-          <h1 className="text-4xl font-bold text-primary mb-4">Поздравляем!</h1>
+          <h1 className="text-4xl font-bold text-primary mb-4">{t.congratulations}</h1>
           <p className="text-2xl text-child-text mb-4">
-            Ты прошёл все слова!
+            {t.completedAllWords}
           </p>
           <p className="text-xl text-secondary mb-6 font-semibold">
-            Сегодня правильных ответов: {todayProgress?.correctAnswersToday || 0}
+            {t.correctAnswersToday} {todayProgress?.correctAnswersToday || 0}
           </p>
 
           <div className="space-y-4">
@@ -446,7 +551,7 @@ export default function Game() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Играть снова! 🎮
+              {t.playAgain} 🎮
             </motion.button>
           </div>
         </motion.div>
@@ -462,7 +567,7 @@ export default function Game() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4">⏳</div>
-          <p className="text-xl text-child-text">Подготавливаем задание...</p>
+          <p className="text-xl text-child-text">{t.preparingTask}</p>
         </div>
       </div>
     );
@@ -475,6 +580,8 @@ export default function Game() {
         totalWords={words.length}
         correctAnswersToday={todayProgress?.correctAnswersToday || 0}
         onSettingsClick={handleSettingsClick}
+        onLoginClick={handleLoginClick}
+        onCreateAccountClick={handleCreateAccountClick}
       />
 
       <main className="flex-1 overflow-y-auto max-w-6xl mx-auto px-4 pb-8 w-full">
@@ -486,8 +593,6 @@ export default function Game() {
 
         {gameType === 'picture-match' && (
           <>
-            <WordDisplay word={currentWord.word} />
-
             {distractorsLoading ? (
               <div className="text-center py-8">
                 <div className="text-2xl"> </div>
@@ -502,9 +607,13 @@ export default function Game() {
               />
             )}
 
-            <div className="text-center mt-8">
+            <div className="mt-2 sm:mt-4">
+              <WordDisplay word={currentWord.translatedWord || currentWord.word} />
+            </div>
+
+            <div className="text-center mt-2 sm:mt-8">
               <motion.div
-                className="text-6xl"
+                className="text-4xl sm:text-6xl"
                 animate={{
                   rotate: [-10, 10, -10],
                   scale: [1, 1.1, 1]
@@ -525,7 +634,7 @@ export default function Game() {
           letterOptionsLoading ? (
             <div className="text-center py-8">
               <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">Подготавливаем буквы...</p>
+              <p className="text-sm text-gray-500">{t.preparingLetters}</p>
             </div>
           ) : letterData ? (
             <MissingLetterGame
@@ -542,7 +651,7 @@ export default function Game() {
           extraLetterLoading ? (
             <div className="text-center py-8">
               <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">Создаем задание...</p>
+              <p className="text-sm text-gray-500">{t.creatingTask}</p>
             </div>
           ) : extraLetterData ? (
             <ExtraLetterGame
@@ -559,7 +668,7 @@ export default function Game() {
           spellLettersLoading ? (
             <div className="text-center py-8">
               <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">Готовим буквы...</p>
+              <p className="text-sm text-gray-500">{t.preparingLetters}</p>
             </div>
           ) : spellLettersData ? (
             <SpellWordGame
@@ -584,7 +693,7 @@ export default function Game() {
           syllableLoading ? (
             <div className="text-center py-8">
               <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">Загружаем слоги...</p>
+              <p className="text-sm text-gray-500">{t.loadingSyllables}</p>
             </div>
           ) : (
             <SyllablesGame
@@ -609,6 +718,18 @@ export default function Game() {
         key={`celebration-${currentWord?.id}-${correctAnswers}`}
         isVisible={showCelebration}
         onNext={handleNextWord}
+      />
+
+      {/* Auth Modals */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSwitchToCreateAccount={switchToCreateAccount}
+      />
+      <CreateAccountModal
+        isOpen={showCreateAccountModal}
+        onClose={() => setShowCreateAccountModal(false)}
+        onSwitchToLogin={switchToLogin}
       />
     </div>
   );

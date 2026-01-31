@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudio } from "@/hooks/useAudio";
 import { useEffect, useRef, useMemo } from "react";
-import { CELEBRATION_MESSAGES, GAME_CONFIG, ANIMATION_VARIANTS } from "@/lib/constants";
+import { GAME_CONFIG, ANIMATION_VARIANTS } from "@/lib/constants";
+import { useLanguage } from "@/lib/i18n";
 
 interface CelebrationOverlayProps {
   isVisible: boolean;
@@ -77,12 +78,13 @@ function Confetti({ delay }: { delay: number }) {
 
 export function CelebrationOverlay({ isVisible, onNext }: CelebrationOverlayProps) {
   const { playApplause } = useAudio();
+  const { t } = useLanguage();
   const hasPlayedSound = useRef(false);
 
   // Memoize celebration message to prevent re-renders
   const celebrationMessage = useMemo(() => {
-    return CELEBRATION_MESSAGES[Math.floor(Math.random() * CELEBRATION_MESSAGES.length)];
-  }, [isVisible]);
+    return t.celebrations[Math.floor(Math.random() * t.celebrations.length)];
+  }, [isVisible, t.celebrations]);
 
   // Memoize particles to prevent recreation on every render
   const particles = useMemo(() => {
