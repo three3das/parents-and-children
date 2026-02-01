@@ -310,6 +310,11 @@ export interface GameConfig {
     ru: string;
     uk: string;
   };
+  instruction: {
+    en: string;
+    ru: string;
+    uk: string;
+  };
 }
 
 export const GAMES: GameConfig[] = [
@@ -318,42 +323,42 @@ export const GAMES: GameConfig[] = [
     level: 1,
     icon: '🖼️',
     name: { en: 'Find Picture', ru: 'Найди картинку', uk: 'Знайди картинку' },
+    instruction: { en: 'Click the matching picture', ru: 'Нажми на нужную картинку', uk: 'Натисни на потрібну картинку' },
   },
   {
     slug: 'missing-letter',
     level: 2,
     icon: '🔍',
     name: { en: 'Find Letter', ru: 'Найди букву', uk: 'Знайди букву' },
+    instruction: { en: 'Click the missing letter', ru: 'Нажми на пропущенную букву', uk: 'Натисни на пропущену букву' },
   },
   {
     slug: 'extra-letter',
     level: 2,
     icon: '🗑️',
     name: { en: 'Remove Extra', ru: 'Убери лишнее', uk: 'Прибери зайве' },
+    instruction: { en: 'Click the extra letter', ru: 'Нажми на лишнюю букву', uk: 'Натисни на зайву букву' },
   },
   {
     slug: 'spell-word',
     level: 3,
     icon: '✏️',
     name: { en: 'Spell Word', ru: 'Составь слово', uk: 'Склади слово' },
+    instruction: { en: 'Click letters to spell the word', ru: 'Нажимай на буквы по порядку', uk: 'Натискай на букви по порядку' },
   },
   {
     slug: 'syllables',
     level: 2,
     icon: '🧱',
     name: { en: 'Syllables', ru: 'Слоги', uk: 'Склади' },
+    instruction: { en: 'Find the matching syllable', ru: 'Найди подходящий слог', uk: 'Знайди відповідний склад' },
   },
   {
     slug: 'sentence-game',
     level: 4,
     icon: '📝',
     name: { en: 'Sentences', ru: 'Предложения', uk: 'Речення' },
-  },
-  {
-    slug: 'mix',
-    level: 1,
-    icon: '🎲',
-    name: { en: 'Mix', ru: 'Микс', uk: 'Мікс' },
+    instruction: { en: 'Build the sentence', ru: 'Составь предложение', uk: 'Склади речення' },
   },
 ];
 

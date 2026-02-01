@@ -13,7 +13,6 @@ import { PictureGrid } from "@/components/PictureGrid";
 import { MissingLetterGame } from "@/components/MissingLetterGame";
 import { ExtraLetterGame } from "@/components/ExtraLetterGame";
 import { SpellWordGame } from "@/components/SpellWordGame";
-import { MixGame } from "@/components/MixGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { SyllablesGame } from "@/components/SyllablesGame";
 import { SentenceGame } from "@/components/SentenceGame";
@@ -22,14 +21,26 @@ import { CreateAccountModal } from "@/components/CreateAccountModal";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
+// Helper to read URL params
+function getUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    game: params.get('game') as GameType | null,
+    word: params.get('word'),
+    locale: params.get('locale'),
+  };
+}
+
 export default function Game() {
+  // Initialize state from URL params
+  const urlParams = getUrlParams();
+
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
-  const [gameType, setGameType] = useState<GameType>('picture-match');
-  const [currentMixType, setCurrentMixType] = useState<string>('');
+  const [gameType, setGameType] = useState<GameType>(urlParams.game || 'picture-match');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
   const [sessionId] = useState(() => {
@@ -72,6 +83,29 @@ export default function Game() {
 
   // Get current word
   const currentWord = words[currentWordIndex];
+
+  // Sync word index from URL param when words load
+  useEffect(() => {
+    if (words.length > 0 && urlParams.word) {
+      const index = words.findIndex(w => w.id === urlParams.word);
+      if (index !== -1 && index !== currentWordIndex) {
+        setCurrentWordIndex(index);
+      }
+    }
+  }, [words.length]); // Only run when words first load
+
+  // Update URL when game state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('game', gameType);
+    if (currentWord?.id) {
+      params.set('word', currentWord.id);
+    }
+    params.set('locale', language);
+
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }, [gameType, currentWord?.id, language]);
 
   // Fetch distractors for current word (picture-match mode)
   const { data: distractors = [], isLoading: distractorsLoading } = useQuery<Word[]>({
@@ -150,33 +184,6 @@ export default function Game() {
       };
     }
   });
-
-  // Handle mix game answers
-  const handleMixAnswer = (isCorrect: boolean) => {
-    // Prevent multiple selections while processing
-    if (selectedPicture || showCelebration) return;
-
-    setSelectedPicture({ id: 'mix-complete', word: 'mix-complete', image: '', audio: '' } as Word);
-
-    // Record the answer in the database
-    if (currentWord) {
-      recordAnswerMutation.mutate({
-        wordId: currentWord.id,
-        isCorrect,
-        sessionId,
-      });
-    }
-
-    if (isCorrect) {
-      setCorrectAnswers(prev => prev + 1);
-      setShowCelebration(true);
-    } else {
-      // Reset selection after a moment
-      setTimeout(() => {
-        setSelectedPicture(null);
-      }, 1500);
-    }
-  };
 
   // Mutation to record user answers
   const recordAnswerMutation = useMutation({
@@ -589,12 +596,18 @@ export default function Game() {
         <GameMenu
           currentGameType={gameType}
           onGameTypeChange={handleGameTypeChange}
-          currentMixType={currentMixType}
         />
 
         {gameType === 'picture-match' && (
           <>
             <GameTitle gameType="picture-match" />
+
+            {/* Word Display - TOP (what to find) */}
+            <div className="mb-4 sm:mb-6">
+              <WordDisplay word={currentWord.translatedWord || currentWord.word} />
+            </div>
+
+            {/* Picture Options - BOTTOM (interactive input) */}
             {distractorsLoading ? (
               <div className="text-center py-8">
                 <div className="text-2xl"> </div>
@@ -608,27 +621,6 @@ export default function Game() {
                 disabled={!!selectedPicture || showCelebration}
               />
             )}
-
-            <div className="mt-2 sm:mt-4">
-              <WordDisplay word={currentWord.translatedWord || currentWord.word} />
-            </div>
-
-            <div className="text-center mt-2 sm:mt-8">
-              <motion.div
-                className="text-4xl sm:text-6xl"
-                animate={{
-                  rotate: [-10, 10, -10],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                👆
-              </motion.div>
-            </div>
           </>
         )}
 
@@ -689,15 +681,6 @@ export default function Game() {
               />
             ) : null}
           </>
-        )}
-
-        {gameType === 'mix' && (
-          <MixGame
-            word={currentWord}
-            onAnswer={handleMixAnswer}
-            disabled={!!selectedPicture || showCelebration}
-            onMixTypeChange={setCurrentMixType}
-          />
         )}
 
         {gameType === 'syllables' && (

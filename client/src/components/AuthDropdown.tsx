@@ -6,9 +6,10 @@ import { useAuth } from "@/lib/auth";
 interface AuthDropdownProps {
   onLoginClick: () => void;
   onCreateAccountClick: () => void;
+  onSettingsClick: () => void;
 }
 
-export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdownProps) {
+export function AuthDropdown({ onLoginClick, onCreateAccountClick, onSettingsClick }: AuthDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
@@ -39,6 +40,11 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdow
   const handleLogout = () => {
     setIsOpen(false);
     logout();
+  };
+
+  const handleSettingsClick = () => {
+    setIsOpen(false);
+    onSettingsClick();
   };
 
   // Get user initials for avatar
@@ -90,6 +96,14 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdow
                   <p className="font-medium text-gray-800">{user?.firstName} {user?.lastName}</p>
                   <p className="text-sm text-gray-500 truncate">{user?.email}</p>
                 </div>
+                {/* Settings button */}
+                <button
+                  onClick={handleSettingsClick}
+                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium flex items-center gap-2 border-b border-gray-100"
+                >
+                  <span>⚙️</span>
+                  <span>{t.settings}</span>
+                </button>
                 {/* Logout button */}
                 <button
                   onClick={handleLogout}
@@ -108,9 +122,17 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdow
                 </button>
                 <button
                   onClick={handleCreateAccountClick}
-                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
                 >
                   {t.auth.createAccount}
+                </button>
+                {/* Settings button for non-authenticated users */}
+                <button
+                  onClick={handleSettingsClick}
+                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium flex items-center gap-2"
+                >
+                  <span>⚙️</span>
+                  <span>{t.settings}</span>
                 </button>
               </>
             )}

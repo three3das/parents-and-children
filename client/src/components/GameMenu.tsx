@@ -6,10 +6,9 @@ import { GAMES } from "@/lib/constants";
 interface GameMenuProps {
   currentGameType: GameType;
   onGameTypeChange: (gameType: GameType) => void;
-  currentMixType?: string;
 }
 
-export function GameMenu({ currentGameType, onGameTypeChange, currentMixType }: GameMenuProps) {
+export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
   return (
     <div className="flex gap-1 sm:gap-2 mb-4 justify-between items-center">
       <div className="flex gap-0.5 sm:gap-2">
@@ -29,10 +28,7 @@ export function GameMenu({ currentGameType, onGameTypeChange, currentMixType }: 
         ))}
       </div>
 
-      <HelpButton
-        gameType={currentGameType}
-        currentMixType={currentMixType}
-      />
+      <HelpButton gameType={currentGameType} />
     </div>
   );
 }

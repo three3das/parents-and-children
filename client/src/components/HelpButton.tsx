@@ -5,30 +5,19 @@ import { useLanguage } from "@/lib/i18n";
 
 interface HelpButtonProps {
   gameType: GameType;
-  currentMixType?: string;
 }
 
-export function HelpButton({ gameType, currentMixType }: HelpButtonProps) {
+export function HelpButton({ gameType }: HelpButtonProps) {
   const [showHelp, setShowHelp] = useState(false);
   const { t } = useLanguage();
 
   const getInstructions = () => {
-    if (gameType === 'mix' && currentMixType) {
-      const key = currentMixType.replace('-', '') as keyof typeof t.instructions;
-      if (key === 'picturematch') return t.instructions.pictureMatch;
-      if (key === 'missingletter') return t.instructions.missingLetter;
-      if (key === 'extraletter') return t.instructions.extraLetter;
-      if (key === 'spellword') return t.instructions.spellWord;
-      return t.instructions.mix;
-    }
-
     if (gameType === 'picture-match') return t.instructions.pictureMatch;
     if (gameType === 'missing-letter') return t.instructions.missingLetter;
     if (gameType === 'extra-letter') return t.instructions.extraLetter;
     if (gameType === 'spell-word') return t.instructions.spellWord;
     if (gameType === 'syllables') return t.instructions.syllables;
-    if (gameType === 'sentences') return t.instructions.sentences;
-    if (gameType === 'mix') return t.instructions.mix;
+    if (gameType === 'sentence-game') return t.instructions.sentences;
 
     return t.instructions.default;
   };
