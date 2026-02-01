@@ -300,6 +300,79 @@ export const ANIMATION_VARIANTS = {
   }
 } as const;
 
+// Games configuration with multi-language support
+export interface GameConfig {
+  slug: string;
+  level: number;
+  icon: string;
+  name: {
+    en: string;
+    ru: string;
+    uk: string;
+  };
+}
+
+export const GAMES: GameConfig[] = [
+  {
+    slug: 'picture-match',
+    level: 1,
+    icon: '🖼️',
+    name: { en: 'Find Picture', ru: 'Найди картинку', uk: 'Знайди картинку' },
+  },
+  {
+    slug: 'missing-letter',
+    level: 2,
+    icon: '🔍',
+    name: { en: 'Find Letter', ru: 'Найди букву', uk: 'Знайди букву' },
+  },
+  {
+    slug: 'extra-letter',
+    level: 2,
+    icon: '🗑️',
+    name: { en: 'Remove Extra', ru: 'Убери лишнее', uk: 'Прибери зайве' },
+  },
+  {
+    slug: 'spell-word',
+    level: 3,
+    icon: '✏️',
+    name: { en: 'Spell Word', ru: 'Составь слово', uk: 'Склади слово' },
+  },
+  {
+    slug: 'syllables',
+    level: 2,
+    icon: '🧱',
+    name: { en: 'Syllables', ru: 'Слоги', uk: 'Склади' },
+  },
+  {
+    slug: 'sentence-game',
+    level: 4,
+    icon: '📝',
+    name: { en: 'Sentences', ru: 'Предложения', uk: 'Речення' },
+  },
+  {
+    slug: 'mix',
+    level: 1,
+    icon: '🎲',
+    name: { en: 'Mix', ru: 'Микс', uk: 'Мікс' },
+  },
+];
+
+// Helper to get game by slug
+export const getGameBySlug = (slug: string): GameConfig | undefined =>
+  GAMES.find(g => g.slug === slug);
+
+// Helper to get game name in specific language
+export const getGameName = (slug: string, lang: 'en' | 'ru' | 'uk' = 'ru'): string => {
+  const game = getGameBySlug(slug);
+  return game?.name[lang] ?? slug;
+};
+
+// Helper to get game icon
+export const getGameIcon = (slug: string): string => {
+  const game = getGameBySlug(slug);
+  return game?.icon ?? '🎮';
+};
+
 // Blacklist for difficult words and letters
 // These are words with non-standard spelling or rare letters that are 
 // exceptions and too complicated for beginner language learners

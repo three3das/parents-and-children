@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { type Word, type GameType } from "@shared/schema";
 import { WordDisplay } from "./WordDisplay";
 import { PictureGrid } from "./PictureGrid";
 import { MissingLetterGame } from "./MissingLetterGame";
 import { ExtraLetterGame } from "./ExtraLetterGame";
 import { SpellWordGame } from "./SpellWordGame";
-import { motion } from "framer-motion";
+import { GameTitle } from "./shared/GameTitle";
 
 // Extended Word type with optional translation
 type WordWithTranslation = Word & { translatedWord?: string };
@@ -17,20 +18,6 @@ interface MixGameProps {
   disabled: boolean;
   onMixTypeChange?: (mixType: string) => void;
 }
-
-const GAME_TYPE_NAMES: Record<Exclude<GameType, 'mix'>, string> = {
-  'picture-match': 'Найди картинку',
-  'missing-letter': 'Найди букву',
-  'extra-letter': 'Убери лишнее',
-  'spell-word': 'Составь слово'
-};
-
-const GAME_TYPE_ICONS: Record<Exclude<GameType, 'mix'>, string> = {
-  'picture-match': '🖼️',
-  'missing-letter': '🔍',
-  'extra-letter': '🗑️',
-  'spell-word': '✏️'
-};
 
 export function MixGame({ word, onAnswer, disabled, onMixTypeChange }: MixGameProps) {
   // Randomly select game type for this word
@@ -117,17 +104,7 @@ export function MixGame({ word, onAnswer, disabled, onMixTypeChange }: MixGamePr
 
   return (
     <div>
-      {/* Show current game type indicator */}
-      <div className="text-center mb-4">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2"
-        >
-          <span className="text-2xl">{GAME_TYPE_ICONS[currentMixType]}</span>
-          <span className="text-sm font-medium text-blue-800">{GAME_TYPE_NAMES[currentMixType]}</span>
-        </motion.div>
-      </div>
+      <GameTitle gameType={currentMixType} />
 
       {currentMixType === 'picture-match' && (
         <>

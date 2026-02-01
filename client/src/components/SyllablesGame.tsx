@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { type Word } from "@shared/schema";
 import { getImagePath, extractEmojiFromImage } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
+
 // Helper function to split word into syllables (simplified)
 function splitIntoSyllables(word: string): string[] {
     const vowels = ['а', 'о', 'у', 'ы', 'э', 'е', 'ё', 'и', 'ю', 'я'];
@@ -96,10 +97,28 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
         loadWords();
     }, [loadWords]);
 
+    const currentWord = words[currentWordIndex];
+    const totalQuestions = words.length;
+    const progress = totalQuestions > 0 ? (currentWordIndex / totalQuestions) * 100 : 0;
+
+    const handleSkip = useCallback(() => {
+        setSkippedCount(prev => prev + 1);
+        if (currentWordIndex < words.length - 1) {
+            setCurrentWordIndex(prev => prev + 1);
+            setShowResult(false);
+            setSelectedEnding('');
+        } else {
+            setGameState('completed');
+        }
+    }, [currentWordIndex, words.length]);
+
     // Generate options for current word
     useEffect(() => {
         if (gameState === 'playing' && words.length > 0 && currentWordIndex < words.length) {
-            const wordText = currentWord.word;
+            const word = words[currentWordIndex];
+            if (!word) return;
+
+            const wordText = word.word;
             const syllables = splitIntoSyllables(wordText);
 
             console.log('Word:', wordText, 'Syllables:', syllables);
@@ -111,10 +130,9 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                 return;
             }
 
-            const firstSyllable = syllables[0];
             const correctEnding = syllables.slice(1).join('');
 
-            console.log('First syllable:', firstSyllable, 'Correct ending:', correctEnding);
+            console.log('First syllable:', syllables[0], 'Correct ending:', correctEnding);
 
             // Generate random endings
             const randomEndings = generateRandomEndings(correctEnding, 2);
@@ -127,14 +145,10 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
             setShowResult(false);
             setIsCorrect(false);
         }
-    }, [gameState, words, currentWordIndex]);
-
-    const currentWord = words[currentWordIndex];
-    const totalQuestions = words.length;
-    const progress = totalQuestions > 0 ? (currentWordIndex / totalQuestions) * 100 : 0;
+    }, [gameState, words, currentWordIndex, handleSkip]);
 
     const handleEndingSelect = (ending: string) => {
-        if (disabled || showResult) return;
+        if (disabled || showResult || !currentWord) return;
 
         setSelectedEnding(ending);
         const wordText = currentWord.word;
@@ -166,11 +180,6 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
         } else {
             setGameState('completed');
         }
-    };
-
-    const handleSkip = () => {
-        setSkippedCount(prev => prev + 1);
-        handleNext();
     };
 
     const handleRestart = () => {

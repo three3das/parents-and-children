@@ -7,6 +7,7 @@ import { useLanguage } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { GameHeader } from "@/components/GameHeader";
 import { GameMenu } from "@/components/GameMenu";
+import { GameTitle } from "@/components/shared/GameTitle";
 import { WordDisplay } from "@/components/WordDisplay";
 import { PictureGrid } from "@/components/PictureGrid";
 import { MissingLetterGame } from "@/components/MissingLetterGame";
@@ -131,7 +132,7 @@ export default function Game() {
       // Если syllables это строка, разбиваем на массив по запятым
       let syllablesArray: string[];
       if (typeof data.syllables === 'string') {
-        // Разбиваем строку по запятым и убираем пробелы
+        // Разбиваем строку по запятам и убираем пробелы
         syllablesArray = data.syllables.split(',').map(s => s.trim()).filter(s => s.length > 0);
       } else if (Array.isArray(data.syllables)) {
         syllablesArray = data.syllables;
@@ -593,6 +594,7 @@ export default function Game() {
 
         {gameType === 'picture-match' && (
           <>
+            <GameTitle gameType="picture-match" />
             {distractorsLoading ? (
               <div className="text-center py-8">
                 <div className="text-2xl"> </div>
@@ -631,53 +633,62 @@ export default function Game() {
         )}
 
         {gameType === 'missing-letter' && (
-          letterOptionsLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.preparingLetters}</p>
-            </div>
-          ) : letterData ? (
-            <MissingLetterGame
-              word={currentWord}
-              letterOptions={letterData.letterOptions}
-              missingLetterIndex={letterData.missingLetterIndex}
-              onLetterSelect={handleLetterSelect}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          ) : null
+          <>
+            <GameTitle gameType="missing-letter" />
+            {letterOptionsLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.preparingLetters}</p>
+              </div>
+            ) : letterData ? (
+              <MissingLetterGame
+                word={currentWord}
+                letterOptions={letterData.letterOptions}
+                missingLetterIndex={letterData.missingLetterIndex}
+                onLetterSelect={handleLetterSelect}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null}
+          </>
         )}
 
         {gameType === 'extra-letter' && (
-          extraLetterLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.creatingTask}</p>
-            </div>
-          ) : extraLetterData ? (
-            <ExtraLetterGame
-              word={currentWord}
-              wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
-              extraLetterIndex={extraLetterData.extraLetterIndex}
-              onLetterRemove={handleLetterRemove}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          ) : null
+          <>
+            <GameTitle gameType="extra-letter" />
+            {extraLetterLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.creatingTask}</p>
+              </div>
+            ) : extraLetterData ? (
+              <ExtraLetterGame
+                word={currentWord}
+                wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
+                extraLetterIndex={extraLetterData.extraLetterIndex}
+                onLetterRemove={handleLetterRemove}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null}
+          </>
         )}
 
         {gameType === 'spell-word' && (
-          spellLettersLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.preparingLetters}</p>
-            </div>
-          ) : spellLettersData ? (
-            <SpellWordGame
-              word={currentWord}
-              availableLetters={spellLettersData.availableLetters}
-              onWordComplete={handleWordComplete}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          ) : null
+          <>
+            <GameTitle gameType="spell-word" />
+            {spellLettersLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.preparingLetters}</p>
+              </div>
+            ) : spellLettersData ? (
+              <SpellWordGame
+                word={currentWord}
+                availableLetters={spellLettersData.availableLetters}
+                onWordComplete={handleWordComplete}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null}
+          </>
         )}
 
         {gameType === 'mix' && (
@@ -690,28 +701,30 @@ export default function Game() {
         )}
 
         {gameType === 'syllables' && (
-          syllableLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.loadingSyllables}</p>
-            </div>
-          ) : (
-            <SyllablesGame
-              word={currentWord}
-              firstSyllable={syllableData.firstSyllable}
-              options={syllableData.options}
-              correctAnswer={syllableData.correctAnswer}
-              onAnswer={handleSyllableAnswer}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          )
+          <>
+            <GameTitle gameType="syllables" />
+            {syllableLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.loadingSyllables}</p>
+              </div>
+            ) : (
+              <SyllablesGame
+                onAnswer={handleSyllableAnswer}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            )}
+          </>
         )}
 
         {gameType === 'sentence-game' && (
-          <SentenceGame
-            onAnswer={handleSentenceAnswer}
-            disabled={!!selectedPicture || showCelebration}
-          />
+          <>
+            <GameTitle gameType="sentence-game" />
+            <SentenceGame
+              onAnswer={handleSentenceAnswer}
+              disabled={!!selectedPicture || showCelebration}
+            />
+          </>
         )}
       </main>
       <CelebrationOverlay
