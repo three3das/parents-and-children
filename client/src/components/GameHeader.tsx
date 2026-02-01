@@ -1,15 +1,22 @@
 import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { GAME_CONFIG, ANIMATION_VARIANTS } from "@/lib/constants";
+import { useLanguage } from "@/lib/i18n";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { AuthDropdown } from "./AuthDropdown";
 
 interface GameHeaderProps {
   currentWordIndex: number;
   totalWords: number;
   correctAnswersToday: number;
   onSettingsClick: () => void;
+  onLoginClick: () => void;
+  onCreateAccountClick: () => void;
 }
 
-export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, onSettingsClick }: GameHeaderProps) {
+export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, onSettingsClick, onLoginClick, onCreateAccountClick }: GameHeaderProps) {
+  const { t } = useLanguage();
+
   // Calculate progress based on today's correct answers
   const targetAnswers = GAME_CONFIG.dailyGoal;
   const progressPercentage = Math.min((correctAnswersToday / targetAnswers) * 100, 100);
@@ -19,14 +26,14 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
   const achievementStatus = useMemo(() => {
     if (isGoalReached) {
       return {
-        text: 'Цель достигнута! 🎉',
+        text: t.goalReached,
         color: 'text-green-600',
         bgColor: 'from-green-400 to-green-500'
       };
     }
     if (correctAnswersToday >= targetAnswers * 0.75) {
       return {
-        text: 'Почти готово!',
+        text: t.almostDone,
         color: 'text-orange-600',
         bgColor: 'from-orange-400 to-orange-500'
       };
@@ -36,17 +43,17 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
       color: 'text-primary',
       bgColor: 'from-primary to-purple-500'
     };
-  }, [correctAnswersToday, targetAnswers, isGoalReached]);
+  }, [correctAnswersToday, targetAnswers, isGoalReached, t]);
 
   return (
-    <motion.header 
-      className="glass rounded-2xl p-2 mb-3 gpu-accelerated"
+    <motion.header
+      className="glass rounded-2xl p-2 mb-3 gpu-accelerated overflow-visible"
       {...ANIMATION_VARIANTS.slideDown}
     >
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between">
+      <div className="max-w-4xl mx-auto overflow-visible">
+        <div className="flex items-center justify-between overflow-visible">
           {/* Logo with KidRead */}
-          <motion.div 
+          <motion.div
             className="flex items-center"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -59,7 +66,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
           </motion.div>
 
           {/* Visual Progress - Icons Only */}
-          <motion.div 
+          <motion.div
             className="flex items-center gap-4"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -76,7 +83,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
                 <span className="text-sm text-muted-foreground">{targetAnswers}</span>
               </div>
               <div className="bg-muted/50 rounded-full h-2 w-16 overflow-hidden">
-                <motion.div 
+                <motion.div
                   className={`bg-gradient-to-r ${achievementStatus.bgColor} rounded-full h-2`}
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercentage}%` }}
@@ -86,11 +93,11 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
               {isGoalReached && (
                 <motion.span
                   className="text-xl"
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.3, 1],
                     rotate: [0, 15, -15, 0]
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 0.6,
                     repeat: Infinity,
                     repeatDelay: 2
@@ -116,8 +123,30 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
             )}
           </motion.div>
 
+          {/* Language Switcher */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="relative overflow-visible"
+          >
+            <LanguageSwitcher />
+          </motion.div>
+
+          {/* Auth Dropdown */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.27 }}
+          >
+            <AuthDropdown
+              onLoginClick={onLoginClick}
+              onCreateAccountClick={onCreateAccountClick}
+            />
+          </motion.div>
+
           {/* Settings with Text */}
-          <motion.button 
+          <motion.button
             onClick={onSettingsClick}
             className="btn-modern px-3 py-2 text-white text-sm font-medium flex items-center"
             whileHover={{ scale: 1.05 }}
@@ -127,7 +156,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
             transition={{ duration: 0.5, delay: 0.3 }}
           >
             <span className="mr-2">⚙️</span>
-            <span>Настройки</span>
+            <span>{t.settings}</span>
           </motion.button>
         </div>
       </div>

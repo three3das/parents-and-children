@@ -8,8 +8,11 @@ import { ExtraLetterGame } from "./ExtraLetterGame";
 import { SpellWordGame } from "./SpellWordGame";
 import { motion } from "framer-motion";
 
+// Extended Word type with optional translation
+type WordWithTranslation = Word & { translatedWord?: string };
+
 interface MixGameProps {
-  word: Word;
+  word: WordWithTranslation;
   onAnswer: (isCorrect: boolean) => void;
   disabled: boolean;
   onMixTypeChange?: (mixType: string) => void;
@@ -128,7 +131,7 @@ export function MixGame({ word, onAnswer, disabled, onMixTypeChange }: MixGamePr
 
       {currentMixType === 'picture-match' && (
         <>
-          <WordDisplay word={word.word} />
+          <WordDisplay word={word.translatedWord || word.word} />
           
           {distractorsLoading ? (
             <div className="text-center py-8">
