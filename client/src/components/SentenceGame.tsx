@@ -37,10 +37,10 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
     }, []);
 
     useEffect(() => {
-        if (gameState === 'playing' && activities.length > 0 && currentActivityIndex >= 0) {
+        if (gameState === 'playing' && activities.length > 0 && currentActivityIndex >= 0 && currentActivityIndex < activities.length) {
             generateImageOptions();
         }
-    }, [gameState, activities.length, currentActivityIndex]);
+    }, [gameState, activities, currentActivityIndex]);
 
     const loadMaterialWorldActivities = async () => {
         try {
@@ -70,7 +70,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
             setTotalQuestions(shuffled.length);
             setCurrentActivityIndex(0);
             setGameState('playing');
-            setTimeout(() => generateImageOptions(), 0);
+            // generateImageOptions will be called by useEffect when activities state updates
         } catch (error) {
             console.error('Error loading material world activities:', error);
         }
