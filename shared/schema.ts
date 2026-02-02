@@ -28,6 +28,7 @@ export const words = pgTable("words", {
   image: text("image").notNull(),
   audio: text("audio").notNull(),
   word_english: text("word_english"),
+  suffix: varchar("suffix", { length: 10 }), // 3-letter ending for syllables game
 });
 
 export const wordTranslations = pgTable("word_translations", {
@@ -92,7 +93,7 @@ export type InsertUserAnswer = z.infer<typeof insertUserAnswerSchema>;
 export type UserAnswer = typeof userAnswers.$inferSelect;
 export type WordTranslation = typeof wordTranslations.$inferSelect;
 // Game types
-export type GameType = 'picture-match' | 'missing-letter' | 'extra-letter' | 'spell-word' | 'mix' | 'syllables' | 'sentence-game';
+export type GameType = 'picture-match' | 'missing-letter' | 'extra-letter' | 'spell-word' | 'mix' | 'syllables' | 'sentence-game' | 'audio-picture';
 // Letter audio mapping for Russian alphabet
 export const RUSSIAN_LETTERS = {
   'А': 'a', 'Б': 'b', 'В': 'v', 'Г': 'g', 'Д': 'd', 'Е': 'e', 'Ё': 'yo',

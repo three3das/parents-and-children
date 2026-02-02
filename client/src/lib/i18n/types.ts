@@ -37,6 +37,7 @@ export interface Translations {
     spellWord: string;
     syllables: string;
     sentences: string;
+    audioPicture: string;
     mix: string;
     default: string;
   };

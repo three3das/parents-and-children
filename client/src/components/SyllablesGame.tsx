@@ -6,54 +6,9 @@ import { motion } from "framer-motion";
 import { type Word } from "@shared/schema";
 import { getImagePath, extractEmojiFromImage } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
-// Helper function to split word into syllables (simplified)
-function splitIntoSyllables(word: string): string[] {
-    const vowels = ['а', 'о', 'у', 'ы', 'э', 'е', 'ё', 'и', 'ю', 'я'];
-    const syllables: string[] = [];
-    let currentSyllable = '';
 
-    for (let i = 0; i < word.length; i++) {
-        const char = word[i].toLowerCase();
-        currentSyllable += word[i];
-
-        if (vowels.includes(char)) {
-            if (i < word.length - 1 && !vowels.includes(word[i + 1].toLowerCase())) {
-                currentSyllable += word[i + 1];
-                i++;
-            }
-            syllables.push(currentSyllable);
-            currentSyllable = '';
-        }
-    }
-
-    if (currentSyllable) {
-        if (syllables.length > 0) {
-            syllables[syllables.length - 1] += currentSyllable;
-        } else {
-            syllables.push(currentSyllable);
-        }
-    }
-
-    return syllables.length > 0 ? syllables : [word];
-}
-
-// Generate random endings for distractors
-function generateRandomEndings(correctEnding: string, count: number): string[] {
-    const endings: string[] = [];
-    const commonEndings = ['КА', 'ОК', 'ИК', 'А', 'О', 'Е', 'И', 'Ы', 'Я', 'Ю', 'ЕТ', 'ИТ', 'АТ', 'УТ', 'ЮТ', 'ЛА', 'ЛО', 'ЛИ', 'Л', 'ТЬ', 'ТИ', ''];
-
-    for (let i = 0; i < count; i++) {
-        let ending = commonEndings[Math.floor(Math.random() * commonEndings.length)];
-        // Make sure it's different from correct ending
-        while (ending === correctEnding || endings.includes(ending)) {
-            ending = commonEndings[Math.floor(Math.random() * commonEndings.length)];
-        }
-        // Convert to uppercase to match correct ending
-        endings.push(ending.toUpperCase());
-    }
-
-    return endings;
-}
+// Extended Word type with suffix
+type WordWithSuffix = Word & { suffix?: string };
 
 interface SyllablesGameProps {
     onAnswer: (isCorrect: boolean) => void;
@@ -65,7 +20,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
 
     // Game state
     const [gameState, setGameState] = useState<'loading' | 'playing' | 'completed'>('loading');
-    const [words, setWords] = useState<Word[]>([]);
+    const [words, setWords] = useState<WordWithSuffix[]>([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [correctAnswers, setCorrectAnswers] = useState(0);
     const [skippedCount, setSkippedCount] = useState(0);
@@ -81,8 +36,10 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
         try {
             const response = await fetch('/api/words');
             if (response.ok) {
-                const wordsData = await response.json();
-                const shuffled = [...wordsData].sort(() => Math.random() - 0.5);
+                const wordsData: WordWithSuffix[] = await response.json();
+                // Filter only words with suffix defined
+                const wordsWithSuffix = wordsData.filter(w => w.suffix);
+                const shuffled = [...wordsWithSuffix].sort(() => Math.random() - 0.5);
                 setWords(shuffled);
                 setGameState('playing');
             }
@@ -96,29 +53,38 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
         loadWords();
     }, [loadWords]);
 
-    // Generate options for current word
+    // Get prefix (word minus suffix)
+    const getPrefix = (word: WordWithSuffix): string => {
+        if (!word.suffix) return word.word;
+        const suffixLength = word.suffix.length;
+        return word.word.slice(0, -suffixLength);
+    };
+
+    // Generate options for current word using suffixes from other words
     useEffect(() => {
         if (gameState === 'playing' && words.length > 0 && currentWordIndex < words.length) {
-            const wordText = currentWord.word;
-            const syllables = splitIntoSyllables(wordText);
+            const currentW = words[currentWordIndex];
+            const correctSuffix = currentW.suffix || '';
 
-            console.log('Word:', wordText, 'Syllables:', syllables);
+            console.log('Word:', currentW.word, 'Suffix:', correctSuffix);
 
-            if (syllables.length < 2) {
-                // Skip words that can't be split into syllables
-                console.log('Skipping word - not enough syllables');
+            if (!correctSuffix) {
+                console.log('Skipping word - no suffix defined');
                 handleSkip();
                 return;
             }
 
-            const firstSyllable = syllables[0];
-            const correctEnding = syllables.slice(1).join('');
+            // Get random suffixes from other words (all will be 3 letters)
+            const otherSuffixes = words
+                .filter((w, i) => i !== currentWordIndex && w.suffix && w.suffix !== correctSuffix)
+                .map(w => w.suffix!)
+                .filter((value, index, self) => self.indexOf(value) === index); // unique
 
-            console.log('First syllable:', firstSyllable, 'Correct ending:', correctEnding);
+            // Pick 2 random different suffixes
+            const shuffledSuffixes = [...otherSuffixes].sort(() => Math.random() - 0.5);
+            const randomSuffixes = shuffledSuffixes.slice(0, 2);
 
-            // Generate random endings
-            const randomEndings = generateRandomEndings(correctEnding, 2);
-            const allOptions = [correctEnding, ...randomEndings].sort(() => Math.random() - 0.5);
+            const allOptions = [correctSuffix, ...randomSuffixes].sort(() => Math.random() - 0.5);
 
             console.log('All options:', allOptions);
 
@@ -137,12 +103,10 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
         if (disabled || showResult) return;
 
         setSelectedEnding(ending);
-        const wordText = currentWord.word;
-        const syllables = splitIntoSyllables(wordText);
-        const correctEnding = syllables.slice(1).join('');
+        const correctSuffix = currentWord.suffix || '';
 
-        const correct = ending === correctEnding;
-        console.log('Selected ending:', ending, 'Correct ending:', correctEnding, 'Is correct:', correct);
+        const correct = ending === correctSuffix;
+        console.log('Selected ending:', ending, 'Correct suffix:', correctSuffix, 'Is correct:', correct);
         setIsCorrect(correct);
         setShowResult(true);
         onAnswer(correct);
@@ -240,84 +204,75 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                         </p>
                     </div>
 
-                    <Card className="p-6 bg-blue-50 border-blue-200 mb-4">
-                        <h3 className="text-xl font-bold text-primary mb-4">{t.chooseCorrectEnding}</h3>
+                    {/* Horizontal layout: Image | Prefix | Options */}
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                        {/* Image */}
+                        <div className="w-32 h-32 bg-white rounded-lg border-2 border-gray-300 flex items-center justify-center overflow-hidden">
+                            {(() => {
+                                const imagePath = getImagePath(currentWord.image);
+                                const emoji = extractEmojiFromImage(currentWord.image);
 
-                        {/* Display image */}
-                        <div className="flex justify-center mb-6">
-                            <div className="w-48 h-48 bg-white rounded-xl border-4 border-gray-300 flex items-center justify-center relative overflow-hidden">
-                                {(() => {
-                                    const imagePath = getImagePath(currentWord.image);
-                                    const emoji = extractEmojiFromImage(currentWord.image);
-
-                                    return imagePath ? (
-                                        <img
-                                            src={imagePath}
-                                            alt={currentWord.word}
-                                            className="w-full h-full object-contain"
-                                            onError={(e) => {
-                                                e.currentTarget.style.display = 'none';
-                                                const parent = e.currentTarget.parentElement;
-                                                if (parent) {
-                                                    parent.innerHTML = `<span class="text-6xl">${emoji || '❓'}</span>`;
-                                                }
-                                            }}
-                                        />
-                                    ) : (
-                                        <span className="text-6xl">{emoji || '❓'}</span>
-                                    );
-                                })()}
-                            </div>
-                        </div>
-
-                        {/* Display first syllable */}
-                        <div className="text-center mb-6">
-                            <div className="text-3xl font-bold text-gray-800">
-                                {splitIntoSyllables(currentWord.word)[0]} + ?
-                            </div>
-                        </div>
-
-                        {/* Options */}
-                        <div className="grid grid-cols-3 gap-4 mb-6">
-                            {options.map((option, index) => {
-                                const firstSyllable = splitIntoSyllables(currentWord.word)[0];
-                                const fullOption = firstSyllable + option;
-                                console.log('Rendering option:', option, 'Full option:', fullOption);
-
-                                return (
-                                    <motion.button
-                                        key={index}
-                                        whileHover={{ scale: !showResult ? 1.05 : 1 }}
-                                        whileTap={{ scale: !showResult ? 0.95 : 1 }}
-                                        onClick={() => handleEndingSelect(option)}
-                                        disabled={disabled || showResult}
-                                        className={`p-4 rounded-xl border-2 font-medium text-lg transition-all ${showResult && selectedEnding === option
-                                            ? isCorrect && option === splitIntoSyllables(currentWord.word).slice(1).join('')
-                                                ? 'bg-green-500 text-white border-green-600'
-                                                : 'bg-red-500 text-white border-red-600'
-                                            : showResult && option === splitIntoSyllables(currentWord.word).slice(1).join('')
-                                                ? 'bg-green-500 text-white border-green-600'
-                                                : 'bg-white text-gray-800 border-gray-300 hover:border-blue-400'
-                                            } ${disabled || showResult ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        {fullOption}
-                                    </motion.button>
+                                return imagePath ? (
+                                    <img
+                                        src={imagePath}
+                                        alt={currentWord.word}
+                                        className="w-full h-full object-contain"
+                                        onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                            const parent = e.currentTarget.parentElement;
+                                            if (parent) {
+                                                parent.innerHTML = `<span class="text-5xl">${emoji || '❓'}</span>`;
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <span className="text-5xl">{emoji || '❓'}</span>
                                 );
-                            })}
+                            })()}
                         </div>
 
-                        {showResult && !isCorrect && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-center p-3 rounded-lg bg-red-100 text-red-800 mb-4"
-                            >
-                                <p className="font-bold">
-                                    {t.correctAnswer} {currentWord.word}
-                                </p>
-                            </motion.div>
-                        )}
-                    </Card>
+                        {/* Prefix */}
+                        <div className="bg-white rounded-lg border-2 border-gray-300 px-4 py-6 flex items-center justify-center">
+                            <span className="text-2xl font-bold text-gray-800">
+                                {getPrefix(currentWord)}
+                            </span>
+                        </div>
+
+                        {/* Options - vertical stack */}
+                        <div className="flex flex-col gap-2">
+                            {options.map((option, index) => (
+                                <motion.button
+                                    key={index}
+                                    whileHover={{ scale: !showResult ? 1.05 : 1 }}
+                                    whileTap={{ scale: !showResult ? 0.95 : 1 }}
+                                    onClick={() => handleEndingSelect(option)}
+                                    disabled={disabled || showResult}
+                                    className={`px-4 py-2 rounded-lg border-2 font-bold text-xl transition-all min-w-[80px] ${showResult && selectedEnding === option
+                                        ? isCorrect && option === currentWord.suffix
+                                            ? 'bg-green-500 text-white border-green-600'
+                                            : 'bg-red-500 text-white border-red-600'
+                                        : showResult && option === currentWord.suffix
+                                            ? 'bg-green-500 text-white border-green-600'
+                                            : 'bg-white text-gray-800 border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {option}
+                                </motion.button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {showResult && !isCorrect && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-center p-3 rounded-lg bg-red-100 text-red-800 mb-4"
+                        >
+                            <p className="font-bold">
+                                {t.correctAnswer} {currentWord.word}
+                            </p>
+                        </motion.div>
+                    )}
 
                     <div className="flex gap-4 justify-center">
                         <Button

@@ -9,6 +9,7 @@ const GAME_ICONS: Record<GameType, string> = {
   'spell-word': '✏️',
   'sentence-game': '📝',
   'syllables': '🧱',
+  'audio-picture': '🔊',
   'mix': '🎲'
 };
 
@@ -19,7 +20,7 @@ interface GameMenuProps {
 }
 
 export function GameMenu({ currentGameType, onGameTypeChange, currentMixType }: GameMenuProps) {
-  const gameTypes: GameType[] = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word', 'syllables', 'sentence-game', 'mix'];
+  const gameTypes: GameType[] = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word', 'syllables', 'audio-picture', 'sentence-game', 'mix'];
 
   return (
     <div className="flex gap-1 sm:gap-2 mb-4 justify-between items-center">

@@ -296,19 +296,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                     </div>
 
                     <div className="text-center mb-2">
-                        <Card className="p-3 mb-2 bg-blue-50 border-blue-200 rounded-sm">
-                            <h3 className="text-base font-bold text-primary mb-2">
-                                {t.event}
-                            </h3>
-                            <p className="text-xl text-gray-800">
-                                {currentActivity.event}
-                            </p>
-                        </Card>
-
                         <Card className="px-0.5 pt-1 pb-3 mb-2 bg-green-50 border-green-200 rounded-sm">
-                            <h3 className="text-base font-bold text-green-700 mb-2">
-                                {t.syllables}
-                            </h3>
                             <div className="flex flex-wrap justify-center gap-3.5">
                                 {currentActivity.syllables && (() => {
                                     // Разделяем слова по пробелам, затем каждое слово на слоги по дефисам

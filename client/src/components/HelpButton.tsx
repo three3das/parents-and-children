@@ -14,11 +14,10 @@ export function HelpButton({ gameType, currentMixType }: HelpButtonProps) {
 
   const getInstructions = () => {
     if (gameType === 'mix' && currentMixType) {
-      const key = currentMixType.replace('-', '') as keyof typeof t.instructions;
-      if (key === 'picturematch') return t.instructions.pictureMatch;
-      if (key === 'missingletter') return t.instructions.missingLetter;
-      if (key === 'extraletter') return t.instructions.extraLetter;
-      if (key === 'spellword') return t.instructions.spellWord;
+      if (currentMixType === 'picture-match') return t.instructions.pictureMatch;
+      if (currentMixType === 'missing-letter') return t.instructions.missingLetter;
+      if (currentMixType === 'extra-letter') return t.instructions.extraLetter;
+      if (currentMixType === 'spell-word') return t.instructions.spellWord;
       return t.instructions.mix;
     }
 
@@ -27,7 +26,8 @@ export function HelpButton({ gameType, currentMixType }: HelpButtonProps) {
     if (gameType === 'extra-letter') return t.instructions.extraLetter;
     if (gameType === 'spell-word') return t.instructions.spellWord;
     if (gameType === 'syllables') return t.instructions.syllables;
-    if (gameType === 'sentences') return t.instructions.sentences;
+    if (gameType === 'sentence-game') return t.instructions.sentences;
+    if (gameType === 'audio-picture') return t.instructions.audioPicture;
     if (gameType === 'mix') return t.instructions.mix;
 
     return t.instructions.default;
