@@ -65,7 +65,7 @@ export function PictureGrid({
 
   return (
     <motion.div
-      className={`grid ${gridClasses} gap-2 sm:gap-4 max-w-7xl mx-auto`}
+      className={`grid ${gridClasses} gap-2 sm:gap-4 max-w-[350px] sm:max-w-7xl mx-auto`}
       {...ANIMATION_VARIANTS.stagger}
     >
       {shuffledOptions.map((word, index) => {
@@ -83,7 +83,7 @@ export function PictureGrid({
             onClick={() => handlePictureClick(word)}
             style={{ cursor: 'pointer' }}
             className={`
-              w-full cursor-pointer border-4 rounded-2xl flex items-center justify-center aspect-square
+              w-full cursor-pointer border-2 sm:border-4 rounded-2xl flex items-center justify-center aspect-square
               ${disabled ? 'opacity-50' : ''}
               ${isSelected ? (isCorrect ? 'bg-green-400 border-green-600' : 'bg-red-400 border-red-600') : 'bg-white border-gray-300'}
             `}

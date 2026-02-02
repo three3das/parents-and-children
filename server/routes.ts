@@ -1,20 +1,252 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameProgressSchema, insertUserAnswerSchema, insertSentenceSchema } from "@shared/schema";
+import { insertGameProgressSchema, insertUserAnswerSchema, insertSentenceSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
+import bcrypt from "bcrypt";
+import { sendPasswordResetEmail } from "./email";
 
 // Blacklist for difficult letters - exclude from letter generation
 const BLACKLISTED_LETTERS = ['Ъ'];
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // === AUTHENTICATION API ===
+
+  // Register new user
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const validatedData = insertUserSchema.parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(validatedData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User with this email already exists" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+
+      // Create user with hashed password
+      const user = await storage.createUser({
+        ...validatedData,
+        password: hashedPassword
+      });
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+
+      res.status(201).json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error("Error registering user:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to register user" });
+    }
+  });
+
+  // Login user
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      console.log("Login attempt with body:", JSON.stringify(req.body));
+
+      const loginSchema = z.object({
+        email: z.string().email(),
+        password: z.string().min(1)
+      });
+
+      const { email, password } = loginSchema.parse(req.body);
+      console.log(`Parsed login request for email: ${email}`);
+
+      // Find user by email
+      console.log(`Looking up user by email: ${email}`);
+      const user = await storage.getUserByEmail(email);
+      console.log(`User lookup result:`, user ? `Found user ${user.id}` : 'Not found');
+
+      if (!user) {
+        console.log(`Login failed: User not found for email ${email}`);
+        return res.status(401).json({ message: "Неверный email або пароль" });
+      }
+
+      // Check if user has a password (might be Google-only user)
+      if (!user.password) {
+        console.log(`Login failed: User ${email} has no password (Google account?)`);
+        return res.status(401).json({ message: "Цей акаунт використовує вхід через Google" });
+      }
+
+      // Check password
+      console.log(`Comparing password for user ${email}`);
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      console.log(`Password comparison result: ${isValidPassword}`);
+
+      if (!isValidPassword) {
+        console.log(`Login failed: Invalid password for ${email}`);
+        return res.status(401).json({ message: "Неверный email або пароль" });
+      }
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+
+      console.log(`Login successful for ${email}`);
+      res.json({ user: userWithoutPassword });
+    } catch (error: any) {
+      console.error("Error logging in:", error);
+      console.error("Error stack:", error?.stack);
+      console.error("Error message:", error?.message);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Неверные данные для входа", errors: error.errors });
+      }
+      res.status(500).json({ message: `Помилка сервера: ${error?.message || 'Unknown error'}` });
+    }
+  });
+
+  // Google OAuth login/register
+  app.post("/api/auth/google", async (req, res) => {
+    try {
+      const googleSchema = z.object({
+        credential: z.string()
+      });
+
+      const { credential } = googleSchema.parse(req.body);
+
+      // Decode the JWT token from Google (base64 encoded payload)
+      const parts = credential.split('.');
+      if (parts.length !== 3) {
+        return res.status(400).json({ message: "Invalid Google credential" });
+      }
+
+      // Decode the payload (second part of JWT)
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+
+      const { email, given_name, family_name, sub: googleId } = payload;
+
+      if (!email) {
+        return res.status(400).json({ message: "Email not provided by Google" });
+      }
+
+      // Check if user exists
+      let user = await storage.getUserByEmail(email);
+
+      if (!user) {
+        // Create new user with Google data
+        // Generate a random password for Google users (they won't use it)
+        const randomPassword = await bcrypt.hash(googleId + Date.now(), 10);
+
+        user = await storage.createUser({
+          email,
+          firstName: given_name || 'User',
+          lastName: family_name || '',
+          password: randomPassword,
+          newsletter: false
+        });
+      }
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error("Error with Google auth:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid Google data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to authenticate with Google" });
+    }
+  });
+
+  // Forgot password request
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Check if user exists
+      const user = await storage.getUserByEmail(email);
+
+      if (user) {
+        // Generate reset token
+        const resetToken = await storage.createPasswordResetToken(user.id);
+        console.log(`Password reset token created for: ${email}`);
+
+        // Send email with reset link
+        const emailSent = await sendPasswordResetEmail(email, resetToken, user.firstName);
+        if (emailSent) {
+          console.log(`Password reset email sent to: ${email}`);
+        } else {
+          console.log(`Password reset email could not be sent. Token: ${resetToken}`);
+        }
+      } else {
+        console.log(`Password reset requested for non-existent email: ${email}`);
+      }
+
+      // Always return success for security (don't reveal if email exists)
+      res.json({ message: "If this email exists, reset instructions have been sent" });
+    } catch (error) {
+      console.error("Error processing forgot password:", error);
+      res.status(500).json({ message: "Failed to process request" });
+    }
+  });
+
+  // Reset password with token
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        return res.status(400).json({ message: "Token and password are required" });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters" });
+      }
+
+      // Verify token
+      const resetToken = await storage.getPasswordResetToken(token);
+      if (!resetToken) {
+        return res.status(400).json({ message: "Invalid or expired token" });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Update user password
+      await storage.updateUserPassword(resetToken.userId, hashedPassword);
+
+      // Mark token as used
+      await storage.markTokenAsUsed(resetToken.id);
+
+      console.log(`Password reset successful for user: ${resetToken.userId}`);
+      res.json({ message: "Password reset successful" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
   // Get available words (excluding correctly answered ones in last month)
+  // Pass ?all=true to get ALL words without filtering
+  // Pass ?lang=uk to get words with translations for that language
   app.get("/api/words", async (req, res) => {
     try {
       // Cache words list for 2 minutes
       res.set('Cache-Control', 'public, max-age=120');
       const sessionId = req.query.sessionId as string || 'default-session';
-      const words = await storage.getAvailableWords(sessionId);
+      const getAllWords = req.query.all === 'true';
+      const language = req.query.lang as string | undefined;
+
+      // If language is specified, get words with translations
+      if (language) {
+        const wordsWithTranslations = await storage.getAllWordsWithTranslations(language);
+        return res.json(wordsWithTranslations);
+      }
+
+      // If all=true, return all words; otherwise filter by session progress
+      const words = getAllWords
+        ? await storage.getAllWords()
+        : await storage.getAvailableWords(sessionId);
       res.json(words);
     } catch (error) {
       console.error("Error fetching words:", error);
@@ -23,8 +255,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get a specific word by ID
+  // Pass ?lang=uk to get word with translation for that language
   app.get("/api/words/:id", async (req, res) => {
     try {
+      const language = req.query.lang as string | undefined;
+
+      if (language) {
+        const wordWithTranslation = await storage.getWordWithTranslation(req.params.id, language);
+        if (!wordWithTranslation) {
+          return res.status(404).json({ message: "Word not found" });
+        }
+        return res.json(wordWithTranslation);
+      }
+
       const word = await storage.getWord(req.params.id);
       if (!word) {
         return res.status(404).json({ message: "Word not found" });
@@ -331,6 +574,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid sentence data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create sentence" });
+    }
+  });
+
+  // === WORD TRANSLATIONS API ===
+
+  // Get translations for a word
+  app.get("/api/words/:id/translations", async (req, res) => {
+    try {
+      const translations = await storage.getWordTranslations(req.params.id);
+      res.json(translations);
+    } catch (error) {
+      console.error("Error fetching word translations:", error);
+      res.status(500).json({ message: "Failed to fetch word translations" });
+    }
+  });
+
+  // Create a translation for a word
+  app.post("/api/words/:id/translations", async (req, res) => {
+    try {
+      const { language, translation } = req.body;
+      if (!language || !translation) {
+        return res.status(400).json({ message: "Language and translation are required" });
+      }
+      const wordTranslation = await storage.createWordTranslation(req.params.id, language, translation);
+      res.status(201).json(wordTranslation);
+    } catch (error) {
+      console.error("Error creating word translation:", error);
+      res.status(500).json({ message: "Failed to create word translation" });
     }
   });
 

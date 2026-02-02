@@ -3,28 +3,46 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Word, type GameType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { GAME_CONFIG } from "@/lib/constants";
+import { useLanguage } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { GameHeader } from "@/components/GameHeader";
 import { GameMenu } from "@/components/GameMenu";
+import { GameTitle } from "@/components/shared/GameTitle";
 import { WordDisplay } from "@/components/WordDisplay";
 import { PictureGrid } from "@/components/PictureGrid";
 import { MissingLetterGame } from "@/components/MissingLetterGame";
 import { ExtraLetterGame } from "@/components/ExtraLetterGame";
 import { SpellWordGame } from "@/components/SpellWordGame";
-import { MixGame } from "@/components/MixGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { SyllablesGame } from "@/components/SyllablesGame";
 import { SentenceGame } from "@/components/SentenceGame";
+import { LoginModal } from "@/components/LoginModal";
+import { CreateAccountModal } from "@/components/CreateAccountModal";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
+// Helper to read URL params
+function getUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    game: params.get('game') as GameType | null,
+    word: params.get('word'),
+    locale: params.get('locale'),
+  };
+}
+
 export default function Game() {
+  // Initialize state from URL params
+  const urlParams = getUrlParams();
+
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
-  const [gameType, setGameType] = useState<GameType>('picture-match');
-  const [currentMixType, setCurrentMixType] = useState<string>('');
+  const [gameType, setGameType] = useState<GameType>(urlParams.game || 'picture-match');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
   const [sessionId] = useState(() => {
     // Check if we have a session ID in localStorage
     const stored = localStorage.getItem('russian-game-session');
@@ -39,11 +57,20 @@ export default function Game() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t, language } = useLanguage();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
-  // Fetch available words (excluding correctly answered ones)
-  const { data: words = [], isLoading: wordsLoading } = useQuery<Word[]>({
-    queryKey: ["/api/words", sessionId],
-    queryFn: () => fetch(`/api/words?sessionId=${sessionId}`).then(res => res.json()),
+  // Extended Word type with optional translation
+  type WordWithTranslation = Word & { translatedWord?: string };
+
+  // Fetch all words (with all=true to get ALL words from the table)
+  // Pass language to get translated words when not Russian
+  const { data: words = [], isLoading: wordsLoading } = useQuery<WordWithTranslation[]>({
+    queryKey: ["/api/words", sessionId, "all", language],
+    queryFn: () => {
+      const langParam = language !== 'ru' ? `&lang=${language}` : '';
+      return fetch(`/api/words?sessionId=${sessionId}&all=true${langParam}`).then(res => res.json());
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
@@ -56,6 +83,29 @@ export default function Game() {
 
   // Get current word
   const currentWord = words[currentWordIndex];
+
+  // Sync word index from URL param when words load
+  useEffect(() => {
+    if (words.length > 0 && urlParams.word) {
+      const index = words.findIndex(w => w.id === urlParams.word);
+      if (index !== -1 && index !== currentWordIndex) {
+        setCurrentWordIndex(index);
+      }
+    }
+  }, [words.length]); // Only run when words first load
+
+  // Update URL when game state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('game', gameType);
+    if (currentWord?.id) {
+      params.set('word', currentWord.id);
+    }
+    params.set('locale', language);
+
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }, [gameType, currentWord?.id, language]);
 
   // Fetch distractors for current word (picture-match mode)
   const { data: distractors = [], isLoading: distractorsLoading } = useQuery<Word[]>({
@@ -116,7 +166,7 @@ export default function Game() {
       // Если syllables это строка, разбиваем на массив по запятым
       let syllablesArray: string[];
       if (typeof data.syllables === 'string') {
-        // Разбиваем строку по запятым и убираем пробелы
+        // Разбиваем строку по запятам и убираем пробелы
         syllablesArray = data.syllables.split(',').map(s => s.trim()).filter(s => s.length > 0);
       } else if (Array.isArray(data.syllables)) {
         syllablesArray = data.syllables;
@@ -134,33 +184,6 @@ export default function Game() {
       };
     }
   });
-
-  // Handle mix game answers
-  const handleMixAnswer = (isCorrect: boolean) => {
-    // Prevent multiple selections while processing
-    if (selectedPicture || showCelebration) return;
-
-    setSelectedPicture({ id: 'mix-complete', word: 'mix-complete', image: '', audio: '' } as Word);
-
-    // Record the answer in the database
-    if (currentWord) {
-      recordAnswerMutation.mutate({
-        wordId: currentWord.id,
-        isCorrect,
-        sessionId,
-      });
-    }
-
-    if (isCorrect) {
-      setCorrectAnswers(prev => prev + 1);
-      setShowCelebration(true);
-    } else {
-      // Reset selection after a moment
-      setTimeout(() => {
-        setSelectedPicture(null);
-      }, 1500);
-    }
-  };
 
   // Mutation to record user answers
   const recordAnswerMutation = useMutation({
@@ -333,7 +356,7 @@ export default function Game() {
     setSelectedPicture(null);
 
     // Invalidate words query to get updated list (after celebration is done)
-    queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId] });
+    queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId, "all"] });
 
     if (currentWordIndex + 1 >= words.length) {
       setGameCompleted(true);
@@ -345,14 +368,14 @@ export default function Game() {
 
   const handleSettingsClick = () => {
     toast({
-      title: "Настройки 🔧",
-      description: "Чтобы сбросить прогресс и начать заново, нажмите здесь",
+      title: t.settingsTitle,
+      description: t.settingsDescription,
       action: (
         <button
           onClick={handleResetProgress}
           className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm"
         >
-          Сбросить прогресс
+          {t.resetProgress}
         </button>
       ),
     });
@@ -377,6 +400,19 @@ export default function Game() {
     setGameType(newGameType);
     setSelectedPicture(null);
     setShowCelebration(false);
+  };
+
+  const handleLoginClick = () => setShowLoginModal(true);
+  const handleCreateAccountClick = () => setShowCreateAccountModal(true);
+
+  const switchToCreateAccount = () => {
+    setShowLoginModal(false);
+    setShowCreateAccountModal(true);
+  };
+
+  const switchToLogin = () => {
+    setShowCreateAccountModal(false);
+    setShowLoginModal(true);
   };
 
   const handleSyllableAnswer = (isCorrect: boolean) => {
@@ -404,6 +440,83 @@ export default function Game() {
     }
   };
 
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            className="text-6xl mb-4"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          >
+            📚
+          </motion.div>
+          <p className="text-2xl font-bold text-child-text">{t.loading}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100">
+        <motion.div
+          className="text-center bg-white rounded-3xl p-8 shadow-2xl mx-4 max-w-md"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        >
+          <div className="text-8xl mb-6">📚</div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent mb-4">
+            KidRead
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            {t.auth.loginRequired || "Please log in to play"}
+          </p>
+
+          <div className="space-y-4">
+            <motion.button
+              onClick={() => setShowLoginModal(true)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full text-xl transition-colors duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {t.auth.login}
+            </motion.button>
+            <motion.button
+              onClick={() => setShowCreateAccountModal(true)}
+              className="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-4 px-8 rounded-full text-xl transition-colors duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {t.auth.createAccount}
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Auth Modals */}
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onSwitchToCreateAccount={() => {
+            setShowLoginModal(false);
+            setShowCreateAccountModal(true);
+          }}
+        />
+        <CreateAccountModal
+          isOpen={showCreateAccountModal}
+          onClose={() => setShowCreateAccountModal(false)}
+          onSwitchToLogin={() => {
+            setShowCreateAccountModal(false);
+            setShowLoginModal(true);
+          }}
+        />
+      </div>
+    );
+  }
+
   if (wordsLoading || progressLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -415,7 +528,7 @@ export default function Game() {
           >
             📚
           </motion.div>
-          <p className="text-2xl font-bold text-child-text">Загружаем слова...</p>
+          <p className="text-2xl font-bold text-child-text">{t.loadingWords}</p>
         </div>
       </div>
     );
@@ -431,12 +544,12 @@ export default function Game() {
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
         >
           <div className="text-8xl mb-6">🏆</div>
-          <h1 className="text-4xl font-bold text-primary mb-4">Поздравляем!</h1>
+          <h1 className="text-4xl font-bold text-primary mb-4">{t.congratulations}</h1>
           <p className="text-2xl text-child-text mb-4">
-            Ты прошёл все слова!
+            {t.completedAllWords}
           </p>
           <p className="text-xl text-secondary mb-6 font-semibold">
-            Сегодня правильных ответов: {todayProgress?.correctAnswersToday || 0}
+            {t.correctAnswersToday} {todayProgress?.correctAnswersToday || 0}
           </p>
 
           <div className="space-y-4">
@@ -446,7 +559,7 @@ export default function Game() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Играть снова! 🎮
+              {t.playAgain} 🎮
             </motion.button>
           </div>
         </motion.div>
@@ -462,7 +575,7 @@ export default function Game() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4">⏳</div>
-          <p className="text-xl text-child-text">Подготавливаем задание...</p>
+          <p className="text-xl text-child-text">{t.preparingTask}</p>
         </div>
       </div>
     );
@@ -475,19 +588,26 @@ export default function Game() {
         totalWords={words.length}
         correctAnswersToday={todayProgress?.correctAnswersToday || 0}
         onSettingsClick={handleSettingsClick}
+        onLoginClick={handleLoginClick}
+        onCreateAccountClick={handleCreateAccountClick}
       />
 
       <main className="flex-1 overflow-y-auto max-w-6xl mx-auto px-4 pb-8 w-full">
         <GameMenu
           currentGameType={gameType}
           onGameTypeChange={handleGameTypeChange}
-          currentMixType={currentMixType}
         />
 
         {gameType === 'picture-match' && (
           <>
-            <WordDisplay word={currentWord.word} />
+            <GameTitle gameType="picture-match" />
 
+            {/* Word Display - TOP (what to find) */}
+            <div className="mb-4 sm:mb-6">
+              <WordDisplay word={currentWord.translatedWord || currentWord.word} />
+            </div>
+
+            {/* Picture Options - BOTTOM (interactive input) */}
             {distractorsLoading ? (
               <div className="text-center py-8">
                 <div className="text-2xl"> </div>
@@ -501,114 +621,111 @@ export default function Game() {
                 disabled={!!selectedPicture || showCelebration}
               />
             )}
-
-            <div className="text-center mt-8">
-              <motion.div
-                className="text-6xl"
-                animate={{
-                  rotate: [-10, 10, -10],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                👆
-              </motion.div>
-            </div>
           </>
         )}
 
         {gameType === 'missing-letter' && (
-          letterOptionsLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">Подготавливаем буквы...</p>
-            </div>
-          ) : letterData ? (
-            <MissingLetterGame
-              word={currentWord}
-              letterOptions={letterData.letterOptions}
-              missingLetterIndex={letterData.missingLetterIndex}
-              onLetterSelect={handleLetterSelect}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          ) : null
+          <>
+            <GameTitle gameType="missing-letter" />
+            {letterOptionsLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.preparingLetters}</p>
+              </div>
+            ) : letterData ? (
+              <MissingLetterGame
+                word={currentWord}
+                letterOptions={letterData.letterOptions}
+                missingLetterIndex={letterData.missingLetterIndex}
+                onLetterSelect={handleLetterSelect}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null}
+          </>
         )}
 
         {gameType === 'extra-letter' && (
-          extraLetterLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">Создаем задание...</p>
-            </div>
-          ) : extraLetterData ? (
-            <ExtraLetterGame
-              word={currentWord}
-              wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
-              extraLetterIndex={extraLetterData.extraLetterIndex}
-              onLetterRemove={handleLetterRemove}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          ) : null
+          <>
+            <GameTitle gameType="extra-letter" />
+            {extraLetterLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.creatingTask}</p>
+              </div>
+            ) : extraLetterData ? (
+              <ExtraLetterGame
+                word={currentWord}
+                wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
+                extraLetterIndex={extraLetterData.extraLetterIndex}
+                onLetterRemove={handleLetterRemove}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null}
+          </>
         )}
 
         {gameType === 'spell-word' && (
-          spellLettersLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">Готовим буквы...</p>
-            </div>
-          ) : spellLettersData ? (
-            <SpellWordGame
-              word={currentWord}
-              availableLetters={spellLettersData.availableLetters}
-              onWordComplete={handleWordComplete}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          ) : null
-        )}
-
-        {gameType === 'mix' && (
-          <MixGame
-            word={currentWord}
-            onAnswer={handleMixAnswer}
-            disabled={!!selectedPicture || showCelebration}
-            onMixTypeChange={setCurrentMixType}
-          />
+          <>
+            <GameTitle gameType="spell-word" />
+            {spellLettersLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.preparingLetters}</p>
+              </div>
+            ) : spellLettersData ? (
+              <SpellWordGame
+                word={currentWord}
+                availableLetters={spellLettersData.availableLetters}
+                onWordComplete={handleWordComplete}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null}
+          </>
         )}
 
         {gameType === 'syllables' && (
-          syllableLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">Загружаем слоги...</p>
-            </div>
-          ) : (
-            <SyllablesGame
-              word={currentWord}
-              firstSyllable={syllableData.firstSyllable}
-              options={syllableData.options}
-              correctAnswer={syllableData.correctAnswer}
-              onAnswer={handleSyllableAnswer}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          )
+          <>
+            <GameTitle gameType="syllables" />
+            {syllableLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.loadingSyllables}</p>
+              </div>
+            ) : (
+              <SyllablesGame
+                onAnswer={handleSyllableAnswer}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            )}
+          </>
         )}
 
         {gameType === 'sentence-game' && (
-          <SentenceGame
-            onAnswer={handleSentenceAnswer}
-            disabled={!!selectedPicture || showCelebration}
-          />
+          <>
+            <GameTitle gameType="sentence-game" />
+            <SentenceGame
+              onAnswer={handleSentenceAnswer}
+              disabled={!!selectedPicture || showCelebration}
+            />
+          </>
         )}
       </main>
       <CelebrationOverlay
         key={`celebration-${currentWord?.id}-${correctAnswers}`}
         isVisible={showCelebration}
         onNext={handleNextWord}
+      />
+
+      {/* Auth Modals */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSwitchToCreateAccount={switchToCreateAccount}
+      />
+      <CreateAccountModal
+        isOpen={showCreateAccountModal}
+        onClose={() => setShowCreateAccountModal(false)}
+        onSwitchToLogin={switchToLogin}
       />
     </div>
   );

@@ -5,6 +5,8 @@ import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { type Word } from "@shared/schema";
 import { getImagePath, extractEmojiFromImage } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
+
 // Helper function to split word into syllables (simplified)
 function splitIntoSyllables(word: string): string[] {
     const vowels = ['а', 'о', 'у', 'ы', 'э', 'е', 'ё', 'и', 'ю', 'я'];
@@ -60,6 +62,8 @@ interface SyllablesGameProps {
 }
 
 export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
+    const { t } = useLanguage();
+
     // Game state
     const [gameState, setGameState] = useState<'loading' | 'playing' | 'completed'>('loading');
     const [words, setWords] = useState<Word[]>([]);
@@ -93,10 +97,28 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
         loadWords();
     }, [loadWords]);
 
+    const currentWord = words[currentWordIndex];
+    const totalQuestions = words.length;
+    const progress = totalQuestions > 0 ? (currentWordIndex / totalQuestions) * 100 : 0;
+
+    const handleSkip = useCallback(() => {
+        setSkippedCount(prev => prev + 1);
+        if (currentWordIndex < words.length - 1) {
+            setCurrentWordIndex(prev => prev + 1);
+            setShowResult(false);
+            setSelectedEnding('');
+        } else {
+            setGameState('completed');
+        }
+    }, [currentWordIndex, words.length]);
+
     // Generate options for current word
     useEffect(() => {
         if (gameState === 'playing' && words.length > 0 && currentWordIndex < words.length) {
-            const wordText = currentWord.word;
+            const word = words[currentWordIndex];
+            if (!word) return;
+
+            const wordText = word.word;
             const syllables = splitIntoSyllables(wordText);
 
             console.log('Word:', wordText, 'Syllables:', syllables);
@@ -108,10 +130,9 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                 return;
             }
 
-            const firstSyllable = syllables[0];
             const correctEnding = syllables.slice(1).join('');
 
-            console.log('First syllable:', firstSyllable, 'Correct ending:', correctEnding);
+            console.log('First syllable:', syllables[0], 'Correct ending:', correctEnding);
 
             // Generate random endings
             const randomEndings = generateRandomEndings(correctEnding, 2);
@@ -124,14 +145,10 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
             setShowResult(false);
             setIsCorrect(false);
         }
-    }, [gameState, words, currentWordIndex]);
-
-    const currentWord = words[currentWordIndex];
-    const totalQuestions = words.length;
-    const progress = totalQuestions > 0 ? (currentWordIndex / totalQuestions) * 100 : 0;
+    }, [gameState, words, currentWordIndex, handleSkip]);
 
     const handleEndingSelect = (ending: string) => {
-        if (disabled || showResult) return;
+        if (disabled || showResult || !currentWord) return;
 
         setSelectedEnding(ending);
         const wordText = currentWord.word;
@@ -165,11 +182,6 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
         }
     };
 
-    const handleSkip = () => {
-        setSkippedCount(prev => prev + 1);
-        handleNext();
-    };
-
     const handleRestart = () => {
         setGameState('loading');
         setWords([]);
@@ -194,25 +206,25 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                             className="text-center"
                         >
                             <div className="text-6xl mb-4">🏆</div>
-                            <h2 className="text-3xl font-bold mb-4 text-primary">Результаты</h2>
+                            <h2 className="text-3xl font-bold mb-4 text-primary">{t.results}</h2>
 
                             <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
                                 <p className="text-xl mb-2">
-                                    Правильных ответов: <span className="font-bold text-green-600">{correctAnswers}</span>
+                                    {t.correctAnswers} <span className="font-bold text-green-600">{correctAnswers}</span>
                                 </p>
                                 <p className="text-xl mb-2">
-                                    Всего вопросов: <span className="font-bold">{totalQuestions}</span>
+                                    {t.totalQuestions} <span className="font-bold">{totalQuestions}</span>
                                 </p>
                                 <p className="text-xl mb-2">
-                                    Пропущено: <span className="font-bold text-yellow-600">{skippedCount}</span>
+                                    {t.skipped} <span className="font-bold text-yellow-600">{skippedCount}</span>
                                 </p>
                                 <p className="text-2xl font-bold text-primary">
-                                    Процент: {percentage}%
+                                    {t.percentage} {percentage}%
                                 </p>
                             </div>
 
                             <Button onClick={handleRestart} className="bg-primary hover:bg-purple-700 text-white px-8 py-3 text-lg">
-                                Играть снова
+                                {t.playAgain}
                             </Button>
                         </motion.div>
                     </div>
@@ -223,7 +235,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
                         <div className="text-4xl mb-4">⏳</div>
-                        <p className="text-xl">Загрузка...</p>
+                        <p className="text-xl">{t.loading}</p>
                     </div>
                 </div>
             )}
@@ -233,12 +245,12 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                     <div className="w-full max-w-2xl mb-2">
                         <Progress value={progress} className="h-2" />
                         <p className="text-center text-sm text-gray-600 mt-2">
-                            Вопрос {currentWordIndex + 1} из {totalQuestions}
+                            {t.question} {currentWordIndex + 1} {t.of} {totalQuestions}
                         </p>
                     </div>
 
                     <Card className="p-6 bg-blue-50 border-blue-200 mb-4">
-                        <h3 className="text-xl font-bold text-primary mb-4">Выберите правильное окончание слова:</h3>
+                        <h3 className="text-xl font-bold text-primary mb-4">{t.chooseCorrectEnding}</h3>
 
                         {/* Display image */}
                         <div className="flex justify-center mb-6">
@@ -310,7 +322,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                                 className="text-center p-3 rounded-lg bg-red-100 text-red-800 mb-4"
                             >
                                 <p className="font-bold">
-                                    Правильный ответ: {currentWord.word}
+                                    {t.correctAnswer} {currentWord.word}
                                 </p>
                             </motion.div>
                         )}
@@ -322,14 +334,14 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                             disabled={showResult && isCorrect}
                             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 h-10 disabled:opacity-50"
                         >
-                            Далее
+                            {t.next}
                         </Button>
                         <Button
                             onClick={handleSkip}
                             variant="outline"
                             className="px-6 py-2 h-10"
                         >
-                            Пропустить
+                            {t.skip}
                         </Button>
                     </div>
                 </>

@@ -1,0 +1,144 @@
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
+
+interface AuthDropdownProps {
+  onLoginClick: () => void;
+  onCreateAccountClick: () => void;
+  onSettingsClick: () => void;
+}
+
+export function AuthDropdown({ onLoginClick, onCreateAccountClick, onSettingsClick }: AuthDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { t } = useLanguage();
+  const { user, isAuthenticated, logout } = useAuth();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLoginClick = () => {
+    setIsOpen(false);
+    onLoginClick();
+  };
+
+  const handleCreateAccountClick = () => {
+    setIsOpen(false);
+    onCreateAccountClick();
+  };
+
+  const handleLogout = () => {
+    setIsOpen(false);
+    logout();
+  };
+
+  const handleSettingsClick = () => {
+    setIsOpen(false);
+    onSettingsClick();
+  };
+
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (!user) return "";
+    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* User Icon Button */}
+      <motion.button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+          isAuthenticated
+            ? "bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm"
+            : "bg-gray-200 hover:bg-gray-300"
+        }`}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {isAuthenticated ? (
+          getInitials()
+        ) : (
+          <svg
+            className="w-6 h-6 text-gray-600"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+          </svg>
+        )}
+      </motion.button>
+
+      {/* Dropdown Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
+          >
+            {isAuthenticated ? (
+              <>
+                {/* User info */}
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="font-medium text-gray-800">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+                </div>
+                {/* Settings button */}
+                <button
+                  onClick={handleSettingsClick}
+                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium flex items-center gap-2 border-b border-gray-100"
+                >
+                  <span>⚙️</span>
+                  <span>{t.settings}</span>
+                </button>
+                {/* Logout button */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 transition-colors font-medium"
+                >
+                  {t.auth.logout}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleLoginClick}
+                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
+                >
+                  {t.auth.login}
+                </button>
+                <button
+                  onClick={handleCreateAccountClick}
+                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
+                >
+                  {t.auth.createAccount}
+                </button>
+                {/* Settings button for non-authenticated users */}
+                <button
+                  onClick={handleSettingsClick}
+                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium flex items-center gap-2"
+                >
+                  <span>⚙️</span>
+                  <span>{t.settings}</span>
+                </button>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

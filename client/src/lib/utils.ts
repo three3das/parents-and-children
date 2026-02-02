@@ -1,17 +1,24 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { PICTURE_EMOJIS } from "./constants"
+
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 // Function to extract emoji from image field
 export function extractEmojiFromImage(image: string): string {
-    console.log('extractEmojiFromImage: processing image data:', image);
-    // Simple emoji detection - check if string contains common emoji patterns
+    // Check if image is already an emoji
     const hasEmoji = /[\uD83C-\uDBFF\uDC00-\uDFFF]/.test(image);
-    console.log('extractEmojiFromImage: has emoji:', hasEmoji);
-    const result = hasEmoji ? image : '';
-    console.log('extractEmojiFromImage: returning:', result);
-    return result;
+    if (hasEmoji) {
+        return image;
+    }
+
+    // Check if image is a key in PICTURE_EMOJIS
+    if (image && PICTURE_EMOJIS[image]) {
+        return PICTURE_EMOJIS[image];
+    }
+
+    return '';
 }
 
 // Mapping of English image names to numeric file IDs
@@ -81,42 +88,36 @@ const IMAGE_MAPPING: Record<string, string> = {
 
 // Function to get image path from image field
 export function getImagePath(image: string): string {
-    console.log('getImagePath: input image:', image);
+    // If image is an emoji key in PICTURE_EMOJIS, return empty to use emoji
+    if (image && PICTURE_EMOJIS[image]) {
+        return '';
+    }
 
     // If image contains emoji, return empty string to use emoji system
-    if (extractEmojiFromImage(image)) {
-        console.log('getImagePath: detected emoji, returning empty string');
+    if (/[\uD83C-\uDBFF\uDC00-\uDFFF]/.test(image)) {
         return '';
     }
 
     // If image already starts with /images/, return as-is
     if (image.startsWith('/images/')) {
-        console.log('getImagePath: image already has path, returning:', image);
         return image;
     }
 
     // If image is a number (like "1001"), construct image path
     if (/^\d+$/.test(image)) {
-        const path = `/images/${image}.jpg`;
-        console.log('getImagePath: numeric image, path:', path);
-        return path;
+        return `/images/${image}.jpg`;
     }
 
     // If image is an English word, map it to numeric file ID
     if (/^[a-zA-Z]+$/.test(image)) {
         const mappedId = IMAGE_MAPPING[image.toLowerCase()];
         if (mappedId) {
-            const path = `/images/${mappedId}.jpg`;
-            console.log('getImagePath: mapped English word', image, 'to', path);
-            return path;
+            return `/images/${mappedId}.jpg`;
         }
         // Fallback: try direct English name
-        const fallbackPath = `/images/${image}.jpg`;
-        console.log('getImagePath: no mapping found, trying fallback:', fallbackPath);
-        return fallbackPath;
+        return `/images/${image}.jpg`;
     }
 
-    console.log('getImagePath: no pattern matched, returning empty string');
     // Default fallback
     return '';
 }
