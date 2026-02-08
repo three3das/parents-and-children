@@ -11,15 +11,17 @@ interface PictureGridProps {
   onPictureSelect: (word: Word, isCorrect: boolean) => void;
   disabled?: boolean;
   selectedPicture?: Word | null;
+  showCorrectHighlight?: boolean;  // Whether to highlight correct answer (for incorrect result display)
 }
 export function PictureGrid({
   correctWord,
   distractors,
   onPictureSelect,
   disabled,
-  selectedPicture
+  selectedPicture,
+  showCorrectHighlight = false
 }: PictureGridProps) {
-  const { playTryAgain } = useAudio();
+  const { playTryAgain, playApplause } = useAudio();
 
   // Memoize shuffled options to prevent unnecessary reshuffling
   const shuffledOptions = useMemo(() => {
@@ -44,12 +46,14 @@ export function PictureGrid({
 
     const isCorrect = word.id === correctWord.id;
     console.log('Calling onPictureSelect with:', word.word, 'isCorrect:', isCorrect);
-    if (!isCorrect) {
+    if (isCorrect) {
+      playApplause();
+    } else {
       playTryAgain();
     }
     onPictureSelect(word, isCorrect);
     console.log('onPictureSelect called, should see MixGame log next');
-  }, [disabled, selectedPicture, correctWord.id, playTryAgain, onPictureSelect]);
+  }, [disabled, selectedPicture, correctWord.id, playTryAgain, playApplause, onPictureSelect]);
 
   // Memoize grid classes to prevent recalculation
   const gridClasses = useMemo(() => {
@@ -73,6 +77,8 @@ export function PictureGrid({
         const isSelected = selectedPicture?.id === word.id;
         const imagePath = getImagePath(word.image);
         const emoji = extractEmojiFromImage(word.image);
+        // Show correct answer highlight when: selected wrong answer OR showCorrectHighlight is true
+        const showCorrectAnswer = (selectedPicture && !isSelected && isCorrect) || (showCorrectHighlight && isCorrect);
 
         console.log('Rendering word:', word.word, 'image:', word.image, 'imagePath:', imagePath, 'emoji:', emoji);
         console.log('isSelected:', isSelected, 'selectedPicture:', selectedPicture?.word);
@@ -85,7 +91,11 @@ export function PictureGrid({
             className={`
               w-full cursor-pointer border-2 sm:border-4 rounded-2xl flex items-center justify-center aspect-square
               ${disabled ? 'opacity-50' : ''}
-              ${isSelected ? (isCorrect ? 'bg-green-400 border-green-600' : 'bg-red-400 border-red-600') : 'bg-white border-gray-300'}
+              ${isSelected
+                ? (isCorrect ? 'bg-green-400 border-green-600' : 'bg-red-400 border-red-600')
+                : showCorrectAnswer
+                  ? 'bg-green-400 border-green-600'
+                  : 'bg-white border-gray-300'}
             `}
           >
             <div className="w-full h-full flex items-center justify-center rounded-xl bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
@@ -124,18 +134,15 @@ export function PictureGrid({
                 </motion.span>
               )}
 
-              {/* Success/Error overlay */}
-              {isSelected && (
+              {/* Success overlay - only for correct answer */}
+              {(showCorrectAnswer || (isSelected && isCorrect)) && (
                 <motion.div
-                  className={`
-                    absolute inset-0 flex items-center justify-center text-4xl font-bold
-                    ${isCorrect ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'}
-                  `}
+                  className="absolute inset-0 flex items-center justify-center text-4xl font-bold bg-green-500/90 text-white"
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {isCorrect ? '✅' : '❌'}
+                  ✅
                 </motion.div>
               )}
             </div>

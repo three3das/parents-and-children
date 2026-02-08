@@ -16,11 +16,19 @@ import { MixGame } from "@/components/MixGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { SyllablesGame } from "@/components/SyllablesGame";
 import { SentenceGame } from "@/components/SentenceGame";
+import { AudioPictureGame } from "@/components/AudioPictureGame";
 import { LoginModal } from "@/components/LoginModal";
 import { CreateAccountModal } from "@/components/CreateAccountModal";
+import { ProgressModal } from "@/components/ProgressModal";
 import { useToast } from "@/hooks/use-toast";
+import { useAudio } from "@/hooks/useAudio";
+import { getImagePath, extractEmojiFromImage } from "@/lib/utils";
 import { motion } from "framer-motion";
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 export default function Game() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
@@ -28,9 +36,13 @@ export default function Game() {
   const [gameCompleted, setGameCompleted] = useState(false);
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
   const [gameType, setGameType] = useState<GameType>('picture-match');
+<<<<<<< Updated upstream
   const [currentMixType, setCurrentMixType] = useState<string>('');
+=======
+>>>>>>> Stashed changes
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
+  const [showProgressModal, setShowProgressModal] = useState(false);
   const [sessionId] = useState(() => {
     // Check if we have a session ID in localStorage
     const stored = localStorage.getItem('russian-game-session');
@@ -47,6 +59,10 @@ export default function Game() {
   const queryClient = useQueryClient();
   const { t, language } = useLanguage();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { playApplause, playTryAgain } = useAudio();
+
+  // State for showing incorrect answer result (for picture-match game)
+  const [showIncorrectResult, setShowIncorrectResult] = useState(false);
 
   // Extended Word type with optional translation
   type WordWithTranslation = Word & { translatedWord?: string };
@@ -72,6 +88,11 @@ export default function Game() {
   // Get current word
   const currentWord = words[currentWordIndex];
 
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
   // Fetch distractors for current word (picture-match mode)
   const { data: distractors = [], isLoading: distractorsLoading } = useQuery<Word[]>({
     queryKey: ["/api/words", currentWord?.id, "distractors"],
@@ -179,7 +200,7 @@ export default function Game() {
 
   // Mutation to record user answers
   const recordAnswerMutation = useMutation({
-    mutationFn: (answerData: { wordId: string; isCorrect: boolean; sessionId: string }) =>
+    mutationFn: (answerData: { wordId: string; isCorrect: boolean; sessionId: string; gameType: GameType }) =>
       fetch('/api/answers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -195,7 +216,7 @@ export default function Game() {
 
   const handlePictureSelect = (word: Word, isCorrect: boolean) => {
     // Prevent multiple selections while processing
-    if (selectedPicture || showCelebration) return;
+    if (selectedPicture || showCelebration || showIncorrectResult) return;
 
     setSelectedPicture(word);
 
@@ -205,23 +226,40 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType,
       });
     }
 
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
+      playApplause();
       setShowCelebration(true);
     } else {
-      // Reset selection after a moment
+      // Play error sound
+      playTryAgain();
+      // Show incorrect result with correct answer
+      setShowIncorrectResult(true);
+      // Auto-advance after showing correct answer
       setTimeout(() => {
+        setShowIncorrectResult(false);
         setSelectedPicture(null);
-      }, 1500);
+        // Move to next word
+        if (currentWordIndex + 1 >= words.length) {
+          setGameCompleted(true);
+        } else {
+          setCurrentWordIndex(prev => prev + 1);
+        }
+      }, 2500);
     }
   };
 
   const handleLetterSelect = (letter: string, isCorrect: boolean) => {
+    console.log('Game.tsx: handleLetterSelect called', { letter, isCorrect, selectedPicture, showCelebration });
     // Prevent multiple selections while processing
-    if (selectedPicture || showCelebration) return;
+    if (selectedPicture || showCelebration) {
+      console.log('Game.tsx: Early return - selectedPicture or showCelebration');
+      return;
+    }
 
     setSelectedPicture({ id: letter, word: letter, image: '', audio: '' } as Word);
 
@@ -231,23 +269,39 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType,
       });
     }
 
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
+      console.log('Game.tsx: Correct answer - showing celebration');
     } else {
-      // Reset selection after a moment
+      console.log('Game.tsx: Incorrect answer - setting up auto-advance');
+      // Auto-advance after showing incorrect result
       setTimeout(() => {
+        console.log('Game.tsx: Auto-advance timeout triggered');
         setSelectedPicture(null);
-      }, 1500);
+        // Move to next word
+        if (currentWordIndex + 1 >= words.length) {
+          console.log('Game.tsx: Game completed');
+          setGameCompleted(true);
+        } else {
+          console.log('Game.tsx: Moving to next word', { currentWordIndex, nextIndex: currentWordIndex + 1 });
+          setCurrentWordIndex(prev => prev + 1);
+        }
+      }, 2500);
     }
   };
 
   const handleLetterRemove = (letterIndex: number, isCorrect: boolean) => {
+    console.log('Game.tsx: handleLetterRemove called', { letterIndex, isCorrect, selectedPicture, showCelebration });
     // Prevent multiple selections while processing
-    if (selectedPicture || showCelebration) return;
+    if (selectedPicture || showCelebration) {
+      console.log('Game.tsx: Early return - selectedPicture or showCelebration');
+      return;
+    }
 
     setSelectedPicture({ id: `remove-${letterIndex}`, word: `remove-${letterIndex}`, image: '', audio: '' } as Word);
 
@@ -257,17 +311,29 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType,
       });
     }
 
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
+      console.log('Game.tsx: Correct answer - showing celebration');
     } else {
-      // Reset selection after a moment
+      console.log('Game.tsx: Incorrect answer - setting up auto-advance');
+      // Auto-advance after showing incorrect result (reduced delay since ExtraLetterGame already has 2.5s delay)
       setTimeout(() => {
+        console.log('Game.tsx: Auto-advance timeout triggered');
         setSelectedPicture(null);
-      }, 1500);
+        // Move to next word
+        if (currentWordIndex + 1 >= words.length) {
+          console.log('Game.tsx: Game completed');
+          setGameCompleted(true);
+        } else {
+          console.log('Game.tsx: Moving to next word', { currentWordIndex, nextIndex: currentWordIndex + 1 });
+          setCurrentWordIndex(prev => prev + 1);
+        }
+      }, 500); // Reduced from 2500 to 500
     }
   };
 
@@ -283,6 +349,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType,
       });
     }
 
@@ -307,6 +374,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType,
       });
     }
 
@@ -330,6 +398,31 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType,
+      });
+    }
+
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setShowCelebration(true);
+    } else {
+      setTimeout(() => {
+        setSelectedPicture(null);
+      }, 1500);
+    }
+  };
+
+  const handleAudioPictureAnswer = (isCorrect: boolean) => {
+    if (selectedPicture || showCelebration) return;
+
+    setSelectedPicture({ id: 'audio-picture-answer', word: 'audio-picture-answer', image: '', audio: '' } as Word);
+
+    if (currentWord) {
+      recordAnswerMutation.mutate({
+        wordId: currentWord.id,
+        isCorrect,
+        sessionId,
+        gameType,
       });
     }
 
@@ -349,6 +442,18 @@ export default function Game() {
 
     // Invalidate words query to get updated list (after celebration is done)
     queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId, "all"] });
+
+    if (currentWordIndex + 1 >= words.length) {
+      setGameCompleted(true);
+    } else {
+      setCurrentWordIndex(prev => prev + 1);
+    }
+  };
+
+  // Skip current word without recording answer
+  const handleSkipWord = () => {
+    setShowCelebration(false);
+    setSelectedPicture(null);
 
     if (currentWordIndex + 1 >= words.length) {
       setGameCompleted(true);
@@ -418,6 +523,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType,
       });
     }
 
@@ -582,6 +688,7 @@ export default function Game() {
         onSettingsClick={handleSettingsClick}
         onLoginClick={handleLoginClick}
         onCreateAccountClick={handleCreateAccountClick}
+        onProgressClick={() => setShowProgressModal(true)}
       />
 
       <main className="flex-1 overflow-y-auto max-w-6xl mx-auto px-4 pb-8 w-full">
@@ -603,10 +710,13 @@ export default function Game() {
                 correctWord={currentWord}
                 distractors={distractors || []}
                 onPictureSelect={handlePictureSelect}
-                disabled={!!selectedPicture || showCelebration}
+                disabled={!!selectedPicture || showCelebration || showIncorrectResult}
+                selectedPicture={selectedPicture}
+                showCorrectHighlight={showIncorrectResult}
               />
             )}
 
+<<<<<<< Updated upstream
             <div className="mt-2 sm:mt-4">
               <WordDisplay word={currentWord.translatedWord || currentWord.word} />
             </div>
@@ -626,11 +736,54 @@ export default function Game() {
               >
                 👆
               </motion.div>
+=======
+            {/* Show correct answer on wrong selection */}
+            {showIncorrectResult && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center p-4 rounded-lg bg-green-100 border-2 border-green-400 mt-4 mx-auto max-w-md"
+              >
+                <p className="font-bold text-green-800 text-lg">
+                  {t.correctAnswer}
+                </p>
+                <div className="flex items-center justify-center gap-3 mt-2">
+                  {(() => {
+                    const imagePath = getImagePath(currentWord.image);
+                    const emoji = extractEmojiFromImage(currentWord.image);
+                    return (
+                      <>
+                        <div className="w-16 h-16 bg-white rounded-lg border-2 border-green-400 flex items-center justify-center overflow-hidden">
+                          {imagePath ? (
+                            <img src={imagePath} alt="" className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-3xl">{emoji || '❓'}</span>
+                          )}
+                        </div>
+                        <span className="text-2xl font-bold text-green-800">{currentWord.word}</span>
+                      </>
+                    );
+                  })()}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Skip button only (auto-advance handles navigation) */}
+            <div className="flex gap-4 justify-center mt-6">
+              <button
+                onClick={handleSkipWord}
+                disabled={showIncorrectResult || showCelebration}
+                className="bg-white hover:bg-gray-50 text-gray-700 px-6 py-2 rounded-lg font-medium border border-gray-300 disabled:opacity-50"
+              >
+                {t.skip}
+              </button>
+>>>>>>> Stashed changes
             </div>
           </>
         )}
 
         {gameType === 'missing-letter' && (
+<<<<<<< Updated upstream
           letterOptionsLoading ? (
             <div className="text-center py-8">
               <div className="text-2xl">⏳</div>
@@ -687,6 +840,115 @@ export default function Game() {
             disabled={!!selectedPicture || showCelebration}
             onMixTypeChange={setCurrentMixType}
           />
+=======
+          <>
+            <GameTitle gameType="missing-letter" />
+            {letterOptionsLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.preparingLetters}</p>
+              </div>
+            ) : letterData ? (
+              <MissingLetterGame
+                word={currentWord}
+                letterOptions={letterData.letterOptions}
+                missingLetterIndex={letterData.missingLetterIndex}
+                onLetterSelect={handleLetterSelect}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null}
+
+            {/* Navigation buttons */}
+            <div className="flex gap-4 justify-center mt-6">
+              <button
+                onClick={handleNextWord}
+                disabled={!selectedPicture}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t.next}
+              </button>
+              <button
+                onClick={handleSkipWord}
+                className="bg-white hover:bg-gray-50 text-gray-700 px-6 py-2 rounded-lg font-medium border border-gray-300"
+              >
+                {t.skip}
+              </button>
+            </div>
+          </>
+        )}
+
+        {gameType === 'extra-letter' && (
+          <>
+            <GameTitle gameType="extra-letter" />
+            {extraLetterLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.creatingTask}</p>
+              </div>
+            ) : extraLetterData ? (
+              <ExtraLetterGame
+                word={currentWord}
+                wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
+                extraLetterIndex={extraLetterData.extraLetterIndex}
+                onLetterRemove={handleLetterRemove}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null}
+
+            {/* Navigation buttons */}
+            <div className="flex gap-4 justify-center mt-6">
+              <button
+                onClick={handleNextWord}
+                disabled={!selectedPicture}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t.next}
+              </button>
+              <button
+                onClick={handleSkipWord}
+                className="bg-white hover:bg-gray-50 text-gray-700 px-6 py-2 rounded-lg font-medium border border-gray-300"
+              >
+                {t.skip}
+              </button>
+            </div>
+          </>
+        )}
+
+        {gameType === 'spell-word' && (
+          <>
+            <GameTitle gameType="spell-word" />
+            {spellLettersLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-gray-500">{t.preparingLetters}</p>
+              </div>
+            ) : spellLettersData ? (
+              <SpellWordGame
+                word={currentWord}
+                availableLetters={spellLettersData.availableLetters}
+                onWordComplete={handleWordComplete}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null}
+
+            {/* Navigation buttons */}
+            <div className="flex gap-4 justify-center mt-6">
+              <button
+                onClick={handleNextWord}
+                disabled={!selectedPicture}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t.next}
+              </button>
+              <button
+                onClick={handleSkipWord}
+                className="bg-white hover:bg-gray-50 text-gray-700 px-6 py-2 rounded-lg font-medium border border-gray-300"
+              >
+                {t.skip}
+              </button>
+            </div>
+          </>
+>>>>>>> Stashed changes
         )}
 
         {gameType === 'syllables' && (
@@ -713,6 +975,16 @@ export default function Game() {
             disabled={!!selectedPicture || showCelebration}
           />
         )}
+
+        {gameType === 'audio-picture' && (
+          <>
+            <GameTitle gameType="audio-picture" />
+            <AudioPictureGame
+              onAnswer={handleAudioPictureAnswer}
+              disabled={!!selectedPicture || showCelebration}
+            />
+          </>
+        )}
       </main>
       <CelebrationOverlay
         key={`celebration-${currentWord?.id}-${correctAnswers}`}
@@ -730,6 +1002,11 @@ export default function Game() {
         isOpen={showCreateAccountModal}
         onClose={() => setShowCreateAccountModal(false)}
         onSwitchToLogin={switchToLogin}
+      />
+      <ProgressModal
+        isOpen={showProgressModal}
+        onClose={() => setShowProgressModal(false)}
+        sessionId={sessionId}
       />
     </div>
   );

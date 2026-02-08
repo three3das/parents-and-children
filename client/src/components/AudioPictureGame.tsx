@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+<<<<<<< Updated upstream
 import { motion } from "framer-motion";
 import { type Word } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
@@ -69,11 +70,122 @@ export function AudioPictureGame({
   // Auto-play audio when word changes
   useEffect(() => {
     if (correctWord && !selectedPicture) {
+=======
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { motion } from "framer-motion";
+import { type Word } from "@shared/schema";
+import { getImagePath, extractEmojiFromImage } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
+import { useAudio } from "@/hooks/useAudio";
+import { useGameAnswerLogic } from "@/hooks/useGameAnswerLogic";
+import { ANIMATION_VARIANTS } from "@/lib/constants";
+
+interface AudioPictureGameProps {
+  onAnswer: (isCorrect: boolean) => void;
+  disabled?: boolean;
+}
+
+export function AudioPictureGame({ onAnswer, disabled }: AudioPictureGameProps) {
+  const { t, language } = useLanguage();
+  const { playCustomAudio, playApplause, playTryAgain } = useAudio();
+
+  // Game state
+  const [gameState, setGameState] = useState<'loading' | 'playing' | 'completed'>('loading');
+  const [words, setWords] = useState<Word[]>([]);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [skippedCount, setSkippedCount] = useState(0);
+
+  // Round state
+  const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
+
+  // Universal game answer logic
+  const {
+    answerState,
+    canInteract,
+    handleAnswer: processAnswer,
+    resetForNewQuestion,
+    correctCount,
+    incorrectCount,
+  } = useGameAnswerLogic({
+    autoAdvanceOnCorrect: true,
+    autoAdvanceOnIncorrect: true,
+    correctAdvanceDelay: 1500,
+    incorrectShowDelay: 2500,
+    onCorrect: () => {
+      playApplause();
+      onAnswer(true);
+    },
+    onIncorrect: () => {
+      playTryAgain();
+      onAnswer(false);
+    },
+    onAdvance: () => {
+      // Move to next word
+      if (currentWordIndex < words.length - 1) {
+        setCurrentWordIndex(prev => prev + 1);
+        setSelectedPicture(null);
+        resetForNewQuestion();
+      } else {
+        setGameState('completed');
+      }
+    },
+  });
+
+  // Load words from API
+  const loadWords = useCallback(async () => {
+    try {
+      const response = await fetch('/api/words');
+      if (response.ok) {
+        const wordsData = await response.json();
+        const shuffled = [...wordsData].sort(() => Math.random() - 0.5);
+        setWords(shuffled);
+        setGameState('playing');
+      }
+    } catch (error) {
+      console.error('Error loading words:', error);
+    }
+  }, []);
+
+  // Initialize game
+  useEffect(() => {
+    loadWords();
+  }, [loadWords]);
+
+  const currentWord = words[currentWordIndex];
+  const totalQuestions = words.length;
+  const progress = totalQuestions > 0 ? (currentWordIndex / totalQuestions) * 100 : 0;
+
+  // Generate shuffled options synchronously - this ensures audio and pictures are always in sync
+  const shuffledOptions = useMemo(() => {
+    if (!currentWord || words.length < 4) return [];
+
+    // Get 3 random distractors (different from current word)
+    const otherWords = words.filter(w => w.id !== currentWord.id);
+    const distractors = [...otherWords].sort(() => Math.random() - 0.5).slice(0, 3);
+
+    // Shuffle all options together
+    return [currentWord, ...distractors].sort(() => Math.random() - 0.5);
+  }, [currentWord, words]);
+
+  // Play word audio for the SAME word that's shown in shuffledOptions
+  const playWordAudio = useCallback(() => {
+    if (!currentWord) return;
+    const audioPath = `/audio/words/${language}/${currentWord.id}.mp3`;
+    playCustomAudio(audioPath);
+  }, [currentWord, language, playCustomAudio]);
+
+  // Auto-play audio when word changes or language changes
+  // Only play when we have valid options to display
+  useEffect(() => {
+    if (gameState === 'playing' && currentWord && shuffledOptions.length === 4 && answerState === 'idle') {
+>>>>>>> Stashed changes
       const timer = setTimeout(() => {
         playWordAudio();
       }, 300);
       return () => clearTimeout(timer);
     }
+<<<<<<< Updated upstream
   }, [correctWord?.id]);
 
   const handlePictureClick = useCallback((word: Word) => {
@@ -221,6 +333,214 @@ export function AudioPictureGame({
           );
         })}
       </motion.div>
+=======
+  }, [currentWord, language, gameState, answerState, shuffledOptions.length, playWordAudio]);
+
+  // Reset state when word changes
+  useEffect(() => {
+    setSelectedPicture(null);
+  }, [currentWordIndex]);
+
+  const handlePictureSelect = (word: Word) => {
+    if (disabled || !canInteract || !currentWord) return;
+
+    setSelectedPicture(word);
+    const isCorrect = word.id === currentWord.id;
+    processAnswer(isCorrect);
+  };
+
+  const handleSkip = useCallback(() => {
+    setSkippedCount(prev => prev + 1);
+    if (currentWordIndex < words.length - 1) {
+      setCurrentWordIndex(prev => prev + 1);
+      setSelectedPicture(null);
+      resetForNewQuestion();
+    } else {
+      setGameState('completed');
+    }
+  }, [currentWordIndex, words.length, resetForNewQuestion]);
+
+  const handleRestart = () => {
+    setGameState('loading');
+    setWords([]);
+    setCurrentWordIndex(0);
+    setSkippedCount(0);
+    setSelectedPicture(null);
+    resetForNewQuestion();
+    loadWords();
+  };
+
+  const showResult = answerState !== 'idle';
+  const isCorrect = answerState === 'correct';
+
+  return (
+    <div className="flex flex-col items-center px-4 pt-2 pb-8">
+      {gameState === 'completed' && (() => {
+        const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+
+        return (
+          <div className="flex flex-col items-center justify-center min-h-[600px] p-8">
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="text-center"
+            >
+              <div className="text-6xl mb-4">🏆</div>
+              <h2 className="text-3xl font-bold mb-4 text-primary">{t.results}</h2>
+
+              <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
+                <p className="text-xl mb-2">
+                  {t.correctAnswers} <span className="font-bold text-green-600">{correctCount}</span>
+                </p>
+                <p className="text-xl mb-2">
+                  {t.totalQuestions} <span className="font-bold">{totalQuestions}</span>
+                </p>
+                <p className="text-xl mb-2">
+                  {t.skipped} <span className="font-bold text-yellow-600">{skippedCount}</span>
+                </p>
+                <p className="text-2xl font-bold text-primary">
+                  {t.percentage} {percentage}%
+                </p>
+              </div>
+
+              <Button onClick={handleRestart} className="bg-primary hover:bg-purple-700 text-white px-8 py-3 text-lg">
+                {t.playAgain}
+              </Button>
+            </motion.div>
+          </div>
+        );
+      })()}
+
+      {!currentWord && gameState === 'playing' && (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="text-4xl mb-4">⏳</div>
+            <p className="text-xl">{t.loading}</p>
+          </div>
+        </div>
+      )}
+
+      {currentWord && gameState === 'playing' && (
+        <>
+          <div className="w-full max-w-2xl mb-4">
+            <Progress value={progress} className="h-2" />
+            <p className="text-center text-sm text-gray-600 mt-2">
+              {t.question} {currentWordIndex + 1} {t.of} {totalQuestions}
+            </p>
+          </div>
+
+          {/* Play audio button */}
+          <div className="mb-6 flex justify-center">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={playWordAudio}
+              className="text-3xl sm:text-6xl p-3 sm:p-6 bg-green-500 hover:bg-green-600 rounded-full shadow-xl text-white"
+            >
+              🔊
+            </motion.button>
+          </div>
+
+          {/* Picture grid - identical to PictureGrid */}
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 max-w-[350px] sm:max-w-7xl mx-auto mb-6"
+            {...ANIMATION_VARIANTS.stagger}
+          >
+            {shuffledOptions.map((word) => {
+              const isCorrectOption = word.id === currentWord.id;
+              const isSelected = selectedPicture?.id === word.id;
+              const imagePath = getImagePath(word.image);
+              const emoji = extractEmojiFromImage(word.image);
+
+              return (
+                <div
+                  key={word.id}
+                  onClick={() => handlePictureSelect(word)}
+                  style={{ cursor: 'pointer' }}
+                  className={`
+                    w-full cursor-pointer border-2 sm:border-4 rounded-2xl flex items-center justify-center aspect-square
+                    ${disabled || !canInteract ? 'opacity-50' : ''}
+                    ${isSelected
+                      ? isCorrectOption
+                        ? 'bg-green-400 border-green-600'
+                        : 'bg-red-400 border-red-600'
+                      : showResult && isCorrectOption
+                        ? 'bg-green-400 border-green-600'
+                        : 'bg-white border-gray-300'
+                    }
+                  `}
+                >
+                  <div className="w-full h-full flex items-center justify-center rounded-xl bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
+                    {imagePath ? (
+                      <img
+                        src={imagePath}
+                        alt=""
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            const span = document.createElement('span');
+                            span.className = 'text-6xl sm:text-8xl';
+                            span.textContent = emoji || '❓';
+                            parent.appendChild(span);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <span className="text-6xl sm:text-8xl">{emoji || '❓'}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </motion.div>
+
+          {/* Show correct answer on wrong selection */}
+          {showResult && !isCorrect && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center p-4 rounded-lg bg-green-100 border-2 border-green-400 mb-4"
+            >
+              <p className="font-bold text-green-800 text-lg">
+                {t.correctAnswer}
+              </p>
+              <div className="flex items-center justify-center gap-3 mt-2">
+                {(() => {
+                  const imagePath = getImagePath(currentWord.image);
+                  const emoji = extractEmojiFromImage(currentWord.image);
+                  return (
+                    <>
+                      <div className="w-16 h-16 bg-white rounded-lg border-2 border-green-400 flex items-center justify-center overflow-hidden">
+                        {imagePath ? (
+                          <img src={imagePath} alt="" className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-3xl">{emoji || '❓'}</span>
+                        )}
+                      </div>
+                      <span className="text-2xl font-bold text-green-800">{currentWord.word}</span>
+                    </>
+                  );
+                })()}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Skip button only */}
+          <div className="flex gap-4 justify-center">
+            <Button
+              onClick={handleSkip}
+              variant="outline"
+              className="px-6 py-2 h-10"
+              disabled={showResult}
+            >
+              {t.skip}
+            </Button>
+          </div>
+        </>
+      )}
+>>>>>>> Stashed changes
     </div>
   );
 }

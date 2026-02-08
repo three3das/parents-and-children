@@ -61,10 +61,15 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
   const [selectedLetters, setSelectedLetters] = useState<string[]>([]);
   const [usedLetterIndices, setUsedLetterIndices] = useState<Set<number>>(new Set());
   const [showResult, setShowResult] = useState<'correct' | 'incorrect' | null>(null);
+<<<<<<< Updated upstream
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
   const [showingResult, setShowingResult] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const { playLetterSound, playTryAgain } = useAudio();
+=======
+  const [errorSlotIndex, setErrorSlotIndex] = useState<number | null>(null);
+  const { playLetterSound, playTryAgain, playApplause } = useAudio();
+>>>>>>> Stashed changes
 
   // Configure sensors for better touch support
   const mouseSensor = useSensor(MouseSensor, {
@@ -136,6 +141,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
     if (filledPositions === word.word.length) {
       // Celebrate immediately
       setShowResult('correct');
+      playApplause();
       setTimeout(() => {
         setShowResult(null);
         onWordComplete(true);
@@ -178,6 +184,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
         {/* Picture Display */}
         <GamePictureDisplay word={word} disabled={disabled || !!showResult} />
 
+<<<<<<< Updated upstream
         {/* Selected Letters Display */}
         <div className="flex justify-center gap-3 min-h-[100px] items-center">
           {Array.from({ length: word.word.length }).map((_, index) => (
@@ -189,6 +196,76 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, disabled
               onRemove={() => handleLetterRemove(index)}
             />
           ))}
+=======
+      {/* Selected Letters Display - Slots */}
+      <div className="flex justify-center gap-0.5 sm:gap-3 min-h-[60px] sm:min-h-[100px] items-center px-1">
+        {Array.from({ length: word.word.length }).map((_, index) => (
+          <LetterSlot
+            key={index}
+            letter={selectedLetters[index] || undefined}
+            placeholder=""
+            onClick={() => handleSlotClick(index)}
+            onSpeakerClick={() => {
+              const letter = selectedLetters[index];
+              if (letter) playLetterSound(letter);
+            }}
+            error={errorSlotIndex === index}
+            size="lg"
+            showSpeaker={!!selectedLetters[index]}
+          />
+        ))}
+      </div>
+
+      {/* Available Letters */}
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-4 max-w-2xl mx-auto px-1">
+        {availableLetters.map((letter, index) => (
+          <ClickableLetter
+            key={index}
+            letter={letter}
+            onClick={() => handleLetterClick(letter, index)}
+            onSpeakerClick={() => playLetterSound(letter)}
+            disabled={disabled || !!showResult}
+            used={usedLetterIndices.has(index)}
+            theme="blue"
+            size="lg"
+            showSpeaker
+          />
+        ))}
+      </div>
+
+      {/* Result Display */}
+      {showResult && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center mb-4"
+        >
+          {showResult === 'correct' ? (
+            <div className="text-6xl text-green-500">
+              <div className="text-8xl mb-2">🎉</div>
+            </div>
+          ) : (
+            <div className="text-6xl text-red-500">
+              <div className="text-8xl mb-2">❌</div>
+              <p className="text-3xl font-bold text-gray-800 mt-2">{word.word}</p>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* Progress indicator */}
+      {!showResult && (
+        <div className="text-center text-child-text">
+          <div className="flex justify-center gap-2">
+            {Array.from({ length: word.word.length }).map((_, i) => (
+              <div
+                key={i}
+                className={`w-4 h-4 rounded-full ${selectedLetters[i] !== null ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
+              />
+            ))}
+          </div>
+>>>>>>> Stashed changes
         </div>
 
         {/* Available Letters */}

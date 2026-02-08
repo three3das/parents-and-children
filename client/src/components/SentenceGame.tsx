@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n";
+import { useGameAnswerLogic } from "@/hooks/useGameAnswerLogic";
+import { useAudio } from "@/hooks/useAudio";
 
 interface MaterialWorldActivity {
     id: string;
@@ -21,16 +23,47 @@ type GameState = 'playing' | 'completed';
 
 export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
     const { t } = useLanguage();
+    const { playApplause, playTryAgain } = useAudio();
     const [gameState, setGameState] = useState<GameState>('playing');
     const [activities, setActivities] = useState<MaterialWorldActivity[]>([]);
     const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
     const [imageOptions, setImageOptions] = useState<MaterialWorldActivity[]>([]);
     const [selectedImage, setSelectedImage] = useState<string>('');
-    const [correctAnswers, setCorrectAnswers] = useState(0);
     const [totalQuestions, setTotalQuestions] = useState(0);
-    const [showResult, setShowResult] = useState(false);
-    const [isCorrect, setIsCorrect] = useState(false);
     const [skippedCount, setSkippedCount] = useState(0);
+
+    // Universal game answer logic
+    const {
+        answerState,
+        canInteract,
+        handleAnswer: processAnswer,
+        resetForNewQuestion,
+        correctCount,
+        incorrectCount,
+    } = useGameAnswerLogic({
+        autoAdvanceOnCorrect: true,
+        autoAdvanceOnIncorrect: true,
+        correctAdvanceDelay: 1500,
+        incorrectShowDelay: 2500,
+        onCorrect: () => {
+            playApplause();
+            onAnswer(true);
+        },
+        onIncorrect: () => {
+            playTryAgain();
+            onAnswer(false);
+        },
+        onAdvance: () => {
+            // Move to next activity
+            if (currentActivityIndex < activities.length - 1) {
+                setCurrentActivityIndex(prev => prev + 1);
+                setSelectedImage('');
+                resetForNewQuestion();
+            } else {
+                setGameState('completed');
+            }
+        },
+    });
 
     useEffect(() => {
         loadMaterialWorldActivities();
@@ -70,7 +103,10 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
             setTotalQuestions(shuffled.length);
             setCurrentActivityIndex(0);
             setGameState('playing');
+<<<<<<< Updated upstream
             setTimeout(() => generateImageOptions(), 0);
+=======
+>>>>>>> Stashed changes
         } catch (error) {
             console.error('Error loading material world activities:', error);
         }
@@ -105,8 +141,11 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
 
         // Проверяем, что достаточно других активностей для опций
         if (otherActivities.length < 3) {
+<<<<<<< Updated upstream
             console.log('generateImageOptions: Not enough other activities for options');
             // Если недостаточно других активностей, используем дубликаты текущей
+=======
+>>>>>>> Stashed changes
             const options = [currentActivity];
             while (options.length < 4) {
                 options.push(currentActivity);
@@ -127,65 +166,45 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
     };
 
     const handleImageSelect = (selectedActivity: MaterialWorldActivity) => {
+        if (disabled || !canInteract) return;
+
         const currentActivity = activities[currentActivityIndex];
-        const correct = selectedActivity.id === currentActivity.id;
+        const isCorrect = selectedActivity.id === currentActivity.id;
 
         setSelectedImage(selectedActivity.id);
-        setIsCorrect(correct);
-        setShowResult(true);
-
-        if (correct) {
-            setCorrectAnswers(prev => prev + 1);
-            onAnswer(true);
-
-            setTimeout(() => {
-                handleNext();
-            }, 1000);
-        } else {
-            onAnswer(false);
-        }
-    };
-
-    const handleNext = () => {
-        if (showResult && !isCorrect) {
-            setShowResult(false);
-            setSelectedImage('');
-            return;
-        }
-
-        if (currentActivityIndex < activities.length - 1) {
-            setCurrentActivityIndex(prev => prev + 1);
-            setShowResult(false);
-            setSelectedImage('');
-            // generateImageOptions будет вызван через useEffect
-        } else {
-            setGameState('completed');
-        }
+        processAnswer(isCorrect);
     };
 
     const handleSkip = () => {
         setSkippedCount(prev => prev + 1);
-        handleNext();
+        if (currentActivityIndex < activities.length - 1) {
+            setCurrentActivityIndex(prev => prev + 1);
+            setSelectedImage('');
+            resetForNewQuestion();
+        } else {
+            setGameState('completed');
+        }
     };
 
     const handleRestart = () => {
         setGameState('playing');
         setActivities([]);
         setCurrentActivityIndex(0);
-        setCorrectAnswers(0);
         setSkippedCount(0);
-        setShowResult(false);
         setSelectedImage('');
+        resetForNewQuestion();
         loadMaterialWorldActivities();
     };
 
     const currentActivity = activities[currentActivityIndex];
     const progress = totalQuestions > 0 ? (currentActivityIndex / totalQuestions) * 100 : 0;
+    const showResult = answerState !== 'idle';
+    const isCorrect = answerState === 'correct';
 
     return (
-        <div className="flex flex-col items-center px-8 pt-2 pb-8">
+        <div className="flex flex-col items-center px-4 pt-2 pb-8">
             {gameState === 'completed' && (() => {
-                const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+                const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
                 return (
                     <div className="flex flex-col items-center justify-center min-h-[600px] p-8">
@@ -199,7 +218,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
 
                             <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
                                 <p className="text-xl mb-2">
-                                    {t.correctAnswers} <span className="font-bold text-green-600">{correctAnswers}</span>
+                                    {t.correctAnswers} <span className="font-bold text-green-600">{correctCount}</span>
                                 </p>
                                 <p className="text-xl mb-2">
                                     {t.totalQuestions} <span className="font-bold">{totalQuestions}</span>
@@ -238,58 +257,62 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4 mb-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 max-w-[350px] sm:max-w-7xl mx-auto mb-2">
                         {imageOptions.length > 0 ? (
                             imageOptions.map((activity) => {
                                 const imagePath = activity.image.startsWith('/images/') ? activity.image : `/images/${activity.image}`;
                                 const encodedImagePath = imagePath.replace(/'/g, '%27');
+<<<<<<< Updated upstream
                                 console.log('Final image path:', encodedImagePath);
+=======
+                                const isCorrectOption = activity.id === currentActivity.id;
+                                const isSelected = selectedImage === activity.id;
+
+>>>>>>> Stashed changes
                                 return (
-                                    <motion.button
+                                    <motion.div
                                         key={activity.id}
                                         whileHover={{ scale: !showResult ? 1.05 : 1 }}
                                         whileTap={{ scale: !showResult ? 0.95 : 1 }}
                                         onClick={() => handleImageSelect(activity)}
-                                        disabled={disabled || showResult}
-                                        className={`relative rounded-xl overflow-hidden border-4 transition-all ${showResult && selectedImage === activity.id
-                                            ? isCorrect && activity.id === currentActivity.id
-                                                ? 'border-green-500 shadow-lg'
-                                                : 'border-red-500'
-                                            : showResult && activity.id === currentActivity.id
-                                                ? 'border-green-500 shadow-lg'
-                                                : 'border-gray-200 hover:border-blue-400'
-                                            }`}
+                                        className={`w-full cursor-pointer border-2 sm:border-4 rounded-2xl flex items-center justify-center aspect-square ${isSelected
+                                            ? isCorrectOption
+                                                ? 'bg-green-400 border-green-600'
+                                                : 'bg-red-400 border-red-600'
+                                            : showResult && isCorrectOption
+                                                ? 'bg-green-400 border-green-600'
+                                                : 'bg-white border-gray-300'
+                                            } ${disabled || !canInteract ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        <div className="w-30 h-30 bg-gray-100 flex items-center justify-center">
+                                        <div className="w-full h-full flex items-center justify-center rounded-xl bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
                                             {activity.image ? (
                                                 <img
                                                     src={encodedImagePath}
                                                     alt={activity.event}
+<<<<<<< Updated upstream
                                                     className="w-full h-full object-cover"
                                                     onLoad={() => console.log('Image loaded successfully:', activity.image)}
+=======
+                                                    className="w-full h-full object-contain"
+>>>>>>> Stashed changes
                                                     onError={(e) => {
                                                         console.log('Image failed to load:', activity.image);
                                                         e.currentTarget.style.display = 'none';
                                                         const parent = e.currentTarget.parentElement;
                                                         if (parent) {
-                                                            parent.innerHTML = '<span class="text-2xl">🖼️</span>';
+                                                            parent.innerHTML = '<span class="text-2xl sm:text-4xl">🖼️</span>';
                                                         }
                                                     }}
                                                 />
                                             ) : (
-                                                <span className="text-2xl">🖼️</span>
+                                                <span className="text-2xl sm:text-4xl">🖼️</span>
                                             )}
                                         </div>
-                                        {showResult && activity.id === currentActivity.id && (
-                                            <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-                                                ✓
-                                            </div>
-                                        )}
-                                    </motion.button>
+                                    </motion.div>
                                 );
                             })
                         ) : (
-                            <div className="col-span-4 text-center text-gray-500">
+                            <div className="col-span-2 text-center text-gray-500">
                                 {t.loadingImages}
                             </div>
                         )}
@@ -299,7 +322,6 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                         <Card className="px-0.5 pt-1 pb-3 mb-2 bg-green-50 border-green-200 rounded-sm">
                             <div className="flex flex-wrap justify-center gap-3.5">
                                 {currentActivity.syllables && (() => {
-                                    // Разделяем слова по пробелам, затем каждое слово на слоги по дефисам
                                     const words = currentActivity.syllables.trim().split(' ');
 
                                     return words.map((word, wordIndex) => (
@@ -321,18 +343,40 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                         </Card>
                     </div>
 
-                    <div className="flex gap-4 justify-center">
-                        <Button
-                            onClick={handleNext}
-                            disabled={showResult && isCorrect}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 h-10 disabled:opacity-50"
+                    {/* Show correct answer on wrong selection */}
+                    {showResult && !isCorrect && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-center p-4 rounded-lg bg-green-100 border-2 border-green-400 mb-4"
                         >
-                            {t.next}
-                        </Button>
+                            <p className="font-bold text-green-800 text-lg">
+                                {t.correctAnswer}
+                            </p>
+                            <div className="flex items-center justify-center gap-3 mt-2">
+                                {(() => {
+                                    const imagePath = currentActivity.image.startsWith('/images/') ? currentActivity.image : `/images/${currentActivity.image}`;
+                                    const encodedImagePath = imagePath.replace(/'/g, '%27');
+                                    return (
+                                        <>
+                                            <div className="w-16 h-16 bg-white rounded-lg border-2 border-green-400 flex items-center justify-center overflow-hidden">
+                                                <img src={encodedImagePath} alt="" className="w-full h-full object-contain" />
+                                            </div>
+                                            <span className="text-xl font-bold text-green-800">{currentActivity.event}</span>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Skip button only */}
+                    <div className="flex gap-4 justify-center">
                         <Button
                             onClick={handleSkip}
                             variant="outline"
                             className="px-6 py-2 h-10"
+                            disabled={showResult}
                         >
                             {t.skip}
                         </Button>
