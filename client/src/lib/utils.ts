@@ -81,8 +81,6 @@ const IMAGE_MAPPING: Record<string, string> = {
 
 // Function to get image path from image field
 export function getImagePath(image: string): string {
-    console.log('getImagePath: input image:', image);
-
     // If image contains emoji, return empty string to use emoji system
     if (extractEmojiFromImage(image)) {
         console.log('getImagePath: detected emoji, returning empty string');
@@ -102,7 +100,7 @@ export function getImagePath(image: string): string {
         return path;
     }
 
-    // If image is an English word, map it to numeric file ID
+    // If image is an English word, try to map it to numeric file ID first (prioritize images over emojis)
     if (/^[a-zA-Z]+$/.test(image)) {
         const mappedId = IMAGE_MAPPING[image.toLowerCase()];
         if (mappedId) {

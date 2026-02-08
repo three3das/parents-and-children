@@ -38,7 +38,7 @@ export const translations: Record<Language, Translations> = {
       spellWord: 'Посмотри на картинку и составь слово. Перетаскивай буквы или нажимай на них, чтобы написать слово.',
       syllables: 'Посмотри на картинку и выбери правильное окончание слова из предложенных вариантов.',
       sentences: 'Прочитай предложение и найди картинку, которая соответствует описанию.',
-      audioPicture: 'Послушай слово и найди правильную картинку. Можно переключить язык озвучки флажками.',
+      audioPicture: 'Послушай слово и найди правильную картинку. Язык озвучки можно переключить вверху экрана.',
       mix: 'В этом режиме каждое новое слово будет другой игрой. Следуй инструкциям для каждого задания.',
       default: 'Следуй инструкциям на экране.',
     },
@@ -86,6 +86,29 @@ export const translations: Record<Language, Translations> = {
       'Великолепно!',
       'Браво!'
     ],
+
+    // Progress
+    progress: {
+      title: 'Прогресс',
+      fromDate: 'С какого дня',
+      toDate: 'По какой день',
+      attempted: 'Попытки',
+      correct: 'Правильно',
+      incorrect: 'Ошибки',
+      skipped: 'Пропущено',
+      summary: 'Итого',
+      noData: 'Нет данных за выбранный период',
+      gameNames: {
+        pictureMatch: 'Картинки',
+        missingLetter: 'Лупа',
+        extraLetter: 'Корзина',
+        spellWord: 'Карандаш',
+        syllables: 'Кирпичи',
+        sentenceGame: 'Блокнот',
+        audioPicture: 'Динамик',
+        mix: 'Микс',
+      },
+    },
 
     // Authentication
     auth: {
@@ -155,7 +178,7 @@ export const translations: Record<Language, Translations> = {
       spellWord: 'Look at the picture and spell the word. Drag or tap letters to write the word.',
       syllables: 'Look at the picture and choose the correct word ending from the options.',
       sentences: 'Read the sentence and find the picture that matches the description.',
-      audioPicture: 'Listen to the word and find the correct picture. You can switch the audio language using the flags.',
+      audioPicture: 'Listen to the word and find the correct picture. You can switch the audio language at the top of the screen.',
       mix: 'In this mode, each new word is a different game. Follow the instructions for each task.',
       default: 'Follow the instructions on screen.',
     },
@@ -203,6 +226,29 @@ export const translations: Record<Language, Translations> = {
       'Magnificent!',
       'Bravo!'
     ],
+
+    // Progress
+    progress: {
+      title: 'Progress',
+      fromDate: 'From date',
+      toDate: 'To date',
+      attempted: 'Attempted',
+      correct: 'Correct',
+      incorrect: 'Incorrect',
+      skipped: 'Skipped',
+      summary: 'Summary',
+      noData: 'No data for selected period',
+      gameNames: {
+        pictureMatch: 'Pictures',
+        missingLetter: 'Magnifier',
+        extraLetter: 'Basket',
+        spellWord: 'Pencil',
+        syllables: 'Bricks',
+        sentenceGame: 'Notepad',
+        audioPicture: 'Speaker',
+        mix: 'Mix',
+      },
+    },
 
     // Authentication
     auth: {
@@ -272,7 +318,7 @@ export const translations: Record<Language, Translations> = {
       spellWord: 'Подивись на картинку і склади слово. Перетягуй літери або натискай на них, щоб написати слово.',
       syllables: 'Подивись на картинку і вибери правильне закінчення слова з варіантів.',
       sentences: 'Прочитай речення і знайди картинку, яка відповідає опису.',
-      audioPicture: 'Послухай слово і знайди правильну картинку. Можна перемикати мову озвучування прапорцями.',
+      audioPicture: 'Послухай слово і знайди правильну картинку. Мову озвучки можна переключити вгорі екрана.',
       mix: 'У цьому режимі кожне нове слово буде іншою грою. Слідуй інструкціям для кожного завдання.',
       default: 'Слідуй інструкціям на екрані.',
     },
@@ -320,6 +366,29 @@ export const translations: Record<Language, Translations> = {
       'Чудово!',
       'Браво!'
     ],
+
+    // Progress
+    progress: {
+      title: 'Прогрес',
+      fromDate: 'З якого дня',
+      toDate: 'По який день',
+      attempted: 'Спроби',
+      correct: 'Правильно',
+      incorrect: 'Помилки',
+      skipped: 'Пропущено',
+      summary: 'Підсумок',
+      noData: 'Немає даних за вибраний період',
+      gameNames: {
+        pictureMatch: 'Картинки',
+        missingLetter: 'Лупа',
+        extraLetter: 'Кошик',
+        spellWord: 'Олівець',
+        syllables: 'Цеглинки',
+        sentenceGame: 'Блокнот',
+        audioPicture: 'Динамік',
+        mix: 'Мікс',
+      },
+    },
 
     // Authentication
     auth: {
