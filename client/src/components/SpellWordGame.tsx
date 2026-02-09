@@ -35,19 +35,18 @@ function DroppablePosition({ index, letter, isIncorrect, onRemove }: { index: nu
   return (
     <motion.div
       ref={setNodeRef}
-      className={`w-20 h-20 border-4 rounded-xl flex items-center justify-center text-4xl font-black text-black shadow-lg transition-all duration-300 ${
-        isIncorrect
+      className={`w-20 h-20 border-4 rounded-xl flex items-center justify-center text-4xl font-black text-black shadow-lg transition-all duration-300 ${isIncorrect
           ? 'border-red-500 bg-red-100 animate-pulse'
-          : letter 
-            ? 'border-blue-500 bg-gray-100 cursor-pointer hover:bg-blue-100' 
+          : letter
+            ? 'border-blue-500 bg-gray-100 cursor-pointer hover:bg-blue-100'
             : isOver
               ? 'border-green-500 bg-green-50'
               : 'border-dashed border-gray-400 bg-gray-50'
-      }`}
+        }`}
       whileHover={{ scale: letter ? 1.05 : 1.02 }}
       whileTap={{ scale: 0.95 }}
       onClick={letter ? onRemove : undefined}
-      animate={isIncorrect ? { 
+      animate={isIncorrect ? {
         x: [-10, 10, -10, 10, 0],
         scale: [1, 1.1, 1]
       } : {}}
@@ -63,9 +62,10 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, onIncorr
   const [usedLetterIndices, setUsedLetterIndices] = useState<Set<number>>(new Set());
   const [showResult, setShowResult] = useState<'correct' | 'incorrect' | null>(null);
   const [incorrectLetterIndex, setIncorrectLetterIndex] = useState<number | null>(null);
+  const { playTryAgain, playLetterSound } = useAudio();
+  const [isCompleted, setIsCompleted] = useState(false);
   const [showingResult, setShowingResult] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const { playLetterSound, playTryAgain } = useAudio();
 
   // Configure sensors for better touch support
   const mouseSensor = useSensor(MouseSensor, {
@@ -83,6 +83,65 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, onIncorr
 
   const sensors = useSensors(mouseSensor, touchSensor);
 
+  // Handle click on a letter - auto-place in next empty slot
+  const handleLetterClick = (letter: string, sourceIndex: number) => {
+    if (disabled || showResult || usedLetterIndices.has(sourceIndex)) return;
+
+    // Play letter sound
+    playLetterSound(letter);
+
+    // Find the next empty slot
+    let nextEmptySlot = -1;
+    for (let i = 0; i < word.word.length; i++) {
+      if (!selectedLetters[i]) {
+        nextEmptySlot = i;
+        break;
+      }
+    }
+
+    if (nextEmptySlot === -1) return; // No empty slots
+
+    // Check if this letter is correct for this position
+    const correctLetter = word.word[nextEmptySlot];
+    const isCorrect = letter === correctLetter;
+
+    if (!isCorrect) {
+      // Show red highlight and play error sound
+      setIncorrectLetterIndex(nextEmptySlot);
+      playTryAgain();
+
+      // Report incorrect letter to parent for database recording
+      onIncorrectLetter?.(letter);
+
+      // Remove the highlight after animation
+      setTimeout(() => {
+        setIncorrectLetterIndex(null);
+      }, 800);
+
+      return;
+    }
+
+    // Letter is correct, add it
+    const newSelectedLetters = [...selectedLetters];
+    newSelectedLetters[nextEmptySlot] = letter;
+
+    const newUsedIndices = new Set(Array.from(usedLetterIndices).concat([sourceIndex]));
+
+    setSelectedLetters(newSelectedLetters);
+    setUsedLetterIndices(newUsedIndices);
+
+    // Check if word is complete
+    const filledPositions = newSelectedLetters.filter(l => l).length;
+    if (filledPositions === word.word.length) {
+      // Celebrate immediately
+      setShowResult('correct');
+      setTimeout(() => {
+        setShowResult(null);
+        onWordComplete(true);
+      }, 1500);
+    }
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
     // No sound on drag - only on click
@@ -98,18 +157,18 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, onIncorr
 
     const draggedData = active.data.current;
     const dropData = over.data.current;
-    
+
     if (!draggedData.letter || dropData?.index === undefined) {
       return;
     }
 
     const { letter, index: sourceIndex } = draggedData;
     const dropIndex = dropData.index;
-    
+
     // Check if this letter is correct for this position
     const correctLetter = word.word[dropIndex];
     const isCorrect = letter === correctLetter;
-    
+
     if (!isCorrect) {
       // Show red highlight and play error sound
       setIncorrectLetterIndex(dropIndex);
@@ -125,13 +184,13 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, onIncorr
 
       return;
     }
-    
+
     // Letter is correct, add it
     const newSelectedLetters = [...selectedLetters];
     newSelectedLetters[dropIndex] = letter;
-    
+
     const newUsedIndices = new Set(Array.from(usedLetterIndices).concat([sourceIndex]));
-    
+
     setSelectedLetters(newSelectedLetters);
     setUsedLetterIndices(newUsedIndices);
 
@@ -160,16 +219,16 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, onIncorr
     if (disabled || showResult) return;
 
     const newSelectedLetters = selectedLetters.filter((_, i) => i !== removeIndex);
-    
+
     // Find the letter we're removing and its original index
     const removedLetter = selectedLetters[removeIndex];
-    const originalIndex = availableLetters.findIndex((letter, idx) => 
+    const originalIndex = availableLetters.findIndex((letter, idx) =>
       letter === removedLetter && usedLetterIndices.has(idx)
     );
-    
+
     const newUsedIndices = new Set(Array.from(usedLetterIndices));
     newUsedIndices.delete(originalIndex);
-    
+
     setSelectedLetters(newSelectedLetters);
     setUsedLetterIndices(newUsedIndices);
   };
@@ -206,7 +265,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, onIncorr
               used={usedLetterIndices.has(index)}
               theme="blue"
               size="lg"
-              onClick={(letter) => playLetterSound(letter)}
+              onClick={() => handleLetterClick(letter, index)}
             />
           ))}
         </div>

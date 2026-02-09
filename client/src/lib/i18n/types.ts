@@ -104,4 +104,36 @@ export interface Translations {
     termsLink: string;
     privacyLink: string;
   };
+
+  // Progress modal
+  progress: {
+    title: string;
+    correct: string;
+    incorrect: string;
+    fromDate: string;
+    toDate: string;
+    summary: string;
+    attempted: string;
+    skipped: string;
+    noData: string;
+    gameNames: {
+      pictureMatch: string;
+      missingLetter: string;
+      extraLetter: string;
+      spellWord: string;
+      syllables: string;
+      sentenceGame: string;
+      audioPicture: string;
+      mix: string;
+    };
+  };
+
+  // Game type names for GameTitle
+  pictureMatch: string;
+  missingLetter: string;
+  extraLetter: string;
+  spellWord: string;
+  sentences: string;
+  audioPicture: string;
+  gameInstructions: string;
 }

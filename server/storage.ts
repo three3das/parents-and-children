@@ -47,6 +47,22 @@ export interface IStorage {
   recordAnswer(answer: InsertUserAnswer): Promise<UserAnswer>;
   getCorrectAnswersInLastMonth(sessionId: string): Promise<string[]>;
   getTodayCorrectAnswersCount(sessionId: string): Promise<number>;
+  getProgressStats(sessionId: string, fromDate: string, toDate: string): Promise<{
+    stats: Array<{
+      gameType: string;
+      gameName: string;
+      attempted: number;
+      correct: number;
+      incorrect: number;
+      skipped: number;
+    }>;
+    totals: {
+      attempted: number;
+      correct: number;
+      incorrect: number;
+      skipped: number;
+    };
+  }>;
 
   // Game logic helpers
   getRandomWords(excludeId: string, count: number): Promise<Word[]>;
@@ -367,6 +383,106 @@ export class DatabaseStorage implements IStorage {
       );
 
     return Number(result[0]?.count || 0);
+  }
+
+  async getProgressStats(sessionId: string, fromDate: string, toDate: string): Promise<{
+    stats: Array<{
+      gameType: string;
+      gameName: string;
+      attempted: number;
+      correct: number;
+      incorrect: number;
+      skipped: number;
+    }>;
+    totals: {
+      attempted: number;
+      correct: number;
+      incorrect: number;
+      skipped: number;
+    };
+  }> {
+    const fromDateTime = new Date(fromDate);
+    const toDateTime = new Date(toDate);
+    toDateTime.setHours(23, 59, 59, 999); // End of day
+
+    // Get all answers for the session in the date range
+    // Only select columns that exist in database (is_skipped might not exist)
+    const answers = await db
+      .select({
+        id: userAnswers.id,
+        wordId: userAnswers.wordId,
+        isCorrect: userAnswers.isCorrect,
+        answeredAt: userAnswers.answeredAt,
+        sessionId: userAnswers.sessionId,
+        gameType: userAnswers.gameType,
+      })
+      .from(userAnswers)
+      .where(
+        and(
+          eq(userAnswers.sessionId, sessionId),
+          sql`${userAnswers.answeredAt} >= ${fromDateTime}`,
+          sql`${userAnswers.answeredAt} <= ${toDateTime}`
+        )
+      );
+
+    // Game type names mapping (matching UI labels)
+    const gameNames: Record<string, string> = {
+      'picture-match': 'Картинки',
+      'missing-letter': 'Лупа',
+      'extra-letter': 'Корзина',
+      'spell-word': 'Буквы',
+      'syllables': 'Слоги',
+      'sentence-game': 'Предложения',
+      'audio-picture': 'Аудио',
+      'mix': 'Микс'
+    };
+
+    // Group answers by game type
+    const statsByGameType = new Map<string, {
+      attempted: number;
+      correct: number;
+      incorrect: number;
+      skipped: number;
+    }>();
+
+    answers.forEach(answer => {
+      const gameType = answer.gameType || 'unknown';
+      if (!statsByGameType.has(gameType)) {
+        statsByGameType.set(gameType, {
+          attempted: 0,
+          correct: 0,
+          incorrect: 0,
+          skipped: 0
+        });
+      }
+
+      const stats = statsByGameType.get(gameType)!;
+      stats.attempted++;
+
+      if (answer.isCorrect) {
+        stats.correct++;
+      } else {
+        // No isSkipped tracking - all non-correct answers are incorrect
+        stats.incorrect++;
+      }
+    });
+
+    // Convert to array format
+    const stats = Array.from(statsByGameType.entries()).map(([gameType, stats]) => ({
+      gameType,
+      gameName: gameNames[gameType] || gameType,
+      ...stats
+    }));
+
+    // Calculate totals
+    const totals = stats.reduce((acc, stat) => ({
+      attempted: acc.attempted + stat.attempted,
+      correct: acc.correct + stat.correct,
+      incorrect: acc.incorrect + stat.incorrect,
+      skipped: acc.skipped + stat.skipped
+    }), { attempted: 0, correct: 0, incorrect: 0, skipped: 0 });
+
+    return { stats, totals };
   }
 
   async getAvailableWords(sessionId: string): Promise<Word[]> {

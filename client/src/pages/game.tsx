@@ -165,6 +165,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType: 'mix'
       });
     }
 
@@ -181,7 +182,7 @@ export default function Game() {
 
   // Mutation to record user answers
   const recordAnswerMutation = useMutation({
-    mutationFn: (answerData: { wordId: string; isCorrect: boolean; sessionId: string }) =>
+    mutationFn: (answerData: { wordId: string; isCorrect: boolean; sessionId: string; gameType: string }) =>
       fetch('/api/answers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -207,6 +208,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType: 'picture-match'
       });
     }
 
@@ -233,6 +235,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType: 'missing-letter'
       });
     }
 
@@ -259,6 +262,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType: 'extra-letter'
       });
     }
 
@@ -285,6 +289,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType: 'spell-word'
       });
     }
 
@@ -307,6 +312,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect: false,
         sessionId,
+        gameType: 'spell-word'
       });
     }
   };
@@ -321,6 +327,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType: 'syllables'
       });
     }
 
@@ -344,6 +351,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType: 'sentence-game'
       });
     }
 
@@ -432,6 +440,7 @@ export default function Game() {
         wordId: currentWord.id,
         isCorrect,
         sessionId,
+        gameType: 'syllables'
       });
     }
 

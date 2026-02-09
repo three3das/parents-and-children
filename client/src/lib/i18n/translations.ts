@@ -110,6 +110,15 @@ export const translations: Record<Language, Translations> = {
       },
     },
 
+    // Game type names for GameTitle
+    pictureMatch: 'Картинки',
+    missingLetter: 'Лупа',
+    extraLetter: 'Корзина',
+    spellWord: 'Буквы',
+    sentences: 'Предложения',
+    audioPicture: 'Аудио',
+    gameInstructions: 'Выполни задание',
+
     // Authentication
     auth: {
       login: 'Войти',
@@ -250,6 +259,15 @@ export const translations: Record<Language, Translations> = {
       },
     },
 
+    // Game type names for GameTitle
+    pictureMatch: 'Pictures',
+    missingLetter: 'Magnifier',
+    extraLetter: 'Basket',
+    spellWord: 'Letters',
+    sentences: 'Sentences',
+    audioPicture: 'Audio',
+    gameInstructions: 'Complete the task',
+
     // Authentication
     auth: {
       login: 'Log in',
@@ -389,6 +407,15 @@ export const translations: Record<Language, Translations> = {
         mix: 'Мікс',
       },
     },
+
+    // Game type names for GameTitle
+    pictureMatch: 'Картинки',
+    missingLetter: 'Лупа',
+    extraLetter: 'Кошик',
+    spellWord: 'Літери',
+    sentences: 'Речення',
+    audioPicture: 'Аудіо',
+    gameInstructions: 'Виконай завдання',
 
     // Authentication
     auth: {

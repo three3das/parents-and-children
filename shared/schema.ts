@@ -58,6 +58,7 @@ export const userAnswers = pgTable("user_answers", {
   isCorrect: boolean("is_correct").default(false),
   answeredAt: timestamp("answered_at", { withTimezone: true }).default(sql`now()`),
   sessionId: varchar("session_id").notNull(),
+  gameType: varchar("game_type").notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

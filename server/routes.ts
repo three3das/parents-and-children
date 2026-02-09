@@ -500,6 +500,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get progress statistics for charts
+  app.get("/api/progress/stats", async (req, res) => {
+    try {
+      const sessionId = req.query.sessionId as string || 'default-session';
+      const fromDate = req.query.from as string;
+      const toDate = req.query.to as string;
+
+      if (!fromDate || !toDate) {
+        return res.status(400).json({ message: "From and to dates are required" });
+      }
+
+      const stats = await storage.getProgressStats(sessionId, fromDate, toDate);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting progress stats:", error);
+      res.status(500).json({ message: "Failed to get progress stats" });
+    }
+  });
+
   // Record user answer
   app.post("/api/answers", async (req, res) => {
     try {
