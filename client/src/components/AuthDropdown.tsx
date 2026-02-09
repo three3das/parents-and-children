@@ -6,9 +6,11 @@ import { useAuth } from "@/lib/auth";
 interface AuthDropdownProps {
   onLoginClick: () => void;
   onCreateAccountClick: () => void;
+  onProgressClick?: () => void;
+  onSettingsClick?: () => void;
 }
 
-export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdownProps) {
+export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressClick, onSettingsClick }: AuthDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
@@ -41,6 +43,16 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdow
     logout();
   };
 
+  const handleProgressClick = () => {
+    setIsOpen(false);
+    onProgressClick?.();
+  };
+
+  const handleSettingsClick = () => {
+    setIsOpen(false);
+    onSettingsClick?.();
+  };
+
   // Get user initials for avatar
   const getInitials = () => {
     if (!user) return "";
@@ -48,7 +60,7 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdow
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative z-[9999]" ref={dropdownRef}>
       {/* User Icon Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
@@ -81,7 +93,7 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdow
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
+            className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-[9999]"
           >
             {isAuthenticated ? (
               <>
@@ -90,6 +102,26 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdow
                   <p className="font-medium text-gray-800">{user?.firstName} {user?.lastName}</p>
                   <p className="text-sm text-gray-500 truncate">{user?.email}</p>
                 </div>
+                {/* Progress button */}
+                {onProgressClick && (
+                  <button
+                    onClick={handleProgressClick}
+                    className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100 flex items-center"
+                  >
+                    <span className="mr-2">📊</span>
+                    {t.progress?.title || 'Прогресс'}
+                  </button>
+                )}
+                {/* Settings button */}
+                {onSettingsClick && (
+                  <button
+                    onClick={handleSettingsClick}
+                    className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100 flex items-center"
+                  >
+                    <span className="mr-2">⚙️</span>
+                    {t.settings}
+                  </button>
+                )}
                 {/* Logout button */}
                 <button
                   onClick={handleLogout}
@@ -108,10 +140,20 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick }: AuthDropdow
                 </button>
                 <button
                   onClick={handleCreateAccountClick}
-                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
                 >
                   {t.auth.createAccount}
                 </button>
+                {/* Settings button */}
+                {onSettingsClick && (
+                  <button
+                    onClick={handleSettingsClick}
+                    className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium flex items-center"
+                  >
+                    <span className="mr-2">⚙️</span>
+                    {t.settings}
+                  </button>
+                )}
               </>
             )}
           </motion.div>

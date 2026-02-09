@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { GAME_CONFIG, ANIMATION_VARIANTS } from "@/lib/constants";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -12,9 +12,10 @@ interface GameHeaderProps {
   onSettingsClick: () => void;
   onLoginClick: () => void;
   onCreateAccountClick: () => void;
+  onProgressClick?: () => void;
 }
 
-export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, onSettingsClick, onLoginClick, onCreateAccountClick }: GameHeaderProps) {
+export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, onSettingsClick, onLoginClick, onCreateAccountClick, onProgressClick }: GameHeaderProps) {
   const { t } = useLanguage();
 
   // Calculate progress based on today's correct answers
@@ -47,7 +48,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
 
   return (
     <motion.header
-      className="glass rounded-2xl p-2 mb-3 gpu-accelerated overflow-visible"
+      className="glass rounded-2xl p-2 mb-3 gpu-accelerated overflow-visible relative z-[9999]"
       {...ANIMATION_VARIANTS.slideDown}
     >
       <div className="max-w-4xl mx-auto overflow-visible">
@@ -133,31 +134,19 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
             <LanguageSwitcher />
           </motion.div>
 
-          {/* Auth Dropdown */}
+          {/* Auth Dropdown - Far Right */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.27 }}
+            transition={{ duration: 0.5, delay: 0.28 }}
           >
             <AuthDropdown
               onLoginClick={onLoginClick}
               onCreateAccountClick={onCreateAccountClick}
+              onProgressClick={onProgressClick}
+              onSettingsClick={onSettingsClick}
             />
           </motion.div>
-
-          {/* Settings with Text */}
-          <motion.button
-            onClick={onSettingsClick}
-            className="btn-modern px-3 py-2 text-white text-sm font-medium flex items-center"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <span className="mr-2">⚙️</span>
-            <span>{t.settings}</span>
-          </motion.button>
         </div>
       </div>
     </motion.header>

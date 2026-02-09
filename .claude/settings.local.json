@@ -14,7 +14,9 @@
       "Bash(npm run deploy:*)",
       "Bash(grep:*)",
       "Bash(curl:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git stash:*)"
     ],
     "deny": []
   }

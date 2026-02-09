@@ -411,28 +411,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allWords = await storage.getAllWords();
       const allSyllables = new Set<string>();
 
-      // Collect syllables from all words
+      // Collect syllables from all words (filter out empty strings)
       for (const w of allWords) {
         const wordSyllables = splitIntoSyllables(w.word);
-        wordSyllables.forEach(syllable => allSyllables.add(syllable));
+        wordSyllables.forEach(syllable => {
+          if (syllable && syllable.trim()) {
+            allSyllables.add(syllable);
+          }
+        });
       }
+
+      // Filter correct syllables to remove any empty strings
+      const validCorrectSyllables = correctSyllables.filter(s => s && s.trim());
 
       // Remove correct syllables from distractors
       const distractorSyllables = Array.from(allSyllables).filter(
-        syllable => !correctSyllables.includes(syllable)
+        syllable => syllable && syllable.trim() && !validCorrectSyllables.includes(syllable)
       );
 
       // Shuffle and select 3 random distractors
       const shuffledDistractors = distractorSyllables.sort(() => Math.random() - 0.5);
       const selectedDistractors = shuffledDistractors.slice(0, 3);
 
-      // Combine correct syllables with distractors and shuffle
-      const allOptions = [...correctSyllables, ...selectedDistractors];
+      // Combine correct syllables with distractors and shuffle (final filter for safety)
+      const allOptions = [...validCorrectSyllables, ...selectedDistractors].filter(s => s && s.trim());
       const shuffledOptions = allOptions.sort(() => Math.random() - 0.5);
 
       res.json({
         syllables: shuffledOptions,
-        correctSyllables: correctSyllables
+        correctSyllables: validCorrectSyllables
       });
     } catch (error) {
       console.error("Error getting syllables:", error);
