@@ -1,4 +1,4 @@
-import { type Word, type InsertWord, type SentenceAndPhrase, type InsertSentence, type GameProgress, type InsertGameProgress, type UserAnswer, type InsertUserAnswer, type User, type InsertUser, type PasswordResetToken, type WordTranslation, words, sentencesAndPhrases, userAnswers, users, passwordResetTokens, wordTranslations } from "@shared/schema";
+import { type Word, type InsertWord, type SentenceAndPhrase, type InsertSentence, type GameProgress, type InsertGameProgress, type UserAnswer, type InsertUserAnswer, type User, type InsertUser, type PasswordResetToken, type WordTranslation, type MaterialWorld, words, sentencesAndPhrases, userAnswers, users, passwordResetTokens, wordTranslations, materialWorld } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt, sql, notInArray } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -36,7 +36,9 @@ export interface IStorage {
   getSentencesByDifficulty(difficulty: string): Promise<SentenceAndPhrase[]>;
 
   // Material world calendar management
-  getMaterialWorldActivities(): Promise<any[]>;
+  getMaterialWorldActivities(): Promise<MaterialWorld[]>;
+  getMaterialWorldItem(id: string): Promise<MaterialWorld | undefined>;
+  getRandomMaterialWorldItems(excludeId: string, count: number): Promise<MaterialWorld[]>;
 
   // Game progress management
   getGameProgress(id: string): Promise<GameProgress | undefined>;
@@ -433,8 +435,7 @@ export class DatabaseStorage implements IStorage {
       'spell-word': 'Буквы',
       'syllables': 'Слоги',
       'sentence-game': 'Предложения',
-      'audio-picture': 'Аудио',
-      'mix': 'Микс'
+      'audio-picture': 'Аудио'
     };
 
     // Group answers by game type
@@ -555,18 +556,56 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Material world management
-  async getMaterialWorldActivities(): Promise<any[]> {
+  async getMaterialWorldActivities(): Promise<MaterialWorld[]> {
     try {
+      // Return all material world items with audio paths for all languages
       const result = await db.execute(sql`
-        SELECT id, event, syllables, image
+        SELECT id, event, event_en, event_uk, syllables, image, audio_ru, audio_en, audio_uk
         FROM public.material_world
-        ORDER BY id
+        WHERE image IS NOT NULL AND image != ''
+        ORDER BY RANDOM()
       `);
 
-      console.log('Material world activities result:', result.rows);
-      return result.rows || [];
+      console.log('getMaterialWorldActivities found:', result.rows?.length || 0, 'items');
+      return (result.rows || []) as MaterialWorld[];
     } catch (error) {
       console.error('Error fetching material world activities:', error);
+      return [];
+    }
+  }
+
+  async getMaterialWorldItem(id: string): Promise<MaterialWorld | undefined> {
+    try {
+      const result = await db.execute(sql`
+        SELECT id, event, event_en, event_uk, syllables, image, audio_ru, audio_en, audio_uk
+        FROM public.material_world
+        WHERE id = ${id}
+        LIMIT 1
+      `);
+
+      return (result.rows?.[0] as MaterialWorld) || undefined;
+    } catch (error) {
+      console.error('Error fetching material world item:', error);
+      return undefined;
+    }
+  }
+
+  async getRandomMaterialWorldItems(excludeId: string, count: number): Promise<MaterialWorld[]> {
+    try {
+      // Return random material world items with audio paths
+      const result = await db.execute(sql`
+        SELECT id, event, event_en, event_uk, syllables, image, audio_ru, audio_en, audio_uk
+        FROM public.material_world
+        WHERE id != ${excludeId}
+          AND image IS NOT NULL AND image != ''
+        ORDER BY RANDOM()
+        LIMIT ${count}
+      `);
+
+      console.log('getRandomMaterialWorldItems found:', result.rows?.length || 0, 'items');
+      return (result.rows || []) as MaterialWorld[];
+    } catch (error) {
+      console.error('Error fetching random material world items:', error);
       return [];
     }
   }
@@ -598,54 +637,68 @@ export class DatabaseStorage implements IStorage {
   async getWordWithTranslation(wordId: string, language: string): Promise<(Word & { translatedWord?: string }) | undefined> {
     await this.ensureInitialized();
 
-    const result = await db.execute(sql`
-      SELECT w.*, wt.translation as translated_word
-      FROM words w
-      LEFT JOIN word_translations wt ON w.id = wt.word_id AND wt.language = ${language}
-      WHERE w.id = ${wordId}
-    `);
+    try {
+      const result = await db.execute(sql`
+        SELECT w.*, wt.translation as translated_word
+        FROM words w
+        LEFT JOIN word_translations wt ON w.id = wt.word_id AND wt.language = ${language}
+        WHERE w.id = ${wordId}
+      `);
 
-    if (!result.rows || result.rows.length === 0) {
-      return undefined;
+      if (!result.rows || result.rows.length === 0) {
+        return undefined;
+      }
+
+      const row = result.rows[0] as any;
+      return {
+        id: row.id,
+        word: row.word,
+        image: row.image,
+        audio: row.audio,
+        word_english: row.word_english,
+        translatedWord: row.translated_word || undefined,
+      };
+    } catch (error) {
+      // Fallback: if word_translations table doesn't exist, return word without translation
+      console.warn('Error fetching word translation, falling back to word only:', error);
+      const word = await this.getWord(wordId);
+      return word ? { ...word, translatedWord: undefined } : undefined;
     }
-
-    const row = result.rows[0] as any;
-    return {
-      id: row.id,
-      word: row.word,
-      image: row.image,
-      audio: row.audio,
-      word_english: row.word_english,
-      translatedWord: row.translated_word || undefined,
-    };
   }
 
   async getAllWordsWithTranslations(language: string): Promise<(Word & { translatedWord?: string })[]> {
     await this.ensureInitialized();
 
-    const result = await db.execute(sql`
-      SELECT w.*, wt.translation as translated_word
-      FROM words w
-      LEFT JOIN word_translations wt ON w.id = wt.word_id AND wt.language = ${language}
-    `);
+    try {
+      const result = await db.execute(sql`
+        SELECT w.*, wt.translation as translated_word
+        FROM words w
+        LEFT JOIN word_translations wt ON w.id = wt.word_id AND wt.language = ${language}
+      `);
 
-    if (!result.rows) {
-      return [];
+      if (!result.rows) {
+        return [];
+      }
+
+      const allWords = result.rows.map((row: any) => ({
+        id: row.id,
+        word: row.word,
+        image: row.image,
+        audio: row.audio,
+        word_english: row.word_english,
+        translatedWord: row.translated_word || undefined,
+      }));
+
+      return this.filterBlacklistedWords(allWords as Word[]).map(w => ({
+        ...w,
+        translatedWord: allWords.find(aw => aw.id === w.id)?.translatedWord,
+      }));
+    } catch (error) {
+      // Fallback: if word_translations table doesn't exist, just return words without translations
+      console.warn('Error fetching translations, falling back to words only:', error);
+      const allWords = await this.getAllWords();
+      return allWords.map(w => ({ ...w, translatedWord: undefined }));
     }
-
-    const allWords = result.rows.map((row: any) => ({
-      id: row.id,
-      word: row.word,
-      image: row.image,
-      audio: row.audio,
-      word_english: row.word_english,
-      translatedWord: row.translated_word || undefined,
-    }));
-
-    return this.filterBlacklistedWords(allWords as Word[]).map(w => ({
-      ...w,
-      translatedWord: allWords.find(aw => aw.id === w.id)?.translatedWord,
-    }));
   }
 }
 

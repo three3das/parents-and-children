@@ -38,7 +38,19 @@ const GAME_EMOJIS: Record<string, string> = {
   'syllables': '🧱',
   'sentence-game': '📝',
   'audio-picture': '🔊',
-  'mix': '🎲',
+  'audio-sentence': '🎧',
+};
+
+// Map gameType to translation key
+const GAME_TYPE_TO_KEY: Record<string, string> = {
+  'picture-match': 'pictureMatch',
+  'missing-letter': 'missingLetter',
+  'extra-letter': 'extraLetter',
+  'spell-word': 'spellWord',
+  'syllables': 'syllables',
+  'sentence-game': 'sentenceGame',
+  'audio-picture': 'audioPicture',
+  'audio-sentence': 'audioSentence',
 };
 
 export function ProgressModal({ isOpen, onClose, sessionId }: ProgressModalProps) {
@@ -78,9 +90,18 @@ export function ProgressModal({ isOpen, onClose, sessionId }: ProgressModalProps
     }
   };
 
+  // Get translated game name
+  const getGameName = (gameType: string): string => {
+    const key = GAME_TYPE_TO_KEY[gameType];
+    if (key && t.progress?.gameNames) {
+      return (t.progress.gameNames as any)[key] || gameType;
+    }
+    return gameType;
+  };
+
   // Prepare chart data - for horizontal bars, we need game name on left + stacked bar on right
   const chartData = progressData?.stats.map(stat => ({
-    name: `${GAME_EMOJIS[stat.gameType] || '🎮'} ${stat.gameName}`,
+    name: `${GAME_EMOJIS[stat.gameType] || '🎮'} ${getGameName(stat.gameType)}`,
     gameType: stat.gameType,
     [t.progress?.correct || 'Правильно']: stat.correct,
     [t.progress?.incorrect || 'Ошибки']: stat.incorrect,

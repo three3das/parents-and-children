@@ -646,6 +646,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get distractors for material world item (for audio-sentence game)
+  app.get("/api/material-world/:id/distractors", async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log('Fetching distractors for material world id:', id);
+
+      const distractors = await storage.getRandomMaterialWorldItems(id, 3);
+      console.log('Got material world distractors:', distractors.length);
+
+      // If we don't have enough distractors with valid images, supplement with random words
+      if (distractors.length < 3) {
+        const neededCount = 3 - distractors.length;
+        console.log('Need', neededCount, 'more distractors from words table');
+
+        // Get all words and pick random ones
+        const allWords = await storage.getAllWords();
+        const shuffled = allWords.sort(() => Math.random() - 0.5).slice(0, neededCount);
+
+        // Transform words to MaterialWorld-like objects for consistent UI
+        const wordDistractors = shuffled.map(word => ({
+          id: `word-${word.id}`,
+          event: word.word,
+          syllables: null,
+          image: word.image,
+          audio: null
+        }));
+
+        console.log('Added word distractors:', wordDistractors.length);
+        distractors.push(...wordDistractors);
+      }
+
+      console.log('Total distractors:', distractors.length);
+      res.json(distractors);
+    } catch (error) {
+      console.error("Error fetching material world distractors:", error);
+      res.status(500).json({ message: "Failed to fetch distractors" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

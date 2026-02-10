@@ -38,7 +38,7 @@ export interface Translations {
     syllables: string;
     sentences: string;
     audioPicture: string;
-    mix: string;
+    audioSentence: string;
     default: string;
   };
 
@@ -124,7 +124,7 @@ export interface Translations {
       syllables: string;
       sentenceGame: string;
       audioPicture: string;
-      mix: string;
+      audioSentence: string;
     };
   };
 
@@ -135,5 +135,6 @@ export interface Translations {
   spellWord: string;
   sentences: string;
   audioPicture: string;
+  audioSentence: string;
   gameInstructions: string;
 }

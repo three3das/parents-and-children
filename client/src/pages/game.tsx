@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Word, type GameType } from "@shared/schema";
+import { type Word, type GameType, type MaterialWorld } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { GAME_CONFIG } from "@/lib/constants";
 import { useLanguage } from "@/lib/i18n";
@@ -12,10 +12,11 @@ import { PictureGrid } from "@/components/PictureGrid";
 import { MissingLetterGame } from "@/components/MissingLetterGame";
 import { ExtraLetterGame } from "@/components/ExtraLetterGame";
 import { SpellWordGame } from "@/components/SpellWordGame";
-import { MixGame } from "@/components/MixGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { SyllablesGame } from "@/components/SyllablesGame";
 import { SentenceGame } from "@/components/SentenceGame";
+import { AudioPictureGame } from "@/components/AudioPictureGame";
+import { AudioSentenceGame } from "@/components/AudioSentenceGame";
 import { LoginModal } from "@/components/LoginModal";
 import { CreateAccountModal } from "@/components/CreateAccountModal";
 import { ProgressModal } from "@/components/ProgressModal";
@@ -28,8 +29,9 @@ export default function Game() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
+  const [selectedSentence, setSelectedSentence] = useState<MaterialWorld | null>(null);
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [gameType, setGameType] = useState<GameType>('picture-match');
-  const [currentMixType, setCurrentMixType] = useState<string>('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
@@ -74,10 +76,10 @@ export default function Game() {
   // Get current word
   const currentWord = words[currentWordIndex];
 
-  // Fetch distractors for current word (picture-match mode)
+  // Fetch distractors for current word (picture-match and audio-picture modes)
   const { data: distractors = [], isLoading: distractorsLoading } = useQuery<Word[]>({
     queryKey: ["/api/words", currentWord?.id, "distractors"],
-    enabled: !!currentWord?.id && gameType === 'picture-match',
+    enabled: !!currentWord?.id && (gameType === 'picture-match' || gameType === 'audio-picture'),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -152,33 +154,22 @@ export default function Game() {
     }
   });
 
-  // Handle mix game answers
-  const handleMixAnswer = (isCorrect: boolean) => {
-    // Prevent multiple selections while processing
-    if (selectedPicture || showCelebration) return;
+  // Fetch material world activities (audio-sentence mode)
+  const { data: materialWorldActivities = [], isLoading: materialWorldLoading } = useQuery<MaterialWorld[]>({
+    queryKey: ["/api/material-world"],
+    enabled: gameType === 'audio-sentence',
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-    setSelectedPicture({ id: 'mix-complete', word: 'mix-complete', image: '', audio: '' } as Word);
+  // Get current sentence for audio-sentence game
+  const currentSentence = materialWorldActivities[currentSentenceIndex];
 
-    // Record the answer in the database
-    if (currentWord) {
-      recordAnswerMutation.mutate({
-        wordId: currentWord.id,
-        isCorrect,
-        sessionId,
-        gameType: 'mix'
-      });
-    }
-
-    if (isCorrect) {
-      setCorrectAnswers(prev => prev + 1);
-      setShowCelebration(true);
-    } else {
-      // Reset selection after a moment
-      setTimeout(() => {
-        setSelectedPicture(null);
-      }, 1500);
-    }
-  };
+  // Fetch distractors for current sentence (audio-sentence mode)
+  const { data: sentenceDistractors = [], isLoading: sentenceDistractorsLoading } = useQuery<MaterialWorld[]>({
+    queryKey: ["/api/material-world", currentSentence?.id, "distractors"],
+    enabled: !!currentSentence?.id && gameType === 'audio-sentence',
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   // Mutation to record user answers
   const recordAnswerMutation = useMutation({
@@ -365,9 +356,83 @@ export default function Game() {
     }
   };
 
+  const handleAudioPictureSelect = (word: Word, isCorrect: boolean) => {
+    if (selectedPicture || showCelebration) return;
+
+    setSelectedPicture(word);
+
+    if (currentWord) {
+      recordAnswerMutation.mutate({
+        wordId: currentWord.id,
+        isCorrect,
+        sessionId,
+        gameType: 'audio-picture'
+      });
+    }
+
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setShowCelebration(true);
+    } else {
+      // Show error for a moment, then move to next word
+      setTimeout(() => {
+        setSelectedPicture(null);
+        // Move to next word after wrong answer
+        queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId, "all"] });
+        if (currentWordIndex + 1 >= words.length) {
+          setCurrentWordIndex(0); // Loop back to start
+        } else {
+          setCurrentWordIndex(prev => prev + 1);
+        }
+      }, 1500);
+    }
+  };
+
+  const handleAudioSentenceSelect = (item: MaterialWorld, isCorrect: boolean) => {
+    if (selectedSentence || showCelebration) return;
+
+    setSelectedSentence(item);
+
+    if (currentSentence) {
+      recordAnswerMutation.mutate({
+        wordId: currentSentence.id,
+        isCorrect,
+        sessionId,
+        gameType: 'audio-sentence'
+      });
+    }
+
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setShowCelebration(true);
+    } else {
+      // Show error for a moment, then move to next sentence
+      setTimeout(() => {
+        setSelectedSentence(null);
+        // Move to next sentence after wrong answer
+        if (currentSentenceIndex + 1 >= materialWorldActivities.length) {
+          setCurrentSentenceIndex(0); // Loop back to start
+        } else {
+          setCurrentSentenceIndex(prev => prev + 1);
+        }
+      }, 1500);
+    }
+  };
+
   const handleNextWord = () => {
     setShowCelebration(false);
     setSelectedPicture(null);
+    setSelectedSentence(null);
+
+    // Handle audio-sentence game separately
+    if (gameType === 'audio-sentence') {
+      if (currentSentenceIndex + 1 >= materialWorldActivities.length) {
+        setCurrentSentenceIndex(0); // Loop back to start
+      } else {
+        setCurrentSentenceIndex(prev => prev + 1);
+      }
+      return;
+    }
 
     // Invalidate words query to get updated list (after celebration is done)
     queryClient.invalidateQueries({ queryKey: ["/api/words", sessionId, "all"] });
@@ -397,10 +462,12 @@ export default function Game() {
 
   const handleRestartGame = () => {
     setCurrentWordIndex(0);
+    setCurrentSentenceIndex(0);
     setCorrectAnswers(0);
     setShowCelebration(false);
     setGameCompleted(false);
     setSelectedPicture(null);
+    setSelectedSentence(null);
   };
 
   const handleResetProgress = () => {
@@ -413,6 +480,7 @@ export default function Game() {
   const handleGameTypeChange = (newGameType: GameType) => {
     setGameType(newGameType);
     setSelectedPicture(null);
+    setSelectedSentence(null);
     setShowCelebration(false);
   };
 
@@ -612,7 +680,6 @@ export default function Game() {
         <GameMenu
           currentGameType={gameType}
           onGameTypeChange={handleGameTypeChange}
-          currentMixType={currentMixType}
         />
 
         {gameType === 'picture-match' && (
@@ -705,15 +772,6 @@ export default function Game() {
           ) : null
         )}
 
-        {gameType === 'mix' && (
-          <MixGame
-            word={currentWord}
-            onAnswer={handleMixAnswer}
-            disabled={!!selectedPicture || showCelebration}
-            onMixTypeChange={setCurrentMixType}
-          />
-        )}
-
         {gameType === 'syllables' && (
           syllableLoading ? (
             <div className="text-center py-8">
@@ -737,6 +795,45 @@ export default function Game() {
             onAnswer={handleSentenceAnswer}
             disabled={!!selectedPicture || showCelebration}
           />
+        )}
+
+        {gameType === 'audio-picture' && (
+          distractorsLoading ? (
+            <div className="text-center py-8">
+              <div className="text-2xl">⏳</div>
+              <p className="text-sm text-gray-500">{t.loadingOptions}</p>
+            </div>
+          ) : (
+            <AudioPictureGame
+              word={currentWord}
+              distractors={distractors || []}
+              onPictureSelect={handleAudioPictureSelect}
+              disabled={!!selectedPicture || showCelebration}
+              selectedPicture={selectedPicture}
+            />
+          )
+        )}
+
+        {gameType === 'audio-sentence' && (
+          materialWorldLoading || sentenceDistractorsLoading ? (
+            <div className="text-center py-8">
+              <div className="text-2xl">⏳</div>
+              <p className="text-sm text-gray-500">{t.loadingOptions}</p>
+            </div>
+          ) : currentSentence ? (
+            <AudioSentenceGame
+              sentence={currentSentence}
+              distractors={sentenceDistractors || []}
+              onSelect={handleAudioSentenceSelect}
+              disabled={!!selectedSentence || showCelebration}
+              selectedItem={selectedSentence}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-2xl">📭</div>
+              <p className="text-sm text-gray-500">{t.loading}</p>
+            </div>
+          )
         )}
       </main>
       <CelebrationOverlay
