@@ -467,12 +467,17 @@ export class DatabaseStorage implements IStorage {
       }
     });
 
-    // Convert to array format
-    const stats = Array.from(statsByGameType.entries()).map(([gameType, stats]) => ({
-      gameType,
-      gameName: gameNames[gameType] || gameType,
-      ...stats
-    }));
+    // Removed game types - filter these out from progress stats
+    const removedGameTypes = ['missing-letter', 'extra-letter'];
+
+    // Convert to array format and filter out removed games
+    const stats = Array.from(statsByGameType.entries())
+      .filter(([gameType]) => !removedGameTypes.includes(gameType))
+      .map(([gameType, stats]) => ({
+        gameType,
+        gameName: gameNames[gameType] || gameType,
+        ...stats
+      }));
 
     // Calculate totals
     const totals = stats.reduce((acc, stat) => ({

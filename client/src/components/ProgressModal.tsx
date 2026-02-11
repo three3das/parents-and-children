@@ -95,13 +95,18 @@ export function ProgressModal({ isOpen, onClose, sessionId }: ProgressModalProps
     return gameType;
   };
 
+  // Removed game types - filter these out from display
+  const removedGameTypes = ['missing-letter', 'extra-letter'];
+
   // Prepare chart data - for horizontal bars, we need game name on left + stacked bar on right
-  const chartData = progressData?.stats.map(stat => ({
-    name: `${GAME_EMOJIS[stat.gameType] || '🎮'} ${getGameName(stat.gameType)}`,
-    gameType: stat.gameType,
-    [t.progress?.correct || 'Правильно']: stat.correct,
-    [t.progress?.incorrect || 'Ошибки']: stat.incorrect,
-  })) || [];
+  const chartData = progressData?.stats
+    .filter(stat => !removedGameTypes.includes(stat.gameType))
+    .map(stat => ({
+      name: `${GAME_EMOJIS[stat.gameType] || '🎮'} ${getGameName(stat.gameType)}`,
+      gameType: stat.gameType,
+      [t.progress?.correct || 'Правильно']: stat.correct,
+      [t.progress?.incorrect || 'Ошибки']: stat.incorrect,
+    })) || [];
 
   if (!isOpen) return null;
 
