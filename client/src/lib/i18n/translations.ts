@@ -33,8 +33,6 @@ export const translations: Record<Language, Translations> = {
     gotIt: 'Понятно!',
     instructions: {
       pictureMatch: 'Посмотри на слово и найди правильную картинку. Нажми на картинку, которая соответствует слову.',
-      missingLetter: 'В слове пропущена одна буква. Выбери правильную букву из предложенных вариантов.',
-      extraLetter: 'В слове есть лишняя буква. Найди и нажми на лишнюю букву, чтобы убрать её.',
       spellWord: 'Посмотри на картинку и составь слово. Перетаскивай буквы или нажимай на них, чтобы написать слово.',
       syllables: 'Посмотри на картинку и выбери правильное окончание слова из предложенных вариантов.',
       sentences: 'Прочитай предложение и найди картинку, которая соответствует описанию.',
@@ -46,8 +44,6 @@ export const translations: Record<Language, Translations> = {
     // Game type names
     gameTypes: {
       findPicture: 'Найди картинку',
-      findLetter: 'Найди букву',
-      removeExtra: 'Убери лишнее',
       spellWord: 'Составь слово',
     },
 
@@ -100,8 +96,6 @@ export const translations: Record<Language, Translations> = {
       noData: 'Нет данных за выбранный период',
       gameNames: {
         pictureMatch: 'Чтение слова',
-        missingLetter: 'Пропущенная буква',
-        extraLetter: 'Лишняя буква',
         spellWord: 'Составление слова',
         syllables: 'Нахождение слога',
         sentenceGame: 'Чтение предложения',
@@ -112,8 +106,6 @@ export const translations: Record<Language, Translations> = {
 
     // Game type names for GameTitle
     pictureMatch: 'Чтение слова',
-    missingLetter: 'Пропущенная буква',
-    extraLetter: 'Лишняя буква',
     spellWord: 'Составление слова',
     syllables: 'Нахождение слога',
     sentences: 'Чтение предложения',
@@ -184,8 +176,6 @@ export const translations: Record<Language, Translations> = {
     gotIt: 'Got it!',
     instructions: {
       pictureMatch: 'Look at the word and find the correct picture. Tap the picture that matches the word.',
-      missingLetter: 'One letter is missing from the word. Choose the correct letter from the options.',
-      extraLetter: 'The word has an extra letter. Find and tap the extra letter to remove it.',
       spellWord: 'Look at the picture and spell the word. Drag or tap letters to write the word.',
       syllables: 'Look at the picture and choose the correct word ending from the options.',
       sentences: 'Read the sentence and find the picture that matches the description.',
@@ -197,8 +187,6 @@ export const translations: Record<Language, Translations> = {
     // Game type names
     gameTypes: {
       findPicture: 'Find picture',
-      findLetter: 'Find letter',
-      removeExtra: 'Remove extra',
       spellWord: 'Spell word',
     },
 
@@ -251,8 +239,6 @@ export const translations: Record<Language, Translations> = {
       noData: 'No data for selected period',
       gameNames: {
         pictureMatch: 'Reading the word',
-        missingLetter: 'Missing letter',
-        extraLetter: 'Extra letter',
         spellWord: 'Word composition',
         syllables: 'Finding syllable',
         sentenceGame: 'Reading sentence',
@@ -263,8 +249,6 @@ export const translations: Record<Language, Translations> = {
 
     // Game type names for GameTitle
     pictureMatch: 'Reading the word',
-    missingLetter: 'Missing letter',
-    extraLetter: 'Extra letter',
     spellWord: 'Word composition',
     syllables: 'Finding syllable',
     sentences: 'Reading sentence',
@@ -335,8 +319,6 @@ export const translations: Record<Language, Translations> = {
     gotIt: 'Зрозуміло!',
     instructions: {
       pictureMatch: 'Подивись на слово і знайди правильну картинку. Натисни на картинку, яка відповідає слову.',
-      missingLetter: 'У слові пропущена одна літера. Вибери правильну літеру з запропонованих варіантів.',
-      extraLetter: 'У слові є зайва літера. Знайди і натисни на зайву літеру, щоб прибрати її.',
       spellWord: 'Подивись на картинку і склади слово. Перетягуй літери або натискай на них, щоб написати слово.',
       syllables: 'Подивись на картинку і вибери правильне закінчення слова з варіантів.',
       sentences: 'Прочитай речення і знайди картинку, яка відповідає опису.',
@@ -348,8 +330,6 @@ export const translations: Record<Language, Translations> = {
     // Game type names
     gameTypes: {
       findPicture: 'Знайди картинку',
-      findLetter: 'Знайди літеру',
-      removeExtra: 'Прибери зайве',
       spellWord: 'Склади слово',
     },
 
@@ -402,8 +382,6 @@ export const translations: Record<Language, Translations> = {
       noData: 'Немає даних за вибраний період',
       gameNames: {
         pictureMatch: 'Читання слова',
-        missingLetter: 'Пропущена літера',
-        extraLetter: 'Зайва літера',
         spellWord: 'Складання слова',
         syllables: 'Знаходження складу',
         sentenceGame: 'Читання речення',
@@ -414,8 +392,6 @@ export const translations: Record<Language, Translations> = {
 
     // Game type names for GameTitle
     pictureMatch: 'Читання слова',
-    missingLetter: 'Пропущена літера',
-    extraLetter: 'Зайва літера',
     spellWord: 'Складання слова',
     syllables: 'Знаходження складу',
     sentences: 'Читання речення',

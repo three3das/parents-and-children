@@ -9,8 +9,6 @@ import { GameHeader } from "@/components/GameHeader";
 import { GameMenu } from "@/components/GameMenu";
 import { WordDisplay } from "@/components/WordDisplay";
 import { PictureGrid } from "@/components/PictureGrid";
-import { MissingLetterGame } from "@/components/MissingLetterGame";
-import { ExtraLetterGame } from "@/components/ExtraLetterGame";
 import { SpellWordGame } from "@/components/SpellWordGame";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { SyllablesGame } from "@/components/SyllablesGame";
@@ -80,28 +78,6 @@ export default function Game() {
   const { data: distractors = [], isLoading: distractorsLoading } = useQuery<Word[]>({
     queryKey: ["/api/words", currentWord?.id, "distractors"],
     enabled: !!currentWord?.id && (gameType === 'picture-match' || gameType === 'audio-picture'),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Fetch letter options for current word (missing-letter mode)
-  const { data: letterData, isLoading: letterOptionsLoading } = useQuery<{
-    letterOptions: string[];
-    missingLetterIndex: number;
-    correctLetter: string;
-  }>({
-    queryKey: ["/api/words", currentWord?.id, "letter-options"],
-    enabled: !!currentWord?.id && gameType === 'missing-letter',
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Fetch extra letter data for current word (extra-letter mode)
-  const { data: extraLetterData, isLoading: extraLetterLoading } = useQuery<{
-    wordWithExtraLetter: string;
-    extraLetterIndex: number;
-    extraLetter: string;
-  }>({
-    queryKey: ["/api/words", currentWord?.id, "extra-letter"],
-    enabled: !!currentWord?.id && gameType === 'extra-letter',
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -200,60 +176,6 @@ export default function Game() {
         isCorrect,
         sessionId,
         gameType: 'picture-match'
-      });
-    }
-
-    if (isCorrect) {
-      setCorrectAnswers(prev => prev + 1);
-      setShowCelebration(true);
-    } else {
-      // Reset selection after a moment
-      setTimeout(() => {
-        setSelectedPicture(null);
-      }, 1500);
-    }
-  };
-
-  const handleLetterSelect = (letter: string, isCorrect: boolean) => {
-    // Prevent multiple selections while processing
-    if (selectedPicture || showCelebration) return;
-
-    setSelectedPicture({ id: letter, word: letter, image: '', audio: '' } as Word);
-
-    // Record the answer in the database
-    if (currentWord) {
-      recordAnswerMutation.mutate({
-        wordId: currentWord.id,
-        isCorrect,
-        sessionId,
-        gameType: 'missing-letter'
-      });
-    }
-
-    if (isCorrect) {
-      setCorrectAnswers(prev => prev + 1);
-      setShowCelebration(true);
-    } else {
-      // Reset selection after a moment
-      setTimeout(() => {
-        setSelectedPicture(null);
-      }, 1500);
-    }
-  };
-
-  const handleLetterRemove = (letterIndex: number, isCorrect: boolean) => {
-    // Prevent multiple selections while processing
-    if (selectedPicture || showCelebration) return;
-
-    setSelectedPicture({ id: `remove-${letterIndex}`, word: `remove-${letterIndex}`, image: '', audio: '' } as Word);
-
-    // Record the answer in the database
-    if (currentWord) {
-      recordAnswerMutation.mutate({
-        wordId: currentWord.id,
-        isCorrect,
-        sessionId,
-        gameType: 'extra-letter'
       });
     }
 
@@ -719,40 +641,6 @@ export default function Game() {
               </motion.div>
             </div>
           </>
-        )}
-
-        {gameType === 'missing-letter' && (
-          letterOptionsLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.preparingLetters}</p>
-            </div>
-          ) : letterData ? (
-            <MissingLetterGame
-              word={currentWord}
-              letterOptions={letterData.letterOptions}
-              missingLetterIndex={letterData.missingLetterIndex}
-              onLetterSelect={handleLetterSelect}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          ) : null
-        )}
-
-        {gameType === 'extra-letter' && (
-          extraLetterLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.creatingTask}</p>
-            </div>
-          ) : extraLetterData ? (
-            <ExtraLetterGame
-              word={currentWord}
-              wordWithExtraLetter={extraLetterData.wordWithExtraLetter}
-              extraLetterIndex={extraLetterData.extraLetterIndex}
-              onLetterRemove={handleLetterRemove}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          ) : null
         )}
 
         {gameType === 'spell-word' && (

@@ -32,8 +32,6 @@ export interface Translations {
   gotIt: string;
   instructions: {
     pictureMatch: string;
-    missingLetter: string;
-    extraLetter: string;
     spellWord: string;
     syllables: string;
     sentences: string;
@@ -45,8 +43,6 @@ export interface Translations {
   // Game type names
   gameTypes: {
     findPicture: string;
-    findLetter: string;
-    removeExtra: string;
     spellWord: string;
   };
 
@@ -118,8 +114,6 @@ export interface Translations {
     noData: string;
     gameNames: {
       pictureMatch: string;
-      missingLetter: string;
-      extraLetter: string;
       spellWord: string;
       syllables: string;
       sentenceGame: string;
@@ -130,8 +124,6 @@ export interface Translations {
 
   // Game type names for GameTitle
   pictureMatch: string;
-  missingLetter: string;
-  extraLetter: string;
   spellWord: string;
   sentences: string;
   audioPicture: string;

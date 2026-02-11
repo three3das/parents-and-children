@@ -32,8 +32,6 @@ interface ProgressData {
 // Game type to emoji mapping
 const GAME_EMOJIS: Record<string, string> = {
   'picture-match': '🖼️',
-  'missing-letter': '🔍',
-  'extra-letter': '🗑️',
   'spell-word': '✏️',
   'syllables': '🧱',
   'sentence-game': '📝',
@@ -44,8 +42,6 @@ const GAME_EMOJIS: Record<string, string> = {
 // Map gameType to translation key
 const GAME_TYPE_TO_KEY: Record<string, string> = {
   'picture-match': 'pictureMatch',
-  'missing-letter': 'missingLetter',
-  'extra-letter': 'extraLetter',
   'spell-word': 'spellWord',
   'syllables': 'syllables',
   'sentence-game': 'sentenceGame',

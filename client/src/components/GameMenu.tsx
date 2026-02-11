@@ -4,23 +4,20 @@ import { HelpButton } from "./HelpButton";
 
 const GAME_ICONS: Record<GameType, string> = {
   'picture-match': '🖼️',
-  'missing-letter': '🔍',
-  'extra-letter': '🗑️',
   'spell-word': '✏️',
   'sentence-game': '📝',
   'syllables': '🧱',
   'audio-picture': '🔊',
-  'mix': '🎲'
+  'audio-sentence': '🎧'
 };
 
 interface GameMenuProps {
   currentGameType: GameType;
   onGameTypeChange: (gameType: GameType) => void;
-  currentMixType?: string;
 }
 
-export function GameMenu({ currentGameType, onGameTypeChange, currentMixType }: GameMenuProps) {
-  const gameTypes: GameType[] = ['picture-match', 'missing-letter', 'extra-letter', 'spell-word', 'syllables', 'audio-picture', 'sentence-game', 'mix'];
+export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
+  const gameTypes: GameType[] = ['picture-match', 'spell-word', 'syllables', 'sentence-game', 'audio-picture', 'audio-sentence'];
 
   return (
     <div className="flex gap-1 sm:gap-2 mb-4 justify-between items-center">
@@ -43,7 +40,6 @@ export function GameMenu({ currentGameType, onGameTypeChange, currentMixType }: 
 
       <HelpButton
         gameType={currentGameType}
-        currentMixType={currentMixType}
       />
     </div>
   );

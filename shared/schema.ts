@@ -112,7 +112,7 @@ export type WordTranslation = typeof wordTranslations.$inferSelect;
 export type InsertMaterialWorld = z.infer<typeof insertMaterialWorldSchema>;
 export type MaterialWorld = typeof materialWorld.$inferSelect;
 // Game types
-export type GameType = 'picture-match' | 'missing-letter' | 'extra-letter' | 'spell-word' | 'syllables' | 'sentence-game' | 'audio-picture' | 'audio-sentence';
+export type GameType = 'picture-match' | 'spell-word' | 'syllables' | 'sentence-game' | 'audio-picture' | 'audio-sentence';
 // Letter audio mapping for Russian alphabet
 export const RUSSIAN_LETTERS = {
   'А': 'a', 'Б': 'b', 'В': 'v', 'Г': 'g', 'Д': 'd', 'Е': 'e', 'Ё': 'yo',

@@ -430,12 +430,11 @@ export class DatabaseStorage implements IStorage {
     // Game type names mapping (matching UI labels)
     const gameNames: Record<string, string> = {
       'picture-match': 'Картинки',
-      'missing-letter': 'Лупа',
-      'extra-letter': 'Корзина',
       'spell-word': 'Буквы',
       'syllables': 'Слоги',
       'sentence-game': 'Предложения',
-      'audio-picture': 'Аудио'
+      'audio-picture': 'Аудио',
+      'audio-sentence': 'Аудио предложения'
     };
 
     // Group answers by game type
