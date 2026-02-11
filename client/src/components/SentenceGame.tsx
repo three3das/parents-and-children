@@ -37,17 +37,15 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
     }, []);
 
     useEffect(() => {
-        if (gameState === 'playing' && activities.length > 0 && currentActivityIndex >= 0) {
+        if (gameState === 'playing' && activities.length > 0 && currentActivityIndex >= 0 && currentActivityIndex < activities.length) {
             generateImageOptions();
         }
-    }, [gameState, activities.length, currentActivityIndex]);
+    }, [gameState, activities, currentActivityIndex]);
 
     const loadMaterialWorldActivities = async () => {
         try {
             const response = await fetch('/api/material-world');
             const data = await response.json();
-
-            console.log('Material World API Response:', data);
 
             const validActivities = data.filter((activity: MaterialWorldActivity) => {
                 const hasEvent = activity.event && activity.event.trim() !== '';
@@ -56,10 +54,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                 return hasEvent && hasSyllables && hasImage;
             });
 
-            console.log('Valid activities after filtering:', validActivities.length);
-
             if (validActivities.length === 0) {
-                console.log('No valid activities found');
                 setGameState('playing');
                 return;
             }
@@ -70,42 +65,27 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
             setTotalQuestions(shuffled.length);
             setCurrentActivityIndex(0);
             setGameState('playing');
-            setTimeout(() => generateImageOptions(), 0);
+            // generateImageOptions will be called by useEffect when activities state updates
         } catch (error) {
             console.error('Error loading material world activities:', error);
         }
     };
 
     const generateImageOptions = () => {
-        console.log('generateImageOptions called', {
-            activitiesLength: activities?.length,
-            currentIndex: currentActivityIndex,
-            activities: activities
-        });
-
         if (!activities || activities.length === 0 || currentActivityIndex < 0 || currentActivityIndex >= activities.length) {
-            console.log('generateImageOptions: Invalid state - returning early', {
-                activitiesLength: activities?.length,
-                currentIndex: currentActivityIndex,
-                hasActivities: !!activities,
-                activitiesArray: Array.isArray(activities)
-            });
             setImageOptions([]);
             return;
         }
 
         const currentActivity = activities[currentActivityIndex];
         if (!currentActivity) {
-            console.log('generateImageOptions: No current activity at index', currentActivityIndex);
             setImageOptions([]);
             return;
         }
 
         const otherActivities = activities.filter((_, index) => index !== currentActivityIndex);
 
-        // Проверяем, что достаточно других активностей для опций
         if (otherActivities.length < 3) {
-            console.log('generateImageOptions: Not enough other activities for options');
             // Если недостаточно других активностей, используем дубликаты текущей
             const options = [currentActivity];
             while (options.length < 4) {
@@ -123,7 +103,6 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
         const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
         setImageOptions(shuffledOptions);
-        console.log('generateImageOptions: Set', shuffledOptions.length, 'options');
     };
 
     const handleImageSelect = (selectedActivity: MaterialWorldActivity) => {
@@ -243,7 +222,6 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                             imageOptions.map((activity) => {
                                 const imagePath = activity.image.startsWith('/images/') ? activity.image : `/images/${activity.image}`;
                                 const encodedImagePath = imagePath.replace(/'/g, '%27');
-                                console.log('Final image path:', encodedImagePath);
                                 return (
                                     <motion.button
                                         key={activity.id}
@@ -266,9 +244,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                                                     src={encodedImagePath}
                                                     alt={activity.event}
                                                     className="w-full h-full object-cover"
-                                                    onLoad={() => console.log('Image loaded successfully:', activity.image)}
                                                     onError={(e) => {
-                                                        console.log('Image failed to load:', activity.image);
                                                         e.currentTarget.style.display = 'none';
                                                         const parent = e.currentTarget.parentElement;
                                                         if (parent) {

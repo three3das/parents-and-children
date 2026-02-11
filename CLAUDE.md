@@ -47,17 +47,19 @@
 - **Visual Communication**: Use emojis and visual elements for navigation
 - **Exceptions**: Keep essential text like "KidRead" and "Настройки" (Settings)
 
-### Drag and Drop Implementation
-- **Library**: Use @dnd-kit/core for all drag-and-drop functionality
-- **Touch Support**: 
-  - TouchSensor with 200ms delay and 8px tolerance for iPad/mobile
-  - MouseSensor with 8px distance activation for desktop
-  - CSS: `touch-action: none` and disabled user selection on draggable elements
-- **Components**: 
-  - SpellWordGame: Letter placement with drag-and-drop
-  - ExtraLetterGame: Drag letters to trash
-  - MissingLetterGame: Drag letters to fill gaps
-- **CSS Class**: `.draggable-element` applied to all draggable items
+### Test User Credentials
+- **Email**: test@kidread.com
+- **Password**: Test1234
+
+### Click-Based Game Interactions
+- **Library**: No external drag-and-drop library needed
+- **Components**:
+  - `ClickableLetter`: Reusable letter button with optional speaker icon
+  - `LetterSlot`: Slot for placed letters with click-to-remove
+- **Games**:
+  - SpellWordGame: Click letter to auto-place in next empty slot, click slot to remove
+  - ExtraLetterGame: Click letter to attempt removal
+  - MissingLetterGame: Click letter option to fill the slot
 
 ### Code Organization
 - **Shared Constants**: All emoji mappings in `client/src/lib/constants.ts`

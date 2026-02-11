@@ -300,6 +300,84 @@ export const ANIMATION_VARIANTS = {
   }
 } as const;
 
+// Games configuration with multi-language support
+export interface GameConfig {
+  slug: string;
+  level: number;
+  icon: string;
+  name: {
+    en: string;
+    ru: string;
+    uk: string;
+  };
+  instruction: {
+    en: string;
+    ru: string;
+    uk: string;
+  };
+}
+
+export const GAMES: GameConfig[] = [
+  {
+    slug: 'picture-match',
+    level: 1,
+    icon: '🖼️',
+    name: { en: 'Find Picture', ru: 'Найди картинку', uk: 'Знайди картинку' },
+    instruction: { en: 'Click the matching picture', ru: 'Нажми на нужную картинку', uk: 'Натисни на потрібну картинку' },
+  },
+  {
+    slug: 'missing-letter',
+    level: 2,
+    icon: '🔍',
+    name: { en: 'Find Letter', ru: 'Найди букву', uk: 'Знайди букву' },
+    instruction: { en: 'Click the missing letter', ru: 'Нажми на пропущенную букву', uk: 'Натисни на пропущену букву' },
+  },
+  {
+    slug: 'extra-letter',
+    level: 2,
+    icon: '🗑️',
+    name: { en: 'Remove Extra', ru: 'Убери лишнее', uk: 'Прибери зайве' },
+    instruction: { en: 'Click the extra letter', ru: 'Нажми на лишнюю букву', uk: 'Натисни на зайву букву' },
+  },
+  {
+    slug: 'spell-word',
+    level: 3,
+    icon: '✏️',
+    name: { en: 'Spell Word', ru: 'Составь слово', uk: 'Склади слово' },
+    instruction: { en: 'Click letters to spell the word', ru: 'Нажимай на буквы по порядку', uk: 'Натискай на букви по порядку' },
+  },
+  {
+    slug: 'syllables',
+    level: 2,
+    icon: '🧱',
+    name: { en: 'Syllables', ru: 'Слоги', uk: 'Склади' },
+    instruction: { en: 'Find the matching syllable', ru: 'Найди подходящий слог', uk: 'Знайди відповідний склад' },
+  },
+  {
+    slug: 'sentence-game',
+    level: 4,
+    icon: '📝',
+    name: { en: 'Sentences', ru: 'Предложения', uk: 'Речення' },
+    instruction: { en: 'Build the sentence', ru: 'Составь предложение', uk: 'Склади речення' },
+  },
+];
+
+// Helper to get game by slug
+export const getGameBySlug = (slug: string): GameConfig | undefined =>
+  GAMES.find(g => g.slug === slug);
+
+// Helper to get game name in specific language
+export const getGameName = (slug: string, lang: 'en' | 'ru' | 'uk' = 'ru'): string => {
+  const game = getGameBySlug(slug);
+  return game?.name[lang] ?? slug;
+};
+
+// Helper to get game icon
+export const getGameIcon = (slug: string): string => {
+  const game = getGameBySlug(slug);
+  return game?.icon ?? '🎮';
+};
+
 // Blacklist for difficult words and letters
 // These are words with non-standard spelling or rare letters that are 
 // exceptions and too complicated for beginner language learners
