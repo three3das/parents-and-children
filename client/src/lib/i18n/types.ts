@@ -32,20 +32,17 @@ export interface Translations {
   gotIt: string;
   instructions: {
     pictureMatch: string;
-    missingLetter: string;
-    extraLetter: string;
     spellWord: string;
     syllables: string;
     sentences: string;
-    mix: string;
+    audioPicture: string;
+    audioSentence: string;
     default: string;
   };
 
   // Game type names
   gameTypes: {
     findPicture: string;
-    findLetter: string;
-    removeExtra: string;
     spellWord: string;
   };
 
@@ -103,4 +100,33 @@ export interface Translations {
     termsLink: string;
     privacyLink: string;
   };
+
+  // Progress modal
+  progress: {
+    title: string;
+    correct: string;
+    incorrect: string;
+    fromDate: string;
+    toDate: string;
+    summary: string;
+    attempted: string;
+    skipped: string;
+    noData: string;
+    gameNames: {
+      pictureMatch: string;
+      spellWord: string;
+      syllables: string;
+      sentenceGame: string;
+      audioPicture: string;
+      audioSentence: string;
+    };
+  };
+
+  // Game type names for GameTitle
+  pictureMatch: string;
+  spellWord: string;
+  sentences: string;
+  audioPicture: string;
+  audioSentence: string;
+  gameInstructions: string;
 }

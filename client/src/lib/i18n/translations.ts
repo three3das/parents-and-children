@@ -33,20 +33,17 @@ export const translations: Record<Language, Translations> = {
     gotIt: 'Понятно!',
     instructions: {
       pictureMatch: 'Посмотри на слово и найди правильную картинку. Нажми на картинку, которая соответствует слову.',
-      missingLetter: 'В слове пропущена одна буква. Выбери правильную букву из предложенных вариантов.',
-      extraLetter: 'В слове есть лишняя буква. Найди и нажми на лишнюю букву, чтобы убрать её.',
       spellWord: 'Посмотри на картинку и составь слово. Перетаскивай буквы или нажимай на них, чтобы написать слово.',
       syllables: 'Посмотри на картинку и выбери правильное окончание слова из предложенных вариантов.',
       sentences: 'Прочитай предложение и найди картинку, которая соответствует описанию.',
-      mix: 'В этом режиме каждое новое слово будет другой игрой. Следуй инструкциям для каждого задания.',
+      audioPicture: 'Послушай слово и найди правильную картинку. Язык озвучки можно переключить вверху экрана.',
+      audioSentence: 'Послушай предложение и найди картинку, которая соответствует описанию.',
       default: 'Следуй инструкциям на экране.',
     },
 
     // Game type names
     gameTypes: {
       findPicture: 'Найди картинку',
-      findLetter: 'Найди букву',
-      removeExtra: 'Убери лишнее',
       spellWord: 'Составь слово',
     },
 
@@ -85,6 +82,36 @@ export const translations: Record<Language, Translations> = {
       'Великолепно!',
       'Браво!'
     ],
+
+    // Progress
+    progress: {
+      title: 'Прогресс',
+      fromDate: 'С какого дня',
+      toDate: 'По какой день',
+      attempted: 'Попытки',
+      correct: 'Правильно',
+      incorrect: 'Ошибки',
+      skipped: 'Пропущено',
+      summary: 'Итого',
+      noData: 'Нет данных за выбранный период',
+      gameNames: {
+        pictureMatch: 'Чтение слова',
+        spellWord: 'Составление слова',
+        syllables: 'Нахождение слога',
+        sentenceGame: 'Чтение предложения',
+        audioPicture: 'Слушание слова',
+        audioSentence: 'Слушание предложения',
+      },
+    },
+
+    // Game type names for GameTitle
+    pictureMatch: 'Чтение слова',
+    spellWord: 'Составление слова',
+    syllables: 'Нахождение слога',
+    sentences: 'Чтение предложения',
+    audioPicture: 'Слушание слова',
+    audioSentence: 'Слушание предложения',
+    gameInstructions: 'Выполни задание',
 
     // Authentication
     auth: {
@@ -149,20 +176,17 @@ export const translations: Record<Language, Translations> = {
     gotIt: 'Got it!',
     instructions: {
       pictureMatch: 'Look at the word and find the correct picture. Tap the picture that matches the word.',
-      missingLetter: 'One letter is missing from the word. Choose the correct letter from the options.',
-      extraLetter: 'The word has an extra letter. Find and tap the extra letter to remove it.',
       spellWord: 'Look at the picture and spell the word. Drag or tap letters to write the word.',
       syllables: 'Look at the picture and choose the correct word ending from the options.',
       sentences: 'Read the sentence and find the picture that matches the description.',
-      mix: 'In this mode, each new word is a different game. Follow the instructions for each task.',
+      audioPicture: 'Listen to the word and find the correct picture. You can switch the audio language at the top of the screen.',
+      audioSentence: 'Listen to the sentence and find the picture that matches the description.',
       default: 'Follow the instructions on screen.',
     },
 
     // Game type names
     gameTypes: {
       findPicture: 'Find picture',
-      findLetter: 'Find letter',
-      removeExtra: 'Remove extra',
       spellWord: 'Spell word',
     },
 
@@ -201,6 +225,36 @@ export const translations: Record<Language, Translations> = {
       'Magnificent!',
       'Bravo!'
     ],
+
+    // Progress
+    progress: {
+      title: 'Progress',
+      fromDate: 'From date',
+      toDate: 'To date',
+      attempted: 'Attempted',
+      correct: 'Correct',
+      incorrect: 'Incorrect',
+      skipped: 'Skipped',
+      summary: 'Summary',
+      noData: 'No data for selected period',
+      gameNames: {
+        pictureMatch: 'Reading the word',
+        spellWord: 'Word composition',
+        syllables: 'Finding syllable',
+        sentenceGame: 'Reading sentence',
+        audioPicture: 'Listening to word',
+        audioSentence: 'Listening to sentence',
+      },
+    },
+
+    // Game type names for GameTitle
+    pictureMatch: 'Reading the word',
+    spellWord: 'Word composition',
+    syllables: 'Finding syllable',
+    sentences: 'Reading sentence',
+    audioPicture: 'Listening to word',
+    audioSentence: 'Listening to sentence',
+    gameInstructions: 'Complete the task',
 
     // Authentication
     auth: {
@@ -265,20 +319,17 @@ export const translations: Record<Language, Translations> = {
     gotIt: 'Зрозуміло!',
     instructions: {
       pictureMatch: 'Подивись на слово і знайди правильну картинку. Натисни на картинку, яка відповідає слову.',
-      missingLetter: 'У слові пропущена одна літера. Вибери правильну літеру з запропонованих варіантів.',
-      extraLetter: 'У слові є зайва літера. Знайди і натисни на зайву літеру, щоб прибрати її.',
       spellWord: 'Подивись на картинку і склади слово. Перетягуй літери або натискай на них, щоб написати слово.',
       syllables: 'Подивись на картинку і вибери правильне закінчення слова з варіантів.',
       sentences: 'Прочитай речення і знайди картинку, яка відповідає опису.',
-      mix: 'У цьому режимі кожне нове слово буде іншою грою. Слідуй інструкціям для кожного завдання.',
+      audioPicture: 'Послухай слово і знайди правильну картинку. Мову озвучки можна переключити вгорі екрана.',
+      audioSentence: 'Послухай речення і знайди картинку, яка відповідає опису.',
       default: 'Слідуй інструкціям на екрані.',
     },
 
     // Game type names
     gameTypes: {
       findPicture: 'Знайди картинку',
-      findLetter: 'Знайди літеру',
-      removeExtra: 'Прибери зайве',
       spellWord: 'Склади слово',
     },
 
@@ -317,6 +368,36 @@ export const translations: Record<Language, Translations> = {
       'Чудово!',
       'Браво!'
     ],
+
+    // Progress
+    progress: {
+      title: 'Прогрес',
+      fromDate: 'З якого дня',
+      toDate: 'По який день',
+      attempted: 'Спроби',
+      correct: 'Правильно',
+      incorrect: 'Помилки',
+      skipped: 'Пропущено',
+      summary: 'Підсумок',
+      noData: 'Немає даних за вибраний період',
+      gameNames: {
+        pictureMatch: 'Читання слова',
+        spellWord: 'Складання слова',
+        syllables: 'Знаходження складу',
+        sentenceGame: 'Читання речення',
+        audioPicture: 'Слухання слова',
+        audioSentence: 'Слухання речення',
+      },
+    },
+
+    // Game type names for GameTitle
+    pictureMatch: 'Читання слова',
+    spellWord: 'Складання слова',
+    syllables: 'Знаходження складу',
+    sentences: 'Читання речення',
+    audioPicture: 'Слухання слова',
+    audioSentence: 'Слухання речення',
+    gameInstructions: 'Виконай завдання',
 
     // Authentication
     auth: {

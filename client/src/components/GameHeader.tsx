@@ -12,9 +12,10 @@ interface GameHeaderProps {
   onSettingsClick: () => void;
   onLoginClick: () => void;
   onCreateAccountClick: () => void;
+  onProgressClick?: () => void;
 }
 
-export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, onSettingsClick, onLoginClick, onCreateAccountClick }: GameHeaderProps) {
+export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, onSettingsClick, onLoginClick, onCreateAccountClick, onProgressClick }: GameHeaderProps) {
   const { t } = useLanguage();
 
   // Calculate progress based on today's correct answers
@@ -47,14 +48,14 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
 
   return (
     <motion.header
-      className="glass rounded-2xl py-2 mb-3 gpu-accelerated overflow-visible"
+      className="glass rounded-2xl p-2 mb-3 gpu-accelerated overflow-visible relative z-[9999]"
       {...ANIMATION_VARIANTS.slideDown}
     >
-      <div className="max-w-6xl mx-auto px-4 overflow-visible">
+      <div className="max-w-4xl mx-auto overflow-visible">
         <div className="flex items-center justify-between overflow-visible">
           {/* Logo with KidRead */}
           <motion.div
-            className="flex items-center flex-1"
+            className="flex items-center"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -67,7 +68,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
 
           {/* Visual Progress - Icons Only */}
           <motion.div
-            className="flex items-center gap-4 justify-center"
+            className="flex items-center gap-4"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -123,31 +124,29 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
             )}
           </motion.div>
 
-          {/* Right side: Language Switcher + Profile */}
-          <div className="flex items-center gap-2 flex-1 justify-end">
-            {/* Language Switcher */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-              className="relative overflow-visible"
-            >
-              <LanguageSwitcher />
-            </motion.div>
+          {/* Language Switcher */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="relative overflow-visible"
+          >
+            <LanguageSwitcher />
+          </motion.div>
 
-            {/* Auth Dropdown (includes Settings) */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.27 }}
-            >
-              <AuthDropdown
-                onLoginClick={onLoginClick}
-                onCreateAccountClick={onCreateAccountClick}
-                onSettingsClick={onSettingsClick}
-              />
-            </motion.div>
-          </div>
+          {/* Auth Dropdown - Far Right */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.28 }}
+          >
+            <AuthDropdown
+              onLoginClick={onLoginClick}
+              onCreateAccountClick={onCreateAccountClick}
+              onProgressClick={onProgressClick}
+              onSettingsClick={onSettingsClick}
+            />
+          </motion.div>
         </div>
       </div>
     </motion.header>

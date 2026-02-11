@@ -48,7 +48,7 @@ export function PictureGrid({
       playTryAgain();
     }
     onPictureSelect(word, isCorrect);
-    console.log('onPictureSelect called, should see MixGame log next');
+    console.log('onPictureSelect called');
   }, [disabled, selectedPicture, correctWord.id, playTryAgain, onPictureSelect]);
 
   // Memoize grid classes to prevent recalculation
@@ -124,18 +124,30 @@ export function PictureGrid({
                 </motion.span>
               )}
 
-              {/* Success/Error overlay */}
-              {isSelected && (
+              {/* Success overlay (green) or Error border (red) */}
+              {isSelected && isCorrect && (
                 <motion.div
-                  className={`
-                    absolute inset-0 flex items-center justify-center text-4xl font-bold
-                    ${isCorrect ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'}
-                  `}
+                  className="absolute inset-0 flex items-center justify-center text-4xl font-bold bg-green-500/90 text-white"
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {isCorrect ? '✅' : '❌'}
+                  ✅
+                </motion.div>
+              )}
+              {isSelected && !isCorrect && (
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {/* Red border only */}
+                  <div className="absolute inset-0 border-4 sm:border-8 border-red-500 rounded-xl" />
+                  {/* X icon in corner */}
+                  <div className="absolute top-1 right-1 sm:top-2 sm:right-2 text-2xl sm:text-3xl">
+                    ❌
+                  </div>
                 </motion.div>
               )}
             </div>

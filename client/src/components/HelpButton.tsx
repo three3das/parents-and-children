@@ -13,11 +13,11 @@ export function HelpButton({ gameType }: HelpButtonProps) {
 
   const getInstructions = () => {
     if (gameType === 'picture-match') return t.instructions.pictureMatch;
-    if (gameType === 'missing-letter') return t.instructions.missingLetter;
-    if (gameType === 'extra-letter') return t.instructions.extraLetter;
     if (gameType === 'spell-word') return t.instructions.spellWord;
     if (gameType === 'syllables') return t.instructions.syllables;
     if (gameType === 'sentence-game') return t.instructions.sentences;
+    if (gameType === 'audio-picture') return t.instructions.audioPicture;
+    if (gameType === 'audio-sentence') return t.instructions.audioSentence;
 
     return t.instructions.default;
   };

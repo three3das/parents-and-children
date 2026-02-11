@@ -28,6 +28,7 @@ export const words = pgTable("words", {
   image: text("image").notNull(),
   audio: text("audio").notNull(),
   word_english: text("word_english"),
+  suffix: varchar("suffix", { length: 10 }), // 3-letter ending for syllables game
 });
 
 export const wordTranslations = pgTable("word_translations", {
@@ -45,6 +46,18 @@ export const sentencesAndPhrases = pgTable("sentences_and_phrases", {
   difficulty: varchar("difficulty").notNull().default("easy"), // easy, medium, hard
   category: varchar("category").notNull().default("general"), // general, family, nature, etc.
 });
+
+export const materialWorld = pgTable("material_world", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  event: text("event").notNull(), // Russian sentence
+  event_en: text("event_en"), // English translation
+  event_uk: text("event_uk"), // Ukrainian translation
+  syllables: text("syllables"),
+  image: text("image").notNull(),
+  audio_ru: text("audio_ru"), // Russian audio file path
+  audio_en: text("audio_en"), // English audio file path
+  audio_uk: text("audio_uk"), // Ukrainian audio file path
+});
 export const gameProgress = pgTable("game_progress", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   currentWordIndex: integer("current_word_index").notNull().default(0),
@@ -57,6 +70,7 @@ export const userAnswers = pgTable("user_answers", {
   isCorrect: boolean("is_correct").default(false),
   answeredAt: timestamp("answered_at", { withTimezone: true }).default(sql`now()`),
   sessionId: varchar("session_id").notNull(),
+  gameType: varchar("game_type").notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -69,6 +83,10 @@ export const insertWordSchema = createInsertSchema(words).omit({
 });
 
 export const insertSentenceSchema = createInsertSchema(sentencesAndPhrases).omit({
+  id: true,
+});
+
+export const insertMaterialWorldSchema = createInsertSchema(materialWorld).omit({
   id: true,
 });
 
@@ -91,8 +109,10 @@ export type GameProgress = typeof gameProgress.$inferSelect;
 export type InsertUserAnswer = z.infer<typeof insertUserAnswerSchema>;
 export type UserAnswer = typeof userAnswers.$inferSelect;
 export type WordTranslation = typeof wordTranslations.$inferSelect;
+export type InsertMaterialWorld = z.infer<typeof insertMaterialWorldSchema>;
+export type MaterialWorld = typeof materialWorld.$inferSelect;
 // Game types
-export type GameType = 'picture-match' | 'missing-letter' | 'extra-letter' | 'spell-word' | 'mix' | 'syllables' | 'sentence-game';
+export type GameType = 'picture-match' | 'spell-word' | 'syllables' | 'sentence-game' | 'audio-picture' | 'audio-sentence';
 // Letter audio mapping for Russian alphabet
 export const RUSSIAN_LETTERS = {
   'А': 'a', 'Б': 'b', 'В': 'v', 'Г': 'g', 'Д': 'd', 'Е': 'e', 'Ё': 'yo',

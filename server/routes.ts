@@ -291,86 +291,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get letter options for missing letter game
-  app.get("/api/words/:id/letter-options", async (req, res) => {
-    try {
-      const word = await storage.getWord(req.params.id);
-      if (!word) {
-        return res.status(404).json({ message: "Word not found" });
-      }
-
-      const wordText = word.word;
-      const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
-
-      // Filter out blacklisted letters
-      const availableLettersForGeneration = russianLetters.split('')
-        .filter(letter => !BLACKLISTED_LETTERS.includes(letter));
-
-      // Choose a random position to remove (not first or last position for easier gameplay)
-      const missingLetterIndex = Math.floor(Math.random() * (wordText.length - 2)) + 1;
-      const correctLetter = wordText[missingLetterIndex];
-
-      // Generate 3 random incorrect letters that are not in the word
-      const wordLetters = new Set(wordText.split(''));
-      const availableLetters = availableLettersForGeneration.filter(letter => !wordLetters.has(letter));
-      const incorrectLetters = availableLetters
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3);
-
-      // Combine correct and incorrect letters, then shuffle
-      const allOptions = [correctLetter, ...incorrectLetters]
-        .sort(() => Math.random() - 0.5);
-
-      res.json({
-        letterOptions: allOptions,
-        missingLetterIndex,
-        correctLetter
-      });
-    } catch (error) {
-      console.error("Error getting letter options:", error);
-      res.status(500).json({ message: "Failed to get letter options" });
-    }
-  });
-
-  // Get word with extra letter for extra letter game
-  app.get("/api/words/:id/extra-letter", async (req, res) => {
-    try {
-      const word = await storage.getWord(req.params.id);
-      if (!word) {
-        return res.status(404).json({ message: "Word not found" });
-      }
-
-      const wordText = word.word;
-      const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
-
-      // Filter out blacklisted letters
-      const availableLettersForGeneration = russianLetters.split('')
-        .filter(letter => !BLACKLISTED_LETTERS.includes(letter));
-
-      // Choose a random position to insert extra letter (not at the very beginning or end)
-      const insertPosition = Math.floor(Math.random() * (wordText.length - 1)) + 1;
-
-      // Generate a random letter that's not in the word
-      const wordLetters = new Set(wordText.split(''));
-      const availableLetters = availableLettersForGeneration.filter(letter => !wordLetters.has(letter));
-      const extraLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
-
-      // Insert the extra letter
-      const wordArray = wordText.split('');
-      wordArray.splice(insertPosition, 0, extraLetter);
-      const wordWithExtraLetter = wordArray.join('');
-
-      res.json({
-        wordWithExtraLetter,
-        extraLetterIndex: insertPosition,
-        extraLetter
-      });
-    } catch (error) {
-      console.error("Error getting extra letter word:", error);
-      res.status(500).json({ message: "Failed to get extra letter word" });
-    }
-  });
-
   // Get letter options for spell word game
   app.get("/api/words/:id/spell-letters", async (req, res) => {
     try {
@@ -411,28 +331,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allWords = await storage.getAllWords();
       const allSyllables = new Set<string>();
 
-      // Collect syllables from all words
+      // Collect syllables from all words (filter out empty strings)
       for (const w of allWords) {
         const wordSyllables = splitIntoSyllables(w.word);
-        wordSyllables.forEach(syllable => allSyllables.add(syllable));
+        wordSyllables.forEach(syllable => {
+          if (syllable && syllable.trim()) {
+            allSyllables.add(syllable);
+          }
+        });
       }
+
+      // Filter correct syllables to remove any empty strings
+      const validCorrectSyllables = correctSyllables.filter(s => s && s.trim());
 
       // Remove correct syllables from distractors
       const distractorSyllables = Array.from(allSyllables).filter(
-        syllable => !correctSyllables.includes(syllable)
+        syllable => syllable && syllable.trim() && !validCorrectSyllables.includes(syllable)
       );
 
       // Shuffle and select 3 random distractors
       const shuffledDistractors = distractorSyllables.sort(() => Math.random() - 0.5);
       const selectedDistractors = shuffledDistractors.slice(0, 3);
 
-      // Combine correct syllables with distractors and shuffle
-      const allOptions = [...correctSyllables, ...selectedDistractors];
+      // Combine correct syllables with distractors and shuffle (final filter for safety)
+      const allOptions = [...validCorrectSyllables, ...selectedDistractors].filter(s => s && s.trim());
       const shuffledOptions = allOptions.sort(() => Math.random() - 0.5);
 
       res.json({
         syllables: shuffledOptions,
-        correctSyllables: correctSyllables
+        correctSyllables: validCorrectSyllables
       });
     } catch (error) {
       console.error("Error getting syllables:", error);
@@ -490,6 +417,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting today's progress:", error);
       res.status(500).json({ message: "Failed to get today's progress" });
+    }
+  });
+
+  // Get progress statistics for charts
+  app.get("/api/progress/stats", async (req, res) => {
+    try {
+      const sessionId = req.query.sessionId as string || 'default-session';
+      const fromDate = req.query.from as string;
+      const toDate = req.query.to as string;
+
+      if (!fromDate || !toDate) {
+        return res.status(400).json({ message: "From and to dates are required" });
+      }
+
+      const stats = await storage.getProgressStats(sessionId, fromDate, toDate);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting progress stats:", error);
+      res.status(500).json({ message: "Failed to get progress stats" });
     }
   });
 
@@ -617,6 +563,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching material world activities:", error);
       res.status(500).json({ message: "Failed to fetch material world activities" });
+    }
+  });
+
+  // Get distractors for material world item (for audio-sentence game)
+  app.get("/api/material-world/:id/distractors", async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log('Fetching distractors for material world id:', id);
+
+      const distractors = await storage.getRandomMaterialWorldItems(id, 3);
+      console.log('Got material world distractors:', distractors.length);
+
+      // If we don't have enough distractors with valid images, supplement with random words
+      if (distractors.length < 3) {
+        const neededCount = 3 - distractors.length;
+        console.log('Need', neededCount, 'more distractors from words table');
+
+        // Get all words and pick random ones
+        const allWords = await storage.getAllWords();
+        const shuffled = allWords.sort(() => Math.random() - 0.5).slice(0, neededCount);
+
+        // Transform words to MaterialWorld-like objects for consistent UI
+        const wordDistractors = shuffled.map(word => ({
+          id: `word-${word.id}`,
+          event: word.word,
+          syllables: null,
+          image: word.image,
+          audio: null
+        }));
+
+        console.log('Added word distractors:', wordDistractors.length);
+        distractors.push(...wordDistractors);
+      }
+
+      console.log('Total distractors:', distractors.length);
+      res.json(distractors);
+    } catch (error) {
+      console.error("Error fetching material world distractors:", error);
+      res.status(500).json({ message: "Failed to fetch distractors" });
     }
   });
 
