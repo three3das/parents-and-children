@@ -122,6 +122,16 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
             }, 1000);
         } else {
             onAnswer(false);
+
+            setTimeout(() => {
+                if (currentActivityIndex < activities.length - 1) {
+                    setCurrentActivityIndex(prev => prev + 1);
+                    setShowResult(false);
+                    setSelectedImage('');
+                } else {
+                    setGameState('completed');
+                }
+            }, 1000);
         }
     };
 
@@ -230,12 +240,10 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                                         onClick={() => handleImageSelect(activity)}
                                         disabled={disabled || showResult}
                                         className={`relative rounded-xl overflow-hidden border-4 transition-all ${showResult && selectedImage === activity.id
-                                            ? isCorrect && activity.id === currentActivity.id
+                                            ? isCorrect
                                                 ? 'border-green-500 shadow-lg'
                                                 : 'border-red-500'
-                                            : showResult && activity.id === currentActivity.id
-                                                ? 'border-green-500 shadow-lg'
-                                                : 'border-gray-200 hover:border-blue-400'
+                                            : 'border-gray-200 hover:border-blue-400'
                                             }`}
                                     >
                                         <div className="w-30 h-30 bg-gray-100 flex items-center justify-center">
@@ -256,7 +264,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                                                 <span className="text-2xl">🖼️</span>
                                             )}
                                         </div>
-                                        {showResult && activity.id === currentActivity.id && (
+                                        {showResult && isCorrect && selectedImage === activity.id && (
                                             <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
                                                 ✓
                                             </div>
