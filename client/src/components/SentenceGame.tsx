@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/lib/i18n";
+import { useAudio } from "@/hooks/useAudio";
 
 interface MaterialWorldActivity {
     id: string;
@@ -21,6 +22,7 @@ type GameState = 'playing' | 'completed';
 
 export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
     const { t } = useLanguage();
+    const { playTryAgain } = useAudio();
     const [gameState, setGameState] = useState<GameState>('playing');
     const [activities, setActivities] = useState<MaterialWorldActivity[]>([]);
     const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
@@ -122,6 +124,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
             }, 1000);
         } else {
             onAnswer(false);
+            playTryAgain();
 
             setTimeout(() => {
                 if (currentActivityIndex < activities.length - 1) {
@@ -264,11 +267,6 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                                                 <span className="text-2xl">🖼️</span>
                                             )}
                                         </div>
-                                        {showResult && isCorrect && selectedImage === activity.id && (
-                                            <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-                                                ✓
-                                            </div>
-                                        )}
                                     </motion.button>
                                 );
                             })
