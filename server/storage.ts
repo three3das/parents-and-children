@@ -660,6 +660,7 @@ export class DatabaseStorage implements IStorage {
         image: row.image,
         audio: row.audio,
         word_english: row.word_english,
+        suffix: row.suffix || null,
         translatedWord: row.translated_word || undefined,
       };
     } catch (error) {
@@ -690,6 +691,7 @@ export class DatabaseStorage implements IStorage {
         image: row.image,
         audio: row.audio,
         word_english: row.word_english,
+        suffix: row.suffix || null,
         translatedWord: row.translated_word || undefined,
       }));
 

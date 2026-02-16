@@ -12,18 +12,16 @@ export function GameTitle({ gameType }: GameTitleProps) {
     switch (type) {
       case 'picture-match':
         return t.pictureMatch || 'Picture Match';
-      case 'missing-letter':
-        return t.missingLetter || 'Missing Letter';
-      case 'extra-letter':
-        return t.extraLetter || 'Extra Letter';
       case 'spell-word':
         return t.spellWord || 'Spell Word';
       case 'syllables':
         return t.syllables || 'Syllables';
-      case 'sentences':
+      case 'sentence-game':
         return t.sentences || 'Sentences';
       case 'audio-picture':
         return t.audioPicture || 'Audio Picture';
+      case 'audio-sentence':
+        return t.audioSentence || 'Audio Sentence';
       default:
         return type;
     }

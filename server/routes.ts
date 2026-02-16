@@ -590,7 +590,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           event: word.word,
           syllables: null,
           image: word.image,
-          audio: null
+          audio: null,
+          event_en: null,
+          event_uk: null,
+          audio_ru: null,
+          audio_en: null,
+          audio_uk: null
         }));
 
         console.log('Added word distractors:', wordDistractors.length);

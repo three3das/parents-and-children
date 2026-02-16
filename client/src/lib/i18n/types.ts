@@ -125,6 +125,7 @@ export interface Translations {
   // Game type names for GameTitle
   pictureMatch: string;
   spellWord: string;
+  syllables: string;
   sentences: string;
   audioPicture: string;
   audioSentence: string;

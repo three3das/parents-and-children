@@ -91,36 +91,27 @@ export default function Game() {
   });
 
   // Fetch syllable options for current word (syllables mode)
-  const { data: syllableData, isLoading: syllableLoading } = useQuery<{
+  const { data: syllableData, isLoading: syllableLoading } = useQuery<any, Error, {
     firstSyllable: string;
     options: string[];
     correctAnswer: string;
-  }>({
+  } | null>({
     queryKey: ["/api/words", currentWord?.id, "syllables"],
     enabled: !!currentWord?.id && gameType === 'syllables',
     staleTime: 5 * 60 * 1000,
     select: (data: any) => {
-      // Transform API response {syllables, correctSyllables} to component format
-      console.log('🔍 Syllables API response:', data);
-
       if (!data || !data.syllables || !data.correctSyllables) {
-        console.log('🔍 Invalid syllables data:', data);
         return null;
       }
 
-      // Если syllables это строка, разбиваем на массив по запятым
       let syllablesArray: string[];
       if (typeof data.syllables === 'string') {
-        // Разбиваем строку по запятым и убираем пробелы
-        syllablesArray = data.syllables.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        syllablesArray = data.syllables.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
       } else if (Array.isArray(data.syllables)) {
         syllablesArray = data.syllables;
       } else {
-        // Превращаем в строку и разбиваем по запятым
-        syllablesArray = String(data.syllables).split(',').map(s => s.trim()).filter(s => s.length > 0);
+        syllablesArray = String(data.syllables).split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
       }
-
-      console.log('🔍 Transformed syllables:', syllablesArray);
 
       return {
         firstSyllable: data.correctSyllables[0] || '',
@@ -661,21 +652,10 @@ export default function Game() {
         )}
 
         {gameType === 'syllables' && (
-          syllableLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.loadingSyllables}</p>
-            </div>
-          ) : (
-            <SyllablesGame
-              word={currentWord}
-              firstSyllable={syllableData.firstSyllable}
-              options={syllableData.options}
-              correctAnswer={syllableData.correctAnswer}
-              onAnswer={handleSyllableAnswer}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          )
+          <SyllablesGame
+            onAnswer={handleSyllableAnswer}
+            disabled={!!selectedPicture || showCelebration}
+          />
         )}
 
         {gameType === 'sentence-game' && (
