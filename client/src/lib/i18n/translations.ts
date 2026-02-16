@@ -62,7 +62,7 @@ export const translations: Record<Language, Translations> = {
 
     // Sentence game
     event: 'Событие:',
-    syllables: 'Слоги:',
+    syllablesLabel: 'Слоги:',
     syllablesNotSpecified: 'Слоги не указаны',
 
     // Buttons
@@ -205,7 +205,7 @@ export const translations: Record<Language, Translations> = {
 
     // Sentence game
     event: 'Event:',
-    syllables: 'Syllables:',
+    syllablesLabel: 'Syllables:',
     syllablesNotSpecified: 'Syllables not specified',
 
     // Buttons
@@ -348,7 +348,7 @@ export const translations: Record<Language, Translations> = {
 
     // Sentence game
     event: 'Подія:',
-    syllables: 'Склади:',
+    syllablesLabel: 'Склади:',
     syllablesNotSpecified: 'Склади не вказані',
 
     // Buttons

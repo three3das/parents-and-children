@@ -61,7 +61,7 @@ export interface Translations {
 
   // Sentence game
   event: string;
-  syllables: string;
+  syllablesLabel: string;
   syllablesNotSpecified: string;
 
   // Buttons
