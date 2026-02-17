@@ -608,6 +608,7 @@ export default function Game() {
                 distractors={distractors || []}
                 onPictureSelect={handlePictureSelect}
                 disabled={!!selectedPicture || showCelebration}
+                selectedPicture={selectedPicture}
               />
             )}
 
