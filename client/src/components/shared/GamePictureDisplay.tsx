@@ -6,14 +6,15 @@ import { extractEmojiFromImage, getImagePath } from "@/lib/utils";
 interface GamePictureDisplayProps {
   word: Word;
   disabled?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   animate?: boolean;
 }
 
 const sizeClasses = {
   sm: 'w-24 h-24',
   md: 'w-32 h-32',
-  lg: 'w-48 h-48'
+  lg: 'w-48 h-48',
+  xl: 'w-[170px] h-[170px] sm:w-[280px] sm:h-[280px]'
 };
 
 export function GamePictureDisplay({
@@ -47,7 +48,7 @@ export function GamePictureDisplay({
       <motion.div
         initial={animate ? { scale: 0 } : { scale: 1 }}
         animate={{ scale: 1 }}
-        className={`mb-4 ${sizeClasses[size]}`}
+        className={`mb-4 ${sizeClasses[size]} border-2 sm:border-4 border-gray-300 hover:border-yellow-400 rounded-2xl overflow-hidden bg-white transition-colors`}
       >
         {imagePath ? (
           <img

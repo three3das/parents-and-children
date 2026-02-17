@@ -1,41 +1,11 @@
-import { useEffect, useCallback, useMemo, useState } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { type MaterialWorld } from "@shared/schema";
 import { useAudio } from "@/hooks/useAudio";
 import { useLanguage } from "@/lib/i18n";
-import { getImagePath } from "@/lib/utils";
-
-// Image component with fallback
-function MaterialWorldImage({ item, disabled, selectedItem }: { item: MaterialWorld; disabled?: boolean; selectedItem?: MaterialWorld | null }) {
-  const [imageError, setImageError] = useState(false);
-  const imagePath = getImagePath(item.image);
-
-  // Reset error state when item changes
-  useEffect(() => {
-    setImageError(false);
-  }, [item.id]);
-
-  if (!imagePath || imageError) {
-    return (
-      <motion.span className="text-6xl sm:text-8xl relative z-10">
-        🖼️
-      </motion.span>
-    );
-  }
-
-  return (
-    <motion.img
-      src={imagePath}
-      alt={item.event}
-      className="w-full h-full object-contain relative z-10"
-      whileHover={!disabled && !selectedItem ? { scale: 1.05 } : {}}
-      onError={() => {
-        console.error('Failed to load image:', imagePath);
-        setImageError(true);
-      }}
-    />
-  );
-}
+import { getImagePath, extractEmojiFromImage } from "@/lib/utils";
+import { GameImageCard } from "@/components/shared/GameImageCard";
+import { GameImageGrid } from "@/components/shared/GameImageGrid";
 
 interface AudioSentenceGameProps {
   sentence: MaterialWorld;
@@ -59,7 +29,6 @@ export function AudioSentenceGame({
   const getAudioPath = useCallback(() => {
     if (!sentence?.id) return null;
 
-    // Get language-specific audio path
     if (language === 'ru' && (sentence as any).audio_ru) {
       return (sentence as any).audio_ru;
     } else if (language === 'en' && (sentence as any).audio_en) {
@@ -68,7 +37,7 @@ export function AudioSentenceGame({
       return (sentence as any).audio_uk;
     }
 
-    return null; // No audio file - will use speech synthesis
+    return null;
   }, [sentence?.id, sentence, language]);
 
   // Get the sentence text based on selected language
@@ -81,7 +50,7 @@ export function AudioSentenceGame({
       return (sentence as any).event_uk;
     }
 
-    return sentence.event; // Default to Russian
+    return sentence.event;
   }, [sentence, language]);
 
   // Play audio using file or speech synthesis as fallback
@@ -89,11 +58,9 @@ export function AudioSentenceGame({
     const audioPath = getAudioPath();
 
     if (audioPath) {
-      // Play audio file
       console.log('Playing sentence audio file:', audioPath);
       playCustomAudio(audioPath);
     } else {
-      // Fallback to speech synthesis
       const text = getSentenceText();
       if (text) {
         console.log('Using speech synthesis for:', text);
@@ -176,61 +143,27 @@ export function AudioSentenceGame({
       </div>
 
       {/* Picture grid */}
-      <motion.div
-        className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 max-w-7xl mx-auto"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
+      <GameImageGrid itemCount={shuffledOptions.length}>
         {shuffledOptions.map((item) => {
           const isCorrect = item.id === sentence.id;
           const isSelected = selectedItem?.id === item.id;
+          const imagePath = getImagePath(item.image);
+          const emoji = extractEmojiFromImage(item.image);
 
           return (
-            <div
+            <GameImageCard
               key={item.id}
+              imagePath={imagePath}
+              emoji={emoji}
+              altText={item.event}
+              isSelected={!!isSelected}
+              isCorrect={isCorrect}
+              isDisabled={!!disabled || !!selectedItem}
               onClick={() => handleItemClick(item)}
-              style={{ cursor: disabled ? 'default' : 'pointer' }}
-              className={`
-                w-full cursor-pointer border-2 sm:border-4 rounded-2xl flex items-center justify-center aspect-square
-                ${disabled ? 'opacity-50' : ''}
-                ${isSelected ? (isCorrect ? 'bg-green-400 border-green-600' : 'bg-red-400 border-red-600') : 'bg-white border-gray-300 hover:border-purple-400'}
-              `}
-            >
-              <div className="w-full h-full flex items-center justify-center rounded-xl bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
-                {/* Image with fallback */}
-                <MaterialWorldImage item={item} disabled={disabled} selectedItem={selectedItem} />
-
-                {/* Success overlay (green) or Error border (red) */}
-                {isSelected && isCorrect && (
-                  <motion.div
-                    className="absolute inset-0 flex items-center justify-center text-4xl font-bold bg-green-500/90 text-white"
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    ✅
-                  </motion.div>
-                )}
-                {isSelected && !isCorrect && (
-                  <motion.div
-                    className="absolute inset-0 pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {/* Red border only */}
-                    <div className="absolute inset-0 border-4 sm:border-8 border-red-500 rounded-xl" />
-                    {/* X icon in corner */}
-                    <div className="absolute top-1 right-1 sm:top-2 sm:right-2 text-2xl sm:text-3xl">
-                      ❌
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            </div>
+            />
           );
         })}
-      </motion.div>
+      </GameImageGrid>
 
       {/* Pointing hand */}
       <div className="text-center mt-4 sm:mt-8">

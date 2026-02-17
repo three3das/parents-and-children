@@ -102,7 +102,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, onIncorr
   return (
     <div className="space-y-8">
       {/* Picture Display */}
-      <GamePictureDisplay word={word} disabled={disabled || !!showResult} />
+      <GamePictureDisplay word={word} disabled={disabled || !!showResult} size="xl" />
 
       {/* Selected Letters Display */}
       <div className="flex justify-center gap-3 min-h-[100px] items-center">

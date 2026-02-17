@@ -5,6 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/lib/i18n";
 import { useAudio } from "@/hooks/useAudio";
+import { getImagePath, extractEmojiFromImage } from "@/lib/utils";
+import { GameImageCard } from "@/components/shared/GameImageCard";
+import { GameImageGrid } from "@/components/shared/GameImageGrid";
 
 interface MaterialWorldActivity {
     id: string;
@@ -230,48 +233,31 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4 mb-2">
+                    <div className="mb-2">
                         {imageOptions.length > 0 ? (
-                            imageOptions.map((activity) => {
-                                const imagePath = activity.image.startsWith('/images/') ? activity.image : `/images/${activity.image}`;
-                                const encodedImagePath = imagePath.replace(/'/g, '%27');
-                                return (
-                                    <motion.button
-                                        key={activity.id}
-                                        whileHover={{ scale: !showResult ? 1.05 : 1 }}
-                                        whileTap={{ scale: !showResult ? 0.95 : 1 }}
-                                        onClick={() => handleImageSelect(activity)}
-                                        disabled={disabled || showResult}
-                                        className={`relative rounded-xl overflow-hidden border-4 transition-all ${showResult && selectedImage === activity.id
-                                            ? isCorrect
-                                                ? 'border-green-500 shadow-lg'
-                                                : 'border-red-500'
-                                            : 'border-gray-200 hover:border-blue-400'
-                                            }`}
-                                    >
-                                        <div className="w-30 h-30 bg-gray-100 flex items-center justify-center">
-                                            {activity.image ? (
-                                                <img
-                                                    src={encodedImagePath}
-                                                    alt={activity.event}
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        e.currentTarget.style.display = 'none';
-                                                        const parent = e.currentTarget.parentElement;
-                                                        if (parent) {
-                                                            parent.innerHTML = '<span class="text-2xl">🖼️</span>';
-                                                        }
-                                                    }}
-                                                />
-                                            ) : (
-                                                <span className="text-2xl">🖼️</span>
-                                            )}
-                                        </div>
-                                    </motion.button>
-                                );
-                            })
+                            <GameImageGrid itemCount={imageOptions.length}>
+                                {imageOptions.map((activity) => {
+                                    const imgPath = getImagePath(activity.image);
+                                    const emoji = extractEmojiFromImage(activity.image);
+                                    const isActivitySelected = showResult && selectedImage === activity.id;
+                                    const isActivityCorrect = activity.id === currentActivity.id;
+
+                                    return (
+                                        <GameImageCard
+                                            key={activity.id}
+                                            imagePath={imgPath}
+                                            emoji={emoji}
+                                            altText={activity.event}
+                                            isSelected={!!isActivitySelected}
+                                            isCorrect={isActivityCorrect}
+                                            isDisabled={!!disabled || showResult}
+                                            onClick={() => handleImageSelect(activity)}
+                                        />
+                                    );
+                                })}
+                            </GameImageGrid>
                         ) : (
-                            <div className="col-span-4 text-center text-gray-500">
+                            <div className="text-center text-gray-500">
                                 {t.loadingImages}
                             </div>
                         )}

@@ -9,6 +9,30 @@ import { sendPasswordResetEmail } from "./email";
 // Blacklist for difficult letters - exclude from letter generation
 const BLACKLISTED_LETTERS = ['Ъ'];
 
+// Retry wrapper for database operations
+async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      const isRetryable = error?.code === 'ECONNREFUSED' ||
+        error?.code === 'ETIMEDOUT' ||
+        error?.code === 'ECONNRESET' ||
+        error?.code === 'CONNECTION_ENDED' ||
+        error?.message?.includes('Connection terminated') ||
+        error?.message?.includes('timeout');
+
+      if (attempt < retries && isRetryable) {
+        console.warn(`DB retry attempt ${attempt + 1}/${retries}:`, error.message);
+        await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error('Retry exhausted');
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // === AUTHENTICATION API ===
 
@@ -239,14 +263,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If language is specified, get words with translations
       if (language) {
-        const wordsWithTranslations = await storage.getAllWordsWithTranslations(language);
+        const wordsWithTranslations = await withRetry(() => storage.getAllWordsWithTranslations(language));
         return res.json(wordsWithTranslations);
       }
 
       // If all=true, return all words; otherwise filter by session progress
-      const words = getAllWords
-        ? await storage.getAllWords()
-        : await storage.getAvailableWords(sessionId);
+      const words = await withRetry(() =>
+        getAllWords ? storage.getAllWords() : storage.getAvailableWords(sessionId)
+      );
       res.json(words);
     } catch (error) {
       console.error("Error fetching words:", error);
@@ -284,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Cache distractors for 5 minutes
       res.set('Cache-Control', 'public, max-age=300');
       const count = parseInt(req.query.count as string) || 3;
-      const distractors = await storage.getRandomWords(req.params.id, count);
+      const distractors = await withRetry(() => storage.getRandomWords(req.params.id, count));
       res.json(distractors);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch distractors" });
@@ -412,7 +436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/progress/today", async (req, res) => {
     try {
       const sessionId = req.query.sessionId as string || 'default-session';
-      const count = await storage.getTodayCorrectAnswersCount(sessionId);
+      const count = await withRetry(() => storage.getTodayCorrectAnswersCount(sessionId));
       res.json({ correctAnswersToday: count });
     } catch (error) {
       console.error("Error getting today's progress:", error);
@@ -558,7 +582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Cache material world activities for 5 minutes
       res.set('Cache-Control', 'public, max-age=300');
-      const activities = await storage.getMaterialWorldActivities();
+      const activities = await withRetry(() => storage.getMaterialWorldActivities());
       res.json(activities);
     } catch (error) {
       console.error("Error fetching material world activities:", error);
@@ -572,7 +596,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       console.log('Fetching distractors for material world id:', id);
 
-      const distractors = await storage.getRandomMaterialWorldItems(id, 3);
+      const distractors = await withRetry(() => storage.getRandomMaterialWorldItems(id, 3));
       console.log('Got material world distractors:', distractors.length);
 
       // If we don't have enough distractors with valid images, supplement with random words

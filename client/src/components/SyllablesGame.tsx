@@ -207,7 +207,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                     {/* Horizontal layout: Image | Prefix | Options */}
                     <div className="flex items-center justify-center gap-4 mb-4">
                         {/* Image */}
-                        <div className="w-32 h-32 bg-white rounded-lg border-2 border-gray-300 flex items-center justify-center overflow-hidden">
+                        <div className="w-[170px] h-[170px] sm:w-[280px] sm:h-[280px] bg-white rounded-2xl border-2 sm:border-4 border-gray-300 hover:border-yellow-400 transition-colors flex items-center justify-center overflow-hidden">
                             {(() => {
                                 const imagePath = getImagePath(currentWord.image);
                                 const emoji = extractEmojiFromImage(currentWord.image);
