@@ -31,7 +31,7 @@ export function GameImageCard({
     ? isCorrect
       ? "border-4 sm:border-8 border-green-500"
       : "border-4 sm:border-8 border-red-500"
-    : "border-2 sm:border-4 border-gray-300 hover:border-yellow-400";
+    : "border-2 sm:border-4 border-gray-300 hover:border-blue-500";
 
   return (
     <motion.div

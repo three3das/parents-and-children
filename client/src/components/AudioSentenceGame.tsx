@@ -123,13 +123,13 @@ export function AudioSentenceGame({
         <motion.button
           onClick={playSentenceAudio}
           disabled={disabled}
-          className="w-24 h-24 sm:w-32 sm:h-32 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white rounded-full text-5xl sm:text-6xl transition-colors shadow-lg"
+          className="w-24 h-24 sm:w-32 sm:h-32 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-full text-5xl sm:text-6xl transition-colors shadow-lg"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           animate={{
             boxShadow: [
-              "0 0 0 0 rgba(147, 51, 234, 0.7)",
-              "0 0 0 20px rgba(147, 51, 234, 0)",
+              "0 0 0 0 rgba(59, 130, 246, 0.7)",
+              "0 0 0 20px rgba(59, 130, 246, 0)",
             ],
           }}
           transition={{

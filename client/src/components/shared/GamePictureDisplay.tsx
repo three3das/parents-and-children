@@ -48,7 +48,7 @@ export function GamePictureDisplay({
       <motion.div
         initial={animate ? { scale: 0 } : { scale: 1 }}
         animate={{ scale: 1 }}
-        className={`mb-4 ${sizeClasses[size]} border-2 sm:border-4 border-gray-300 hover:border-yellow-400 rounded-2xl overflow-hidden bg-white transition-colors`}
+        className={`mb-4 ${sizeClasses[size]} border-2 sm:border-4 border-gray-300 hover:border-blue-500 rounded-2xl overflow-hidden bg-white transition-colors`}
       >
         {imagePath ? (
           <img

@@ -217,7 +217,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                     {/* Horizontal layout: Image | Prefix | Options */}
                     <div className="flex items-center justify-center gap-4 mb-4">
                         {/* Image */}
-                        <div className="w-[170px] h-[170px] sm:w-[280px] sm:h-[280px] bg-white rounded-2xl border-2 sm:border-4 border-gray-300 hover:border-yellow-400 transition-colors flex items-center justify-center overflow-hidden">
+                        <div className="w-[170px] h-[170px] sm:w-[280px] sm:h-[280px] bg-white rounded-2xl border-2 sm:border-4 border-gray-300 hover:border-blue-500 transition-colors flex items-center justify-center overflow-hidden">
                             {(() => {
                                 const imagePath = getImagePath(currentWord.image);
                                 const emoji = extractEmojiFromImage(currentWord.image);
@@ -259,10 +259,10 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                                     disabled={disabled || showResult}
                                     className={`px-4 py-2 rounded-lg border-2 font-bold text-xl transition-all min-w-[80px] ${showResult && selectedEnding === option
                                         ? isCorrect && option === currentWord.suffix
-                                            ? 'bg-green-500 text-white border-green-600'
-                                            : 'bg-red-500 text-white border-red-600'
+                                            ? 'bg-white text-gray-800 border-green-500'
+                                            : 'bg-white text-gray-800 border-red-500'
                                         : showResult && option === currentWord.suffix
-                                            ? 'bg-green-500 text-white border-green-600'
+                                            ? 'bg-white text-gray-800 border-green-500'
                                             : 'bg-white text-gray-800 border-gray-300 hover:border-blue-400 hover:bg-gray-50'
                                         }`}
                                 >
@@ -276,7 +276,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-center p-3 rounded-lg bg-red-100 text-red-800 mb-4"
+                            className="text-center p-3 rounded-lg bg-white border-2 border-green-500 text-gray-800 mb-4"
                         >
                             <p className="font-bold">
                                 {t.correctAnswer} {currentWord.word}
