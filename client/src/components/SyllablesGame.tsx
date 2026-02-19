@@ -284,22 +284,6 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                         </motion.div>
                     )}
 
-                    <div className="flex gap-4 justify-center">
-                        <Button
-                            onClick={handleNext}
-                            disabled={showResult && isCorrect}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 h-10 disabled:opacity-50"
-                        >
-                            {t.next}
-                        </Button>
-                        <Button
-                            onClick={handleSkip}
-                            variant="outline"
-                            className="px-6 py-2 h-10"
-                        >
-                            {t.skip}
-                        </Button>
-                    </div>
                 </>
             )}
         </div>
