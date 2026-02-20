@@ -21,6 +21,30 @@ import { ProgressModal } from "@/components/ProgressModal";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
+// Read initial game type from URL query params
+function getInitialGameType(): GameType {
+  const params = new URLSearchParams(window.location.search);
+  const game = params.get('game');
+  const validTypes: GameType[] = ['picture-match', 'spell-word', 'syllables', 'sentence-game', 'audio-picture', 'audio-sentence'];
+  if (game && validTypes.includes(game as GameType)) {
+    return game as GameType;
+  }
+  return 'picture-match';
+}
+
+// Update URL query params without page reload
+function updateUrlParams(params: Record<string, string | null>) {
+  const url = new URL(window.location.href);
+  for (const [key, value] of Object.entries(params)) {
+    if (value === null || value === undefined) {
+      url.searchParams.delete(key);
+    } else {
+      url.searchParams.set(key, value);
+    }
+  }
+  window.history.replaceState({}, '', url.toString());
+}
+
 export default function Game() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
@@ -29,7 +53,7 @@ export default function Game() {
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
   const [selectedSentence, setSelectedSentence] = useState<MaterialWorld | null>(null);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
-  const [gameType, setGameType] = useState<GameType>('picture-match');
+  const [gameType, setGameType] = useState<GameType>(getInitialGameType);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
@@ -137,6 +161,19 @@ export default function Game() {
     enabled: !!currentSentence?.id && gameType === 'audio-sentence',
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Sync URL query params when game state changes
+  useEffect(() => {
+    const wordId = gameType === 'audio-sentence'
+      ? (currentSentence?.id || null)
+      : (currentWord?.id || null);
+
+    updateUrlParams({
+      game: gameType,
+      word: wordId,
+      locale: language,
+    });
+  }, [gameType, currentWord?.id, currentSentence?.id, language]);
 
   // Mutation to record user answers
   const recordAnswerMutation = useMutation({
