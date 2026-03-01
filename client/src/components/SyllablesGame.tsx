@@ -106,6 +106,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
         const correctSuffix = currentWord.suffix || '';
 
         const correct = ending === correctSuffix;
+        console.log('Selected ending:', ending, 'Correct suffix:', correctSuffix, 'Is correct:', correct);
         setIsCorrect(correct);
         setShowResult(true);
         onAnswer(correct);
@@ -113,17 +114,6 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
         if (correct) {
             setCorrectAnswers(prev => prev + 1);
         }
-
-        // Auto-advance after showing result
-        setTimeout(() => {
-            if (currentWordIndex < words.length - 1) {
-                setCurrentWordIndex(prev => prev + 1);
-                setShowResult(false);
-                setSelectedEnding('');
-            } else {
-                setGameState('completed');
-            }
-        }, 1000);
     };
 
     const handleNext = () => {
