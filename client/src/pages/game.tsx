@@ -174,10 +174,9 @@ export default function Game() {
       setCorrectAnswers(prev => prev + 1);
       setShowCelebration(true);
     } else {
-      // Show red border, then advance to next word
+      // Reset selection after a moment
       setTimeout(() => {
         setSelectedPicture(null);
-        handleNextWord();
       }, 1500);
     }
   };
