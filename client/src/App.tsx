@@ -1,37 +1,33 @@
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { LanguageProvider } from "@/lib/i18n";
+import { queryClient } from "@/lib/queryClient";
 import { AuthProvider } from "@/lib/auth";
-import Game from "@/pages/game";
-import ResetPassword from "@/pages/reset-password";
-import NotFound from "@/pages/not-found";
+import { LanguageProvider } from "@/lib/i18n";
+import { Toaster } from "@/components/ui/toaster";
+import HomePage from "@/pages/home";
+import CategoryPage from "@/components/CategoryPage";
+import ReadingPage from "@/pages/ReadingPage";
+import AlphabetPage from "@/pages/AlphabetPage";
+import { CATEGORIES } from "@/lib/categories";
 
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={Game} />
-      <Route path="/reset-password" component={ResetPassword} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
-
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <LanguageProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+        <Switch>
+          <Route path="/" component={HomePage} />
+          <Route path="/reading" component={ReadingPage} />
+          <Route path="/alphabet" component={AlphabetPage} />
+          {CATEGORIES.filter((cat) => cat.id !== "reading").map((cat) => (
+            <Route key={cat.id} path={cat.path}>
+              {() => <CategoryPage category={cat} />}
+            </Route>
+          ))}
+        </Switch>
+        <Toaster />
         </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
-
-export default App;
