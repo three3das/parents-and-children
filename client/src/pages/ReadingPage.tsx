@@ -93,7 +93,7 @@ export default function ReadingPage() {
               className="icon-btn"
               title={icon.label}
               aria-label={icon.label}
-              onClick={() => icon.images ? navigate("/alphabet") : undefined}
+              onClick={() => (icon.images || icon.path) ? navigate(icon.path ?? "/alphabet") : undefined}
               style={{ background: icon.gradient, boxShadow: `0 6px 18px ${icon.shadow}`, position: "relative", overflow: "hidden" }}
             >
               {icon.images ? (

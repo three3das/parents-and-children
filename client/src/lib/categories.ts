@@ -10,6 +10,7 @@ export interface SubIcon {
   emoji: string;
   label: string;
   images?: { ru: string; en: string; uk: string }; // per-language image (overrides emoji)
+  path?: string; // navigation path on click
 }
 
 export interface Category {
@@ -63,10 +64,12 @@ export const CATEGORIES: Category[] = [
           uk: "/images/letters_ukrainian.svg",
         },
       },
+      { ...R[1], emoji: "🔢", label: "Цифры", path: "/numbers", images: { ru: "/images/numbers.svg", en: "/images/numbers.svg", uk: "/images/numbers.svg" } },
+      { ...R[2], emoji: "🎵", label: "Ноты", path: "/notes", images: { ru: "/images/notes_russian.svg", en: "/images/notes_english.svg", uk: "/images/notes_ukrainian.svg" } },
       ...sub(
-        ["✍️", "💬", "📚", "🧩", "✏️", "🎭"],
-        ["Письмо", "Слова", "Сказки", "Загадки", "Рисование", "Театр"],
-      ).map((icon, i) => ({ ...icon, ...R[i + 1] })),
+        ["📚", "🧩", "✏️", "🎭"],
+        ["Сказки", "Загадки", "Рисование", "Театр"],
+      ).map((icon, i) => ({ ...icon, ...R[i + 3] })),
     ],
   },
   {

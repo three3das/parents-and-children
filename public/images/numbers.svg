@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5252"/>
+      <stop offset="100%" stop-color="#E00000"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+
+  <!-- Row 0: 0 1 2 3 -->
+  <text x="87"  y="146" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">0</text>
+  <text x="229" y="146" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">1</text>
+  <text x="371" y="146" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">2</text>
+  <text x="513" y="146" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">3</text>
+
+  <!-- Row 1: 4 5 6 7 -->
+  <text x="87"  y="335" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">4</text>
+  <text x="229" y="335" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">5</text>
+  <text x="371" y="335" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">6</text>
+  <text x="513" y="335" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">7</text>
+
+  <!-- Row 2: 8 9 -->
+  <text x="87"  y="524" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">8</text>
+  <text x="229" y="524" text-anchor="middle" font-size="100" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">9</text>
+</svg>
