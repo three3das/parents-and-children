@@ -67,10 +67,11 @@ export const CATEGORIES: Category[] = [
       { ...R[1], emoji: "🔢", label: "Цифры", path: "/numbers", images: { ru: "/images/numbers.svg", en: "/images/numbers.svg", uk: "/images/numbers.svg" } },
       { ...R[2], emoji: "🎵", label: "Ноты", path: "/notes", images: { ru: "/images/notes_russian.svg", en: "/images/notes_english.svg", uk: "/images/notes_ukrainian.svg" } },
       { ...R[3], emoji: "🎨", label: "Цвета", path: "/colors", images: { ru: "/images/palette.svg", en: "/images/palette.svg", uk: "/images/palette.svg" } },
+      { ...R[4], emoji: "🔷", label: "Фигуры", path: "/shapes", images: { ru: "/images/shapes.svg", en: "/images/shapes.svg", uk: "/images/shapes.svg" } },
       ...sub(
-        ["🧩", "✏️", "🎭"],
-        ["Загадки", "Рисование", "Театр"],
-      ).map((icon, i) => ({ ...icon, ...R[i + 4] })),
+        ["✏️", "🎭"],
+        ["Рисование", "Театр"],
+      ).map((icon, i) => ({ ...icon, ...R[i + 5] })),
     ],
   },
   {
