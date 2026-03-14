@@ -8,38 +8,62 @@
   </defs>
   <rect width="600" height="600" fill="url(#bg)"/>
 
-  <!-- Note names at TOP -->
-  <text x="300" y="115" text-anchor="middle" font-size="42" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">до  ре  мі  фа  соль  ля  сі</text>
+  <!-- Left column: 7 note names (spacing=80, baseline y=60..540) -->
+  <text x="80" y="60"  text-anchor="middle" font-size="44" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">до</text>
+  <text x="80" y="140" text-anchor="middle" font-size="44" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">ре</text>
+  <text x="80" y="220" text-anchor="middle" font-size="44" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">мі</text>
+  <text x="80" y="300" text-anchor="middle" font-size="44" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">фа</text>
+  <text x="80" y="380" text-anchor="middle" font-size="44" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">соль</text>
+  <text x="80" y="460" text-anchor="middle" font-size="44" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">ля</text>
+  <text x="80" y="540" text-anchor="middle" font-size="44" font-weight="900" font-family="Arial,Helvetica,sans-serif" fill="white">сі</text>
 
-  <!-- 5 staff lines at BOTTOM -->
-  <line x1="116" y1="500" x2="542" y2="500" stroke="white" stroke-width="2.5"/>
-  <line x1="116" y1="472" x2="542" y2="472" stroke="white" stroke-width="2.5"/>
-  <line x1="116" y1="444" x2="542" y2="444" stroke="white" stroke-width="2.5"/>
-  <line x1="116" y1="416" x2="542" y2="416" stroke="white" stroke-width="2.5"/>
-  <line x1="116" y1="388" x2="542" y2="388" stroke="white" stroke-width="2.5"/>
-  <line x1="116" y1="388" x2="116" y2="500" stroke="white" stroke-width="2.5"/>
+  <!-- Two birds on a branch (top right) -->
+  <!-- Branch -->
+  <path d="M335,202 Q440,192 545,187 Q565,186 582,184" stroke="white" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <!-- Bird 1 (larger) -->
+  <ellipse cx="410" cy="170" rx="30" ry="17" fill="white" transform="rotate(-15,410,170)"/>
+  <circle cx="434" cy="155" r="15" fill="white"/>
+  <path d="M447,153 L462,156 L447,159 Z" fill="white"/>
+  <path d="M383,175 Q368,167 360,172 Q368,182 383,175 Z" fill="white"/>
+  <line x1="412" y1="186" x2="407" y2="202" stroke="white" stroke-width="2.5"/>
+  <line x1="419" y1="187" x2="425" y2="202" stroke="white" stroke-width="2.5"/>
+  <!-- Bird 2 (smaller) -->
+  <ellipse cx="510" cy="160" rx="26" ry="14" fill="white" transform="rotate(-15,510,160)"/>
+  <circle cx="531" cy="146" r="13" fill="white"/>
+  <path d="M542,144 L555,147 L542,150 Z" fill="white"/>
+  <path d="M487,164 Q474,157 467,161 Q474,171 487,164 Z" fill="white"/>
+  <line x1="512" y1="173" x2="507" y2="187" stroke="white" stroke-width="2.5"/>
+  <line x1="518" y1="174" x2="524" y2="187" stroke="white" stroke-width="2.5"/>
 
+  <!-- Musical staff at bottom (x=165–575, spacing=28, bottom line y=530) -->
+  <line x1="165" y1="530" x2="575" y2="530" stroke="white" stroke-width="2.5"/>
+  <line x1="165" y1="502" x2="575" y2="502" stroke="white" stroke-width="2.5"/>
+  <line x1="165" y1="474" x2="575" y2="474" stroke="white" stroke-width="2.5"/>
+  <line x1="165" y1="446" x2="575" y2="446" stroke="white" stroke-width="2.5"/>
+  <line x1="165" y1="418" x2="575" y2="418" stroke="white" stroke-width="2.5"/>
+  <line x1="165" y1="418" x2="165" y2="530" stroke="white" stroke-width="2.5"/>
   <!-- Treble clef -->
-  <text x="118" y="513" font-size="132" font-family="Georgia,Times New Roman,serif" fill="white">𝄞</text>
+  <text x="167" y="543" font-size="132" font-family="Georgia,Times New Roman,serif" fill="white">𝄞</text>
 
-  <!-- Ledger line for До -->
-  <line x1="197" y1="528" x2="223" y2="528" stroke="white" stroke-width="2.5"/>
+  <!-- Ledger line for До (C4) -->
+  <line x1="256" y1="558" x2="282" y2="558" stroke="white" stroke-width="2.5"/>
 
-  <!-- Note heads -->
-  <ellipse cx="210" cy="528" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,210,528)"/>
-  <ellipse cx="258" cy="514" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,258,514)"/>
-  <ellipse cx="306" cy="500" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,306,500)"/>
-  <ellipse cx="354" cy="486" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,354,486)"/>
-  <ellipse cx="402" cy="472" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,402,472)"/>
-  <ellipse cx="450" cy="458" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,450,458)"/>
-  <ellipse cx="498" cy="444" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,498,444)"/>
+  <!-- Note heads: До C4 y=558, Ре D4 y=544, Мі E4 y=530, Фа F4 y=516,
+       Соль G4 y=502, Ля A4 y=488, Сі B4 y=474 -->
+  <ellipse cx="270" cy="558" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,270,558)"/>
+  <ellipse cx="318" cy="544" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,318,544)"/>
+  <ellipse cx="366" cy="530" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,366,530)"/>
+  <ellipse cx="414" cy="516" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,414,516)"/>
+  <ellipse cx="462" cy="502" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,462,502)"/>
+  <ellipse cx="510" cy="488" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,510,488)"/>
+  <ellipse cx="558" cy="474" rx="12.5" ry="8.5" fill="white" transform="rotate(-15,558,474)"/>
 
-  <!-- Stems -->
-  <line x1="222" y1="528" x2="222" y2="473" stroke="white" stroke-width="2"/>
-  <line x1="270" y1="514" x2="270" y2="459" stroke="white" stroke-width="2"/>
-  <line x1="318" y1="500" x2="318" y2="445" stroke="white" stroke-width="2"/>
-  <line x1="366" y1="486" x2="366" y2="431" stroke="white" stroke-width="2"/>
-  <line x1="414" y1="472" x2="414" y2="417" stroke="white" stroke-width="2"/>
-  <line x1="462" y1="458" x2="462" y2="403" stroke="white" stroke-width="2"/>
-  <line x1="486" y1="444" x2="486" y2="499" stroke="white" stroke-width="2"/>
+  <!-- Stems (up for До–Ля, down for Сі) -->
+  <line x1="282" y1="558" x2="282" y2="503" stroke="white" stroke-width="2"/>
+  <line x1="330" y1="544" x2="330" y2="489" stroke="white" stroke-width="2"/>
+  <line x1="378" y1="530" x2="378" y2="475" stroke="white" stroke-width="2"/>
+  <line x1="426" y1="516" x2="426" y2="461" stroke="white" stroke-width="2"/>
+  <line x1="474" y1="502" x2="474" y2="447" stroke="white" stroke-width="2"/>
+  <line x1="522" y1="488" x2="522" y2="433" stroke="white" stroke-width="2"/>
+  <line x1="546" y1="474" x2="546" y2="529" stroke="white" stroke-width="2"/>
 </svg>
