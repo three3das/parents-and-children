@@ -10,6 +10,7 @@ import ReadingPage from "@/pages/ReadingPage";
 import AlphabetPage from "@/pages/AlphabetPage";
 import NumbersPage from "@/pages/NumbersPage";
 import NotesPage from "@/pages/NotesPage";
+import ColorsPage from "@/pages/ColorsPage";
 import { CATEGORIES } from "@/lib/categories";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/alphabet" component={AlphabetPage} />
           <Route path="/numbers" component={NumbersPage} />
           <Route path="/notes" component={NotesPage} />
+          <Route path="/colors" component={ColorsPage} />
           {CATEGORIES.filter((cat) => cat.id !== "reading").map((cat) => (
             <Route key={cat.id} path={cat.path}>
               {() => <CategoryPage category={cat} />}
