@@ -104,6 +104,12 @@ export const translations: Record<Language, Translations> = {
       },
     },
 
+    // Home page
+    home: {
+      title: 'Знания для детей',
+      subtitle: 'Учиться интересно и весело!',
+    },
+
     // Game type names for GameTitle
     pictureMatch: 'Чтение слова',
     spellWord: 'Составление слова',
@@ -247,6 +253,12 @@ export const translations: Record<Language, Translations> = {
       },
     },
 
+    // Home page
+    home: {
+      title: 'Knowledge for Children',
+      subtitle: 'Learning is fun and exciting!',
+    },
+
     // Game type names for GameTitle
     pictureMatch: 'Reading the word',
     spellWord: 'Word composition',
@@ -388,6 +400,12 @@ export const translations: Record<Language, Translations> = {
         audioPicture: 'Слухання слова',
         audioSentence: 'Слухання речення',
       },
+    },
+
+    // Home page
+    home: {
+      title: 'Знання для дітей',
+      subtitle: 'Навчатись цікаво і весело!',
     },
 
     // Game type names for GameTitle

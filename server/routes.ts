@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { pool } from "./db";
 import { insertGameProgressSchema, insertUserAnswerSchema, insertSentenceSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcrypt";
@@ -631,6 +632,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching material world distractors:", error);
       res.status(500).json({ message: "Failed to fetch distractors" });
+    }
+  });
+
+  // === KFC WORDS API (kfc schema) ===
+  app.get("/api/kfc/words", async (req, res) => {
+    try {
+      const result = await pool.query(
+        "SELECT id, ru, en, uk FROM kfc.words ORDER BY ru"
+      );
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching kfc words:", error);
+      res.status(500).json({ message: "Failed to fetch kfc words" });
     }
   });
 

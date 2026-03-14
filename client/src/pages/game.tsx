@@ -21,31 +21,20 @@ import { ProgressModal } from "@/components/ProgressModal";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
-// Read initial game type from URL query params
-function getInitialGameType(): GameType {
+// Helper to read URL params
+function getUrlParams() {
   const params = new URLSearchParams(window.location.search);
-  const game = params.get('game');
-  const validTypes: GameType[] = ['picture-match', 'spell-word', 'syllables', 'sentence-game', 'audio-picture', 'audio-sentence'];
-  if (game && validTypes.includes(game as GameType)) {
-    return game as GameType;
-  }
-  return 'picture-match';
-}
-
-// Update URL query params without page reload
-function updateUrlParams(params: Record<string, string | null>) {
-  const url = new URL(window.location.href);
-  for (const [key, value] of Object.entries(params)) {
-    if (value === null || value === undefined) {
-      url.searchParams.delete(key);
-    } else {
-      url.searchParams.set(key, value);
-    }
-  }
-  window.history.replaceState({}, '', url.toString());
+  return {
+    game: params.get('game') as GameType | null,
+    word: params.get('word'),
+    locale: params.get('locale'),
+  };
 }
 
 export default function Game() {
+  // Initialize state from URL params
+  const urlParams = getUrlParams();
+
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -53,7 +42,7 @@ export default function Game() {
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
   const [selectedSentence, setSelectedSentence] = useState<MaterialWorld | null>(null);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
-  const [gameType, setGameType] = useState<GameType>(getInitialGameType);
+  const [gameType, setGameType] = useState<GameType>(urlParams.game || 'picture-match');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
@@ -162,18 +151,28 @@ export default function Game() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Sync URL query params when game state changes
+  // Sync word index from URL param when words load
   useEffect(() => {
-    const wordId = gameType === 'audio-sentence'
-      ? (currentSentence?.id || null)
-      : (currentWord?.id || null);
+    if (words.length > 0 && urlParams.word) {
+      const index = words.findIndex(w => w.id === urlParams.word);
+      if (index !== -1 && index !== currentWordIndex) {
+        setCurrentWordIndex(index);
+      }
+    }
+  }, [words.length]); // Only run when words first load
 
-    updateUrlParams({
-      game: gameType,
-      word: wordId,
-      locale: language,
-    });
-  }, [gameType, currentWord?.id, currentSentence?.id, language]);
+  // Update URL when game state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('game', gameType);
+    if (currentWord?.id) {
+      params.set('word', currentWord.id);
+    }
+    params.set('locale', language);
+
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }, [gameType, currentWord?.id, language]);
 
   // Mutation to record user answers
   const recordAnswerMutation = useMutation({

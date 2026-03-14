@@ -57,7 +57,8 @@ export function LanguageSwitcher() {
       <motion.button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all border border-gray-200"
+        className="flex items-center gap-2 px-3 py-2 bg-white shadow-md hover:shadow-lg transition-all border border-gray-200"
+        style={{ borderRadius: "6px", height: "40px" }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
