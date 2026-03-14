@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"  stop-color="#FF5252"/>
+      <stop offset="100%" stop-color="#E00000"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Red gradient background -->
+  <rect width="600" height="600" fill="url(#bg)"/>
+
+  <!--
+    5 × 2 grid of circles, r = 52
+    Row 1  y = 165    x = 60, 180, 300, 420, 540
+    Row 2  y = 435    x = 60, 180, 300, 420, 540
+  -->
+
+  <!-- ── circle backgrounds ─────────────────────────────────────────── -->
+  <g fill="rgba(255,255,255,0.13)" stroke="rgba(255,255,255,0.32)" stroke-width="2.5">
+    <circle cx="60"  cy="165" r="52"/>
+    <circle cx="180" cy="165" r="52"/>
+    <circle cx="300" cy="165" r="52"/>
+    <circle cx="420" cy="165" r="52"/>
+    <circle cx="540" cy="165" r="52"/>
+    <circle cx="60"  cy="435" r="52"/>
+    <circle cx="180" cy="435" r="52"/>
+    <circle cx="300" cy="435" r="52"/>
+    <circle cx="420" cy="435" r="52"/>
+    <circle cx="540" cy="435" r="52"/>
+  </g>
+
+  <!-- ── MARK 1 · Точка (.)  — drawn as explicit circle ─────────────── -->
+  <circle cx="60" cy="170" r="22" fill="white"/>
+
+  <!-- ── MARK 2 · Запятая (,) ─────────────────────────────────────────
+       dot + curved tail                                                 -->
+  <circle cx="180" cy="152" r="18" fill="white"/>
+  <path d="M 174,169 Q 167,182 174,193"
+        stroke="white" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+  <!-- ── MARK 3 · Двоеточие (:) — two explicit circles ─────────────── -->
+  <circle cx="300" cy="147" r="11" fill="white"/>
+  <circle cx="300" cy="177" r="11" fill="white"/>
+
+  <!-- ── MARK 4 · Точка с запятой (;) ─────────────────────────────────
+       upper circle + lower comma shape                                  -->
+  <circle cx="420" cy="145" r="11" fill="white"/>
+  <circle cx="420" cy="168" r="10" fill="white"/>
+  <path d="M 414,177 Q 407,189 414,200"
+        stroke="white" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+  <!-- ── MARK 5 · Дефис (-)  — short horizontal bar ────────────────── -->
+  <line x1="513" y1="165" x2="567" y2="165"
+        stroke="white" stroke-width="13" stroke-linecap="round"/>
+
+  <!-- ── MARK 6 · Тире (—)   — longer horizontal bar ──────────────────
+       wider than hyphen, spans most of the circle                       -->
+  <line x1="18" y1="435" x2="102" y2="435"
+        stroke="white" stroke-width="13" stroke-linecap="round"/>
+
+  <!-- ── MARK 7 · Скобки  ( ) ─────────────────────────────────────────
+       two facing arcs                                                   -->
+  <path d="M 163,407 Q 148,435 163,463"
+        stroke="white" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <path d="M 197,407 Q 212,435 197,463"
+        stroke="white" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+  <!-- ── MARK 8 · Восклицательный знак (!) ────────────────────────────
+       vertical bar + bottom dot                                         -->
+  <line x1="300" y1="400" x2="300" y2="448"
+        stroke="white" stroke-width="13" stroke-linecap="round"/>
+  <circle cx="300" cy="464" r="9" fill="white"/>
+
+  <!-- ── MARK 9 · Вопросительный знак (?) ─────────────────────────────
+       curved arc + bottom dot                                           -->
+  <path d="M 398,400 Q 440,400 440,420 Q 440,438 420,444 L 420,452"
+        stroke="white" stroke-width="12" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="420" cy="463" r="8" fill="white"/>
+
+  <!-- ── MARK 10 · Многоточие (…) — three explicit circles ─────────── -->
+  <circle cx="516" cy="440" r="9" fill="white"/>
+  <circle cx="540" cy="440" r="9" fill="white"/>
+  <circle cx="564" cy="440" r="9" fill="white"/>
+
+  <!-- ── labels (small, below each circle) ─────────────────────────── -->
+  <g font-family="Arial,sans-serif" font-size="14" font-weight="700"
+     fill="white" text-anchor="middle" opacity="0.82">
+    <text x="60"  y="233">точка</text>
+    <text x="180" y="233">запятая</text>
+    <text x="300" y="233">двоеточие</text>
+    <text x="420" y="233">т. с зап.</text>
+    <text x="540" y="233">дефис</text>
+    <text x="60"  y="503">тире</text>
+    <text x="180" y="503">скобки</text>
+    <text x="300" y="503">воскл.</text>
+    <text x="420" y="503">вопрос.</text>
+    <text x="540" y="503">многоточие</text>
+  </g>
+</svg>
