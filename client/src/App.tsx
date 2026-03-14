@@ -13,6 +13,7 @@ import NotesPage from "@/pages/NotesPage";
 import ColorsPage from "@/pages/ColorsPage";
 import ShapesPage from "@/pages/ShapesPage";
 import LivingWorldPage from "@/pages/LivingWorldPage";
+import ElementsPage from "@/pages/ElementsPage";
 import { CATEGORIES } from "@/lib/categories";
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/colors" component={ColorsPage} />
           <Route path="/shapes" component={ShapesPage} />
           <Route path="/living-world" component={LivingWorldPage} />
+          <Route path="/elements" component={ElementsPage} />
           {CATEGORIES.filter((cat) => cat.id !== "reading").map((cat) => (
             <Route key={cat.id} path={cat.path}>
               {() => <CategoryPage category={cat} />}

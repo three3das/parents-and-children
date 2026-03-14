@@ -68,7 +68,7 @@ export const CATEGORIES: Category[] = [
       { ...R[2], emoji: "🎵", label: "Ноты", path: "/notes", images: { ru: "/images/notes_russian.svg", en: "/images/notes_english.svg", uk: "/images/notes_ukrainian.svg" } },
       { ...R[3], emoji: "🎨", label: "Цвета", path: "/colors", images: { ru: "/images/palette.svg", en: "/images/palette.svg", uk: "/images/palette.svg" } },
       { ...R[4], emoji: "🔷", label: "Фигуры", path: "/shapes", images: { ru: "/images/shapes.svg", en: "/images/shapes.svg", uk: "/images/shapes.svg" } },
-      { ...R[5], emoji: "✏️", label: "Рисование" },
+      { ...R[5], emoji: "💨", label: "Стихии", path: "/elements", images: { ru: "/images/elements.svg", en: "/images/elements.svg", uk: "/images/elements.svg" } },
       { ...R[6], emoji: "🌍", label: "Живой мир", path: "/living-world", images: { ru: "/images/living_world.svg", en: "/images/living_world.svg", uk: "/images/living_world.svg" } },
     ],
   },
