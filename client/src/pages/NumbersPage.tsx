@@ -54,13 +54,13 @@ export default function NumbersPage() {
           padding: "clamp(10px, 2vw, 20px)",
         }}
       >
-        {/* Number grid — 4 cols × 3 rows */}
+        {/* Number grid — 5 cols × 2 rows */}
         <div
           style={{
             flex: 1,
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gridTemplateRows: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(5, 1fr)",
+            gridTemplateRows: "repeat(2, 1fr)",
             gap: "clamp(4px, 0.8vw, 10px)",
           }}
         >

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#3EB8F0"/>
+      <stop offset="70%"  stop-color="#A8DDF8"/>
+      <stop offset="100%" stop-color="#C8EDF9"/>
+    </linearGradient>
+    <radialGradient id="sunG" cx="40%" cy="35%" r="60%">
+      <stop offset="0%"   stop-color="#FFFDE0"/>
+      <stop offset="100%" stop-color="#FFD000"/>
+    </radialGradient>
+    <linearGradient id="grass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#5DDC82"/>
+      <stop offset="100%" stop-color="#1A9950"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sky -->
+  <rect width="600" height="600" fill="url(#sky)"/>
+
+  <!-- Sun -->
+  <circle cx="510" cy="88" r="54" fill="url(#sunG)"/>
+  <!-- Sun rays -->
+  <g stroke="#FFD000" stroke-width="5" stroke-linecap="round" opacity="0.75">
+    <line x1="510" y1="16"  x2="510" y2="2"/>
+    <line x1="559" y1="37"  x2="571" y2="25"/>
+    <line x1="580" y1="88"  x2="597" y2="88"/>
+    <line x1="559" y1="139" x2="571" y2="152"/>
+    <line x1="510" y1="160" x2="510" y2="174"/>
+    <line x1="461" y1="139" x2="449" y2="152"/>
+    <line x1="440" y1="88"  x2="423" y2="88"/>
+    <line x1="461" y1="37"  x2="449" y2="25"/>
+  </g>
+
+  <!--
+    Rainbow: 7 bands, center at (300, 600), band-width = 40 px
+    Arc formula: M (cx-R),cy  A R,R 0 0 1 (cx+R),cy  L (cx+r),cy  A r,r 0 0 0 (cx-r),cy  Z
+    Red   520-480 | Orange 480-440 | Yellow 440-400 | Green 400-360
+    Blue  360-320 | Indigo 320-280 | Violet 280-240
+  -->
+  <!-- Red -->
+  <path d="M -220,600 A 520,520 0 0 1 820,600 L 780,600 A 480,480 0 0 0 -180,600 Z" fill="#FF2020"/>
+  <!-- Orange -->
+  <path d="M -180,600 A 480,480 0 0 1 780,600 L 740,600 A 440,440 0 0 0 -140,600 Z" fill="#FF8C00"/>
+  <!-- Yellow -->
+  <path d="M -140,600 A 440,440 0 0 1 740,600 L 700,600 A 400,400 0 0 0 -100,600 Z" fill="#FFE600"/>
+  <!-- Green -->
+  <path d="M -100,600 A 400,400 0 0 1 700,600 L 660,600 A 360,360 0 0 0  -60,600 Z" fill="#00CC44"/>
+  <!-- Blue -->
+  <path d="M  -60,600 A 360,360 0 0 1 660,600 L 620,600 A 320,320 0 0 0  -20,600 Z" fill="#1E90FF"/>
+  <!-- Indigo -->
+  <path d="M  -20,600 A 320,320 0 0 1 620,600 L 580,600 A 280,280 0 0 0   20,600 Z" fill="#5040CC"/>
+  <!-- Violet -->
+  <path d="M   20,600 A 280,280 0 0 1 580,600 L 540,600 A 240,240 0 0 0   60,600 Z" fill="#A040D0"/>
+
+  <!-- Cloud 1 (top-left) -->
+  <g fill="white" opacity="0.96">
+    <ellipse cx="108" cy="132" rx="66" ry="38"/>
+    <ellipse cx="70"  cy="148" rx="42" ry="30"/>
+    <ellipse cx="150" cy="150" rx="46" ry="28"/>
+    <ellipse cx="108" cy="160" rx="66" ry="18"/>
+  </g>
+
+  <!-- Cloud 2 (top-center) -->
+  <g fill="white" opacity="0.90">
+    <ellipse cx="310" cy="62"  rx="56" ry="30"/>
+    <ellipse cx="276" cy="76"  rx="36" ry="24"/>
+    <ellipse cx="346" cy="76"  rx="38" ry="22"/>
+    <ellipse cx="310" cy="82"  rx="56" ry="16"/>
+  </g>
+
+  <!-- Cloud 3 (small, right, below sun) -->
+  <g fill="white" opacity="0.85">
+    <ellipse cx="440" cy="178" rx="42" ry="22"/>
+    <ellipse cx="415" cy="190" rx="28" ry="18"/>
+    <ellipse cx="466" cy="192" rx="30" ry="17"/>
+    <ellipse cx="440" cy="196" rx="42" ry="12"/>
+  </g>
+
+  <!-- Grass (wavy top) -->
+  <path d="M0,545 Q25,522 50,545 Q75,522 100,545 Q125,522 150,545 Q175,522 200,545
+           Q225,522 250,545 Q275,522 300,545 Q325,522 350,545 Q375,522 400,545
+           Q425,522 450,545 Q475,522 500,545 Q525,522 550,545 Q575,522 600,545
+           L600,600 L0,600 Z"
+        fill="url(#grass)"/>
+</svg>

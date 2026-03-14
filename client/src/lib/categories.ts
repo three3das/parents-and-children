@@ -66,10 +66,11 @@ export const CATEGORIES: Category[] = [
       },
       { ...R[1], emoji: "🔢", label: "Цифры", path: "/numbers", images: { ru: "/images/numbers.svg", en: "/images/numbers.svg", uk: "/images/numbers.svg" } },
       { ...R[2], emoji: "🎵", label: "Ноты", path: "/notes", images: { ru: "/images/notes_russian.svg", en: "/images/notes_english.svg", uk: "/images/notes_ukrainian.svg" } },
+      { ...R[3], emoji: "📚", label: "Сказки", images: { ru: "/images/rainbow.svg", en: "/images/rainbow.svg", uk: "/images/rainbow.svg" } },
       ...sub(
-        ["📚", "🧩", "✏️", "🎭"],
-        ["Сказки", "Загадки", "Рисование", "Театр"],
-      ).map((icon, i) => ({ ...icon, ...R[i + 3] })),
+        ["🧩", "✏️", "🎭"],
+        ["Загадки", "Рисование", "Театр"],
+      ).map((icon, i) => ({ ...icon, ...R[i + 4] })),
     ],
   },
   {
