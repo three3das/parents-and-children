@@ -54,8 +54,9 @@ export const CATEGORIES: Category[] = [
     shadow: "rgba(220,0,0,0.40)",
     bgGradient: "linear-gradient(160deg, #FF6B6B 0%, #FF2222 55%, #C00000 100%)",
     subIcons: [
+      { ...R[0], emoji: "🔢", label: "Цифры", path: "/numbers", images: { ru: "/images/numbers.svg", en: "/images/numbers.svg", uk: "/images/numbers.svg" } },
       {
-        ...R[0],
+        ...R[1],
         emoji: "🔤",
         label: "Буквы",
         images: {
@@ -64,10 +65,9 @@ export const CATEGORIES: Category[] = [
           uk: "/images/letters_ukrainian.svg",
         },
       },
-      { ...R[1], emoji: "🔢", label: "Цифры", path: "/numbers", images: { ru: "/images/numbers.svg", en: "/images/numbers.svg", uk: "/images/numbers.svg" } },
-      { ...R[2], emoji: "🎵", label: "Ноты", path: "/notes", images: { ru: "/images/notes_russian.svg", en: "/images/notes_english.svg", uk: "/images/notes_ukrainian.svg" } },
-      { ...R[3], emoji: "🎨", label: "Цвета", path: "/colors", images: { ru: "/images/palette.svg", en: "/images/palette.svg", uk: "/images/palette.svg" } },
-      { ...R[4], emoji: "✍️", label: "Знаки", path: "/punctuation", images: { ru: "/images/punctuation.svg", en: "/images/punctuation.svg", uk: "/images/punctuation.svg" } },
+      { ...R[2], emoji: "✍️", label: "Знаки", path: "/punctuation", images: { ru: "/images/punctuation_dial.svg", en: "/images/punctuation_dial.svg", uk: "/images/punctuation_dial.svg" } },
+      { ...R[3], emoji: "🎵", label: "Ноты", path: "/notes", images: { ru: "/images/notes_russian.svg", en: "/images/notes_english.svg", uk: "/images/notes_ukrainian.svg" } },
+      { ...R[4], emoji: "🎨", label: "Цвета", path: "/colors", images: { ru: "/images/palette.svg", en: "/images/palette.svg", uk: "/images/palette.svg" } },
       { ...R[5], emoji: "💨", label: "Стихии", path: "/elements", images: { ru: "/images/elements.svg", en: "/images/elements.svg", uk: "/images/elements.svg" } },
       { ...R[6], emoji: "🌍", label: "Живой мир", path: "/living-world", images: { ru: "/images/living_world.svg", en: "/images/living_world.svg", uk: "/images/living_world.svg" } },
     ],

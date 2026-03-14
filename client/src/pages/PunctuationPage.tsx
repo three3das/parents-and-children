@@ -6,16 +6,16 @@ const MARKS: {
   symbol: string;
   ru: string; uk: string; en: string;
 }[] = [
+  { symbol: "()", ru: "Скобки",       uk: "Дужки",           en: "Brackets"    },
+  { symbol: "«»", ru: "Кавычки",      uk: "Лапки",           en: "Quotes"      },
+  { symbol: "-",  ru: "Дефис",        uk: "Дефіс",           en: "Hyphen"      },
+  { symbol: "—",  ru: "Тире",         uk: "Тире",            en: "Dash"        },
   { symbol: ".",  ru: "Точка",        uk: "Крапка",          en: "Period"      },
   { symbol: ",",  ru: "Запятая",      uk: "Кома",            en: "Comma"       },
   { symbol: ":",  ru: "Двоеточие",    uk: "Двокрапка",       en: "Colon"       },
   { symbol: ";",  ru: "Точка с зап.", uk: "Крапка з комою",  en: "Semicolon"   },
-  { symbol: "-",  ru: "Дефис",        uk: "Дефіс",           en: "Hyphen"      },
-  { symbol: "—",  ru: "Тире",         uk: "Тире",            en: "Dash"        },
-  { symbol: "()", ru: "Скобки",       uk: "Дужки",           en: "Brackets"    },
   { symbol: "!",  ru: "Восклиц.!",    uk: "Оклик",           en: "Exclamation" },
   { symbol: "?",  ru: "Вопрос.?",     uk: "Питання",         en: "Question"    },
-  { symbol: "…",  ru: "Многоточие",   uk: "Три крапки",      en: "Ellipsis"    },
 ];
 
 const SPEECH_LANG: Record<string, string> = {

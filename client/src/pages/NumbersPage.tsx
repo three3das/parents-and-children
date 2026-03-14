@@ -74,9 +74,11 @@ export default function NumbersPage() {
                 borderRadius: "clamp(8px, 1.5vw, 16px)",
                 cursor: "pointer",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: 0,
+                gap: "clamp(2px, 0.5vw, 6px)",
+                padding: "clamp(4px, 0.8vw, 10px)",
                 transition: "background 0.15s, transform 0.1s",
                 userSelect: "none",
               }}
@@ -99,13 +101,26 @@ export default function NumbersPage() {
                 style={{
                   color: "white",
                   fontWeight: 900,
-                  fontSize: "clamp(2.5rem, 8vw, 7rem)",
+                  fontSize: "clamp(2rem, 6vw, 5.5rem)",
                   textShadow: "0 2px 6px rgba(0,0,0,0.3)",
                   fontFamily: "Montserrat, Arial, sans-serif",
                   lineHeight: 1,
                 }}
               >
                 {digit}
+              </span>
+              <span
+                style={{
+                  color: "rgba(255,255,255,0.88)",
+                  fontWeight: 700,
+                  fontSize: "clamp(0.7rem, 1.8vw, 1.4rem)",
+                  fontFamily: "Montserrat, Arial, sans-serif",
+                  lineHeight: 1,
+                  textAlign: "center",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                }}
+              >
+                {NUMBER_NAMES[language]?.[digit] ?? ""}
               </span>
             </button>
           ))}
