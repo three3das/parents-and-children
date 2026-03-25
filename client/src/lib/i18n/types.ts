@@ -122,6 +122,12 @@ export interface Translations {
     };
   };
 
+  // Home page
+  home: {
+    title: string;
+    subtitle: string;
+  };
+
   // Game type names for GameTitle
   pictureMatch: string;
   spellWord: string;

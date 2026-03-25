@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"  stop-color="#FF5252"/>
+      <stop offset="100%" stop-color="#E00000"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="600" fill="url(#bg)"/>
+
+  <!--
+    5 × 2 grid of tiles
+    Tile width = 110, gap = 10  → columns at x = 5, 125, 245, 365, 485
+    Tile height = 274, gap = 16 → rows at y = 8, 318
+    Column centres: 60, 180, 300, 420, 540
+    Row 1 centre: 145   Row 2 centre: 455
+  -->
+
+  <!-- ── tile backgrounds ────────────────────────────────────────────── -->
+  <g fill="rgba(255,255,255,0.11)" stroke="rgba(255,255,255,0.30)" stroke-width="2">
+    <rect x="5"   y="8"   width="110" height="274" rx="14"/>
+    <rect x="125" y="8"   width="110" height="274" rx="14"/>
+    <rect x="245" y="8"   width="110" height="274" rx="14"/>
+    <rect x="365" y="8"   width="110" height="274" rx="14"/>
+    <rect x="485" y="8"   width="110" height="274" rx="14"/>
+    <rect x="5"   y="318" width="110" height="274" rx="14"/>
+    <rect x="125" y="318" width="110" height="274" rx="14"/>
+    <rect x="245" y="318" width="110" height="274" rx="14"/>
+    <rect x="365" y="318" width="110" height="274" rx="14"/>
+    <rect x="485" y="318" width="110" height="274" rx="14"/>
+  </g>
+
+  <!-- ── shared text style ───────────────────────────────────────────── -->
+  <!-- All marks: white, Montserrat Black, text-anchor middle            -->
+
+  <!-- ROW 1 ──────────────────────────────────────────────────────────── -->
+
+  <!-- 1 · Точка  .   font 210 → large visible dot -->
+  <text x="60"  y="170" text-anchor="middle" font-size="210" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">.</text>
+
+  <!-- 2 · Запятая ,   font 170 → dot + tail -->
+  <text x="180" y="168" text-anchor="middle" font-size="170" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">,</text>
+
+  <!-- 3 · Точка с запятой ;   font 110 -->
+  <text x="300" y="185" text-anchor="middle" font-size="110" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">;</text>
+
+  <!-- 4 · Двоеточие :   font 110 -->
+  <text x="420" y="185" text-anchor="middle" font-size="110" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">:</text>
+
+  <!-- 5 · Тире —   font 68 (em dash is wide) -->
+  <text x="540" y="158" text-anchor="middle" font-size="68" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">—</text>
+
+  <!-- ROW 2 ──────────────────────────────────────────────────────────── -->
+
+  <!-- 6 · Дефис -   font 150 -->
+  <text x="60"  y="468" text-anchor="middle" font-size="150" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">-</text>
+
+  <!-- 7 · Кавычки «»   font 72 (both guillemets) -->
+  <text x="180" y="478" text-anchor="middle" font-size="72" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">«»</text>
+
+  <!-- 8 · Скобки ()   font 100 -->
+  <text x="300" y="480" text-anchor="middle" font-size="100" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">()</text>
+
+  <!-- 9 · Восклицательный !   font 130 -->
+  <text x="420" y="476" text-anchor="middle" font-size="130" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">!</text>
+
+  <!-- 10 · Вопросительный ?   font 125 -->
+  <text x="540" y="474" text-anchor="middle" font-size="125" font-weight="900"
+        font-family="Montserrat,'Arial Black',Arial,sans-serif" fill="white">?</text>
+
+  <!-- ── name labels ────────────────────────────────────────────────── -->
+  <g font-family="Montserrat,Arial,sans-serif" font-size="13" font-weight="700"
+     fill="white" text-anchor="middle" opacity="0.78">
+    <text x="60"  y="266">точка</text>
+    <text x="180" y="266">запятая</text>
+    <text x="300" y="266">т. с зап.</text>
+    <text x="420" y="266">двоеточие</text>
+    <text x="540" y="266">тире</text>
+    <text x="60"  y="576">дефис</text>
+    <text x="180" y="576">кавычки</text>
+    <text x="300" y="576">скобки</text>
+    <text x="420" y="576">воскл.</text>
+    <text x="540" y="576">вопрос.</text>
+  </g>
+</svg>

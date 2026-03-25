@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5252"/>
+      <stop offset="100%" stop-color="#E00000"/>
+    </linearGradient>
+    <radialGradient id="dialFace" cx="40%" cy="36%" r="65%">
+      <stop offset="0%"   stop-color="#f8f3e6"/>
+      <stop offset="70%"  stop-color="#e8dfc8"/>
+      <stop offset="100%" stop-color="#cec3a8"/>
+    </radialGradient>
+    <radialGradient id="hubGrad" cx="35%" cy="32%" r="70%">
+      <stop offset="0%"   stop-color="#9a8c72"/>
+      <stop offset="100%" stop-color="#4a3e2e"/>
+    </radialGradient>
+    <radialGradient id="holeGrad" cx="30%" cy="28%" r="75%">
+      <stop offset="0%"   stop-color="#4a4a4a"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="600" height="600" fill="url(#bg)"/>
+
+  <!-- Outer bakelite ring -->
+  <circle cx="300" cy="300" r="284" fill="#181410"/>
+  <!-- Dial face -->
+  <circle cx="300" cy="300" r="272" fill="url(#dialFace)"/>
+  <!-- Groove rings -->
+  <circle cx="300" cy="300" r="260" fill="none" stroke="#b0a080" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="300" cy="300" r="148" fill="none" stroke="#a09070" stroke-width="2"/>
+  <circle cx="300" cy="300" r="145" fill="none" stroke="#d0c8a8" stroke-width="1" opacity="0.5"/>
+
+  <!--
+    Holes at r=200 from center, 0 at top (0°), clockwise every 36°.
+    x = 300 + 200·sin(a),  y = 300 − 200·cos(a)
+
+    0°   → (300, 100)
+    36°  → (418, 138)
+    72°  → (490, 238)
+    108° → (490, 362)
+    144° → (418, 462)
+    180° → (300, 500)
+    216° → (182, 462)
+    252° → (110, 362)
+    288° → (110, 238)
+    324° → (182, 138)
+
+    rim r=52, dark r=44, font-size=48
+  -->
+
+  <!-- 0  (300, 100) -->
+  <circle cx="300" cy="100" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="300" cy="100" r="44" fill="url(#holeGrad)"/>
+  <text x="300" y="117" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">0</text>
+
+  <!-- 1  (418, 138) -->
+  <circle cx="418" cy="138" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="418" cy="138" r="44" fill="url(#holeGrad)"/>
+  <text x="418" y="155" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">1</text>
+
+  <!-- 2  (490, 238) -->
+  <circle cx="490" cy="238" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="490" cy="238" r="44" fill="url(#holeGrad)"/>
+  <text x="490" y="255" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">2</text>
+
+  <!-- 3  (490, 362) -->
+  <circle cx="490" cy="362" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="490" cy="362" r="44" fill="url(#holeGrad)"/>
+  <text x="490" y="379" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">3</text>
+
+  <!-- 4  (418, 462) -->
+  <circle cx="418" cy="462" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="418" cy="462" r="44" fill="url(#holeGrad)"/>
+  <text x="418" y="479" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">4</text>
+
+  <!-- 5  (300, 500) -->
+  <circle cx="300" cy="500" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="300" cy="500" r="44" fill="url(#holeGrad)"/>
+  <text x="300" y="517" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">5</text>
+
+  <!-- 6  (182, 462) -->
+  <circle cx="182" cy="462" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="182" cy="462" r="44" fill="url(#holeGrad)"/>
+  <text x="182" y="479" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">6</text>
+
+  <!-- 7  (110, 362) -->
+  <circle cx="110" cy="362" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="110" cy="362" r="44" fill="url(#holeGrad)"/>
+  <text x="110" y="379" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">7</text>
+
+  <!-- 8  (110, 238) -->
+  <circle cx="110" cy="238" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="110" cy="238" r="44" fill="url(#holeGrad)"/>
+  <text x="110" y="255" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">8</text>
+
+  <!-- 9  (182, 138) -->
+  <circle cx="182" cy="138" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="182" cy="138" r="44" fill="url(#holeGrad)"/>
+  <text x="182" y="155" text-anchor="middle" font-size="48" font-weight="bold" font-family="Montserrat,Arial,sans-serif" fill="white">9</text>
+
+  <!-- Center hub -->
+  <circle cx="300" cy="300" r="48" fill="url(#hubGrad)" stroke="#3a2e1e" stroke-width="3"/>
+  <circle cx="300" cy="300" r="32" fill="#3e3224" stroke="#2a2016" stroke-width="2"/>
+  <circle cx="300" cy="300" r="12" fill="#1e1810"/>
+  <circle cx="290" cy="290" r="6"  fill="rgba(255,255,255,0.18)"/>
+</svg>
