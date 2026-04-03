@@ -648,6 +648,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+app.post("/api/payment/create", async (req, res) => {
+    try {
+      const axios = require('axios');
+      const { userId, amount } = req.body;
+
+      const response = await axios.post(
+        'https://api.nowpayments.io/v1/payment',
+        {
+          price_amount: amount || 9.99,
+          price_currency: 'usd',
+          pay_currency: 'usdttrc20',
+          order_id: userId,
+          order_description: 'KnowledgeChildren подписка'
+        },
+        {
+          headers: { 'x-api-key': process.env.NOWPAYMENTS_API_KEY }
+        }
+      );
+
+      res.json({
+        payment_id: response.data.payment_id,
+        pay_address: response.data.pay_address,
+        pay_amount: response.data.pay_amount
+      });
+    } catch (error) {
+      console.error("Error creating payment:", error);
+      res.status(500).json({ message: "Failed to create payment" });
+    }
+  });
+
+  app.post("/api/webhook/nowpayments", async (req, res) => {
+    try {
+      const { payment_status, order_id } = req.body;
+
+      if (payment_status === 'finished') {
+        console.log(`✅ Оплата получена для пользователя: ${order_id}`);
+      }
+
+      res.sendStatus(200);
+    } catch (error) {
+      console.error("Webhook error:", error);
+      res.sendStatus(500);
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }
