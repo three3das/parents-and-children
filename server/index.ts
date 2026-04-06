@@ -9,6 +9,14 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
+
+// ─── ВАЖНО: webhook должен быть ДО express.json() ────────────────────────────
+// NOWPayments отправляет сырой body — его нельзя парсить через JSON
+app.use(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -18,6 +26,9 @@ if (fs.existsSync(publicPath)) {
   app.use("/images", express.static(path.join(publicPath, "images")));
   app.use("/audio", express.static(path.join(publicPath, "audio")));
 }
+
+// ─── Подключить роутер платежей ───────────────────────────────────────────────
+app.use("/api/payments", require("./routes/payments"));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -68,6 +79,9 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
+
+  // ─── Запустить фоновые задачи (проверка истёкших подписок) ───────────────
+  require("./services/cron").startCronJobs();
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.

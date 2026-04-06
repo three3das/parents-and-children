@@ -64,11 +64,12 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressCli
       {/* User Icon Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+        className={`w-10 h-10 flex items-center justify-center transition-colors border border-gray-200 shadow-md ${
           isAuthenticated
             ? "bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm"
             : "bg-gray-200 hover:bg-gray-300"
         }`}
+        style={{ borderRadius: "15%" }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >

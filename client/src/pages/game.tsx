@@ -21,7 +21,20 @@ import { ProgressModal } from "@/components/ProgressModal";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
+// Helper to read URL params
+function getUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    game: params.get('game') as GameType | null,
+    word: params.get('word'),
+    locale: params.get('locale'),
+  };
+}
+
 export default function Game() {
+  // Initialize state from URL params
+  const urlParams = getUrlParams();
+
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -29,7 +42,7 @@ export default function Game() {
   const [selectedPicture, setSelectedPicture] = useState<Word | null>(null);
   const [selectedSentence, setSelectedSentence] = useState<MaterialWorld | null>(null);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
-  const [gameType, setGameType] = useState<GameType>('picture-match');
+  const [gameType, setGameType] = useState<GameType>(urlParams.game || 'picture-match');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
@@ -137,6 +150,29 @@ export default function Game() {
     enabled: !!currentSentence?.id && gameType === 'audio-sentence',
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Sync word index from URL param when words load
+  useEffect(() => {
+    if (words.length > 0 && urlParams.word) {
+      const index = words.findIndex(w => w.id === urlParams.word);
+      if (index !== -1 && index !== currentWordIndex) {
+        setCurrentWordIndex(index);
+      }
+    }
+  }, [words.length]); // Only run when words first load
+
+  // Update URL when game state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('game', gameType);
+    if (currentWord?.id) {
+      params.set('word', currentWord.id);
+    }
+    params.set('locale', language);
+
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }, [gameType, currentWord?.id, language]);
 
   // Mutation to record user answers
   const recordAnswerMutation = useMutation({

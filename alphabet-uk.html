@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 600px; height: 600px; overflow: hidden; }
+    .grid {
+      width: 600px;
+      height: 600px;
+      background: linear-gradient(140deg, #FF5252, #E00000);
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      font-family: 'Montserrat', Arial, sans-serif;
+    }
+    .pair {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      white-space: nowrap;
+      gap: 1px;
+      color: #fff;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.30);
+    }
+    .u { font-size: 54px; font-weight: 400; line-height: 1; }
+    .l { font-size: 42px; font-weight: 700; opacity: 0.82; line-height: 1; }
+  </style>
+</head>
+<body>
+  <div class="grid" id="g"></div>
+  <script>
+    const pairs = [
+      ['А','а'],['Б','б'],['В','в'],['Г','г'],['Ґ','ґ'],['Д','д'],['Е','е'],
+      ['Є','є'],['Ж','ж'],['З','з'],['И','и'],['І','і'],['Ї','ї'],['Й','й'],
+      ['К','к'],['Л','л'],['М','м'],['Н','н'],['О','о'],['П','п'],['Р','р'],
+      ['С','с'],['Т','т'],['У','у'],['Ф','ф'],['Х','х'],['Ц','ц'],['Ч','ч'],
+      ['Ш','ш'],['Щ','щ'],['Ь','ь'],['Ю','ю'],['Я','я'],
+    ];
+    const g = document.getElementById('g');
+    pairs.forEach(([u, l]) => {
+      g.innerHTML += `<div class="pair"><span class="u">${u}</span><span class="l">${l}</span></div>`;
+    });
+  </script>
+</body>
+</html>

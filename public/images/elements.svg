@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"  stop-color="#FF5252"/>
+      <stop offset="100%" stop-color="#E00000"/>
+    </linearGradient>
+
+    <!-- Air: white centre → sky blue -->
+    <radialGradient id="airBg" cx="50%" cy="42%" r="70%">
+      <stop offset="0%"   stop-color="#FFFFFF"/>
+      <stop offset="55%"  stop-color="#B3E5FC"/>
+      <stop offset="100%" stop-color="#81D4FA"/>
+    </radialGradient>
+
+    <!-- Fire: bright ember bottom → dark -->
+    <radialGradient id="fireBg" cx="50%" cy="85%" r="70%">
+      <stop offset="0%"   stop-color="#FFCC00"/>
+      <stop offset="40%"  stop-color="#FF4500"/>
+      <stop offset="100%" stop-color="#1A0000"/>
+    </radialGradient>
+    <linearGradient id="flameGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#FFEE58"/>
+      <stop offset="50%"  stop-color="#FF8C00"/>
+      <stop offset="100%" stop-color="#FF3D00"/>
+    </linearGradient>
+
+    <!-- Aether: cosmic purple → near-black -->
+    <radialGradient id="aetherBg" cx="50%" cy="40%" r="72%">
+      <stop offset="0%"   stop-color="#CE93D8"/>
+      <stop offset="52%"  stop-color="#4A148C"/>
+      <stop offset="100%" stop-color="#08001A"/>
+    </radialGradient>
+
+    <!-- Earth: sky → grass → soil -->
+    <linearGradient id="earthBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#90CAF9"/>
+      <stop offset="48%"  stop-color="#A5D6A7"/>
+      <stop offset="100%" stop-color="#8D6E63"/>
+    </linearGradient>
+
+    <!-- Water: light surface → deep blue -->
+    <linearGradient id="waterBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#B3E5FC"/>
+      <stop offset="30%"  stop-color="#039BE5"/>
+      <stop offset="100%" stop-color="#01579B"/>
+    </linearGradient>
+
+    <!--
+      Layout: quincunx — 4 corners + 1 centre, r = 85
+        c1  Воздух   top-left      ( 130, 130 )
+        c2  Огонь    top-right     ( 470, 130 )
+        c3  Эфир     centre        ( 300, 300 )
+        c4  Земля    bottom-left   ( 130, 470 )
+        c5  Вода     bottom-right  ( 470, 470 )
+    -->
+    <clipPath id="c1"><circle cx="130" cy="130" r="85"/></clipPath>
+    <clipPath id="c2"><circle cx="470" cy="130" r="85"/></clipPath>
+    <clipPath id="c3"><circle cx="300" cy="300" r="85"/></clipPath>
+    <clipPath id="c4"><circle cx="130" cy="470" r="85"/></clipPath>
+    <clipPath id="c5"><circle cx="470" cy="470" r="85"/></clipPath>
+  </defs>
+
+  <!-- Red gradient background -->
+  <rect width="600" height="600" fill="url(#bg)"/>
+
+  <!-- Connector lines (square + diagonals through centre) -->
+  <g stroke="rgba(255,255,255,0.28)" stroke-width="4.5" stroke-linecap="round">
+    <!-- Square edges -->
+    <line x1="130" y1="130" x2="470" y2="130"/>
+    <line x1="470" y1="130" x2="470" y2="470"/>
+    <line x1="470" y1="470" x2="130" y2="470"/>
+    <line x1="130" y1="470" x2="130" y2="130"/>
+    <!-- Diagonals through centre -->
+    <line x1="130" y1="130" x2="470" y2="470"/>
+    <line x1="470" y1="130" x2="130" y2="470"/>
+  </g>
+
+  <!-- ══════════ RING 1 · ВОЗДУХ · top-left (130, 130) ══════════ -->
+  <g clip-path="url(#c1)">
+    <rect x="45" y="45" width="170" height="170" fill="url(#airBg)"/>
+    <!-- Main cloud -->
+    <ellipse cx="130" cy="116" rx="38" ry="19" fill="white"/>
+    <ellipse cx="104" cy="122" rx="24" ry="15" fill="white"/>
+    <ellipse cx="156" cy="122" rx="24" ry="15" fill="white"/>
+    <rect x="80"  y="122" width="100" height="14" fill="white"/>
+    <!-- Small cloud upper -->
+    <ellipse cx="100" cy="92" rx="18" ry="11" fill="rgba(255,255,255,0.82)"/>
+    <ellipse cx="118" cy="95" rx="14" ry="10" fill="rgba(255,255,255,0.82)"/>
+    <!-- Wind lines -->
+    <path d="M 47,157 Q 78,148 109,157 Q 140,166 171,157 Q 194,150 213,157"
+          stroke="rgba(2,136,209,0.60)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M 47,174 Q 76,166 107,174 Q 138,182 167,174 Q 189,168 211,174"
+          stroke="rgba(2,136,209,0.42)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <!-- Label -->
+    <text x="130" y="198" text-anchor="middle" font-size="16" font-weight="900"
+          font-family="Arial Black,Arial,sans-serif" fill="#37474F"
+          stroke="rgba(255,255,255,0.75)" stroke-width="2.5" paint-order="stroke">Воздух</text>
+  </g>
+
+  <!-- ══════════ RING 2 · ОГОНЬ · top-right (470, 130) ══════════ -->
+  <g clip-path="url(#c2)">
+    <rect x="385" y="45" width="170" height="170" fill="url(#fireBg)"/>
+    <!-- Outer flame -->
+    <path d="M 470,212 Q 441,185 440,149 Q 439,106 470,69 Q 501,106 500,149 Q 499,185 470,212 Z"
+          fill="url(#flameGrad)"/>
+    <!-- Inner bright core -->
+    <path d="M 470,212 Q 455,190 456,157 Q 457,120 470,88 Q 483,120 484,157 Q 485,190 470,212 Z"
+          fill="#FFEE58" opacity="0.85"/>
+    <!-- White-hot tip -->
+    <ellipse cx="470" cy="76" rx="8" ry="12" fill="white" opacity="0.65"/>
+    <!-- Ember glow -->
+    <ellipse cx="470" cy="206" rx="30" ry="8" fill="rgba(255,100,0,0.58)"/>
+    <!-- Sparks -->
+    <circle cx="455" cy="90"  r="3.5" fill="#FFEE58" opacity="0.82"/>
+    <circle cx="487" cy="84"  r="2.5" fill="#FFD600" opacity="0.78"/>
+    <circle cx="444" cy="112" r="2"   fill="#FFCC02" opacity="0.70"/>
+    <circle cx="498" cy="116" r="2"   fill="#FFCC02" opacity="0.70"/>
+    <!-- Label -->
+    <text x="470" y="206" text-anchor="middle" font-size="16" font-weight="900"
+          font-family="Arial Black,Arial,sans-serif" fill="white"
+          stroke="rgba(0,0,0,0.55)" stroke-width="2.5" paint-order="stroke">Огонь</text>
+  </g>
+
+  <!-- ══════════ RING 3 · ЭФИР · centre (300, 300) ══════════ -->
+  <g clip-path="url(#c3)">
+    <rect x="215" y="215" width="170" height="170" fill="url(#aetherBg)"/>
+    <!-- Stars -->
+    <circle cx="300" cy="236" r="3.5" fill="white"/>
+    <circle cx="272" cy="254" r="2.5" fill="white" opacity="0.85"/>
+    <circle cx="332" cy="249" r="2.5" fill="white" opacity="0.9"/>
+    <circle cx="257" cy="277" r="2"   fill="white" opacity="0.72"/>
+    <circle cx="346" cy="271" r="2"   fill="white" opacity="0.78"/>
+    <circle cx="270" cy="310" r="2"   fill="white" opacity="0.65"/>
+    <circle cx="334" cy="318" r="1.5" fill="white" opacity="0.62"/>
+    <circle cx="346" cy="348" r="2"   fill="white" opacity="0.68"/>
+    <circle cx="258" cy="355" r="1.5" fill="white" opacity="0.58"/>
+    <!-- Crescent moon -->
+    <circle cx="300" cy="276" r="26"  fill="#FFD54F"/>
+    <circle cx="314" cy="269" r="21"  fill="#4A148C"/>
+    <!-- Cosmic halo -->
+    <ellipse cx="300" cy="300" rx="32" ry="12"
+             fill="none" stroke="#CE93D8" stroke-width="2.5" opacity="0.65"/>
+    <!-- Label -->
+    <text x="300" y="368" text-anchor="middle" font-size="16" font-weight="900"
+          font-family="Arial Black,Arial,sans-serif" fill="white"
+          stroke="rgba(0,0,0,0.55)" stroke-width="2.5" paint-order="stroke">Эфир</text>
+  </g>
+
+  <!-- ══════════ RING 4 · ЗЕМЛЯ · bottom-left (130, 470) ══════════ -->
+  <g clip-path="url(#c4)">
+    <rect x="45" y="385" width="170" height="170" fill="url(#earthBg)"/>
+    <!-- Mountains -->
+    <polygon points="45,552 130,400 215,552" fill="#388E3C"/>
+    <polygon points="148,552 186,492 215,552" fill="#2E7D32"/>
+    <!-- Snow cap -->
+    <polygon points="130,400 117,428 143,428" fill="white" opacity="0.88"/>
+    <!-- Soil strip -->
+    <rect x="45" y="538" width="170" height="14" fill="#6D4C41"/>
+    <!-- Label -->
+    <text x="130" y="540" text-anchor="middle" font-size="16" font-weight="900"
+          font-family="Arial Black,Arial,sans-serif" fill="white"
+          stroke="rgba(0,0,0,0.55)" stroke-width="2.5" paint-order="stroke">Земля</text>
+  </g>
+
+  <!-- ══════════ RING 5 · ВОДА · bottom-right (470, 470) ══════════ -->
+  <g clip-path="url(#c5)">
+    <rect x="385" y="385" width="170" height="170" fill="url(#waterBg)"/>
+    <!-- Surface shimmer -->
+    <ellipse cx="470" cy="408" rx="62" ry="10" fill="rgba(255,255,255,0.20)"/>
+    <!-- Waves -->
+    <path d="M 386,428 Q 409,412 432,428 Q 455,444 478,428 Q 501,412 524,428 Q 541,441 554,428"
+          stroke="rgba(255,255,255,0.75)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M 386,449 Q 409,433 432,449 Q 455,465 478,449 Q 501,433 524,449 Q 541,462 554,449"
+          stroke="rgba(255,255,255,0.50)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Bubbles -->
+    <circle cx="425" cy="475" r="5.5" fill="rgba(255,255,255,0.37)"/>
+    <circle cx="450" cy="464" r="3.5" fill="rgba(255,255,255,0.32)"/>
+    <circle cx="488" cy="472" r="4.5" fill="rgba(255,255,255,0.35)"/>
+    <circle cx="474" cy="486" r="3"   fill="rgba(255,255,255,0.28)"/>
+    <!-- Label -->
+    <text x="470" y="540" text-anchor="middle" font-size="16" font-weight="900"
+          font-family="Arial Black,Arial,sans-serif" fill="white"
+          stroke="rgba(0,0,0,0.55)" stroke-width="2.5" paint-order="stroke">Вода</text>
+  </g>
+
+  <!-- ══════════ RING BORDERS (top layer, all equal r=85) ══════════ -->
+  <g fill="none" stroke="white" stroke-width="9">
+    <circle cx="130" cy="130" r="85"/>  <!-- Воздух -->
+    <circle cx="470" cy="130" r="85"/>  <!-- Огонь  -->
+    <circle cx="300" cy="300" r="85"/>  <!-- Эфир   -->
+    <circle cx="130" cy="470" r="85"/>  <!-- Земля  -->
+    <circle cx="470" cy="470" r="85"/>  <!-- Вода   -->
+  </g>
+</svg>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5252"/>
+      <stop offset="100%" stop-color="#E00000"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <text x="49.6" y="86.4" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">А</text>
+  <text x="59.4" y="86.4" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">а</text>
+  <text x="130.7" y="86.4" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Б</text>
+  <text x="140.5" y="86.4" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">б</text>
+  <text x="211.9" y="86.4" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">В</text>
+  <text x="221.7" y="86.4" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">в</text>
+  <text x="293.0" y="86.4" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Г</text>
+  <text x="302.8" y="86.4" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">г</text>
+  <text x="374.2" y="86.4" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Ґ</text>
+  <text x="383.9" y="86.4" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">ґ</text>
+  <text x="455.3" y="86.4" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Д</text>
+  <text x="465.1" y="86.4" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">д</text>
+  <text x="536.4" y="86.4" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Е</text>
+  <text x="546.2" y="86.4" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">е</text>
+  <text x="49.6" y="200.0" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Є</text>
+  <text x="59.4" y="200.0" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">є</text>
+  <text x="130.7" y="200.0" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Ж</text>
+  <text x="140.5" y="200.0" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">ж</text>
+  <text x="211.9" y="200.0" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">З</text>
+  <text x="221.7" y="200.0" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">з</text>
+  <text x="293.0" y="200.0" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">И</text>
+  <text x="302.8" y="200.0" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">и</text>
+  <text x="374.2" y="200.0" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">І</text>
+  <text x="383.9" y="200.0" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">і</text>
+  <text x="455.3" y="200.0" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Ї</text>
+  <text x="465.1" y="200.0" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">ї</text>
+  <text x="536.4" y="200.0" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Й</text>
+  <text x="546.2" y="200.0" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">й</text>
+  <text x="49.6" y="313.6" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">К</text>
+  <text x="59.4" y="313.6" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">к</text>
+  <text x="130.7" y="313.6" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Л</text>
+  <text x="140.5" y="313.6" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">л</text>
+  <text x="211.9" y="313.6" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">М</text>
+  <text x="221.7" y="313.6" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">м</text>
+  <text x="293.0" y="313.6" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Н</text>
+  <text x="302.8" y="313.6" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">н</text>
+  <text x="374.2" y="313.6" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">О</text>
+  <text x="383.9" y="313.6" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">о</text>
+  <text x="455.3" y="313.6" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">П</text>
+  <text x="465.1" y="313.6" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">п</text>
+  <text x="536.4" y="313.6" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Р</text>
+  <text x="546.2" y="313.6" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">р</text>
+  <text x="49.6" y="427.2" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">С</text>
+  <text x="59.4" y="427.2" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">с</text>
+  <text x="130.7" y="427.2" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Т</text>
+  <text x="140.5" y="427.2" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">т</text>
+  <text x="211.9" y="427.2" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">У</text>
+  <text x="221.7" y="427.2" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">у</text>
+  <text x="293.0" y="427.2" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Ф</text>
+  <text x="302.8" y="427.2" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">ф</text>
+  <text x="374.2" y="427.2" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Х</text>
+  <text x="383.9" y="427.2" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">х</text>
+  <text x="455.3" y="427.2" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Ц</text>
+  <text x="465.1" y="427.2" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">ц</text>
+  <text x="536.4" y="427.2" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Ч</text>
+  <text x="546.2" y="427.2" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">ч</text>
+  <text x="49.6" y="540.8" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Ш</text>
+  <text x="59.4" y="540.8" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">ш</text>
+  <text x="130.7" y="540.8" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Щ</text>
+  <text x="140.5" y="540.8" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">щ</text>
+  <text x="211.9" y="540.8" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Ь</text>
+  <text x="221.7" y="540.8" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">ь</text>
+  <text x="293.0" y="540.8" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Ю</text>
+  <text x="302.8" y="540.8" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">ю</text>
+  <text x="374.2" y="540.8" text-anchor="middle" font-size="34.1" font-weight="900" font-family="Montserrat,Arial,sans-serif" fill="white" style="text-shadow:0 2px 6px rgba(0,0,0,0.3)">Я</text>
+  <text x="383.9" y="540.8" text-anchor="middle" font-size="27.9" font-weight="700" font-family="Montserrat,Arial,sans-serif" fill="white" opacity="0.80">я</text>
+</svg>

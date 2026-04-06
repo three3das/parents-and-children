@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5252"/>
+      <stop offset="100%" stop-color="#E00000"/>
+    </linearGradient>
+    <radialGradient id="dialFace" cx="40%" cy="36%" r="65%">
+      <stop offset="0%"   stop-color="#f8f3e6"/>
+      <stop offset="70%"  stop-color="#e8dfc8"/>
+      <stop offset="100%" stop-color="#cec3a8"/>
+    </radialGradient>
+    <radialGradient id="hubGrad" cx="35%" cy="32%" r="70%">
+      <stop offset="0%"   stop-color="#9a8c72"/>
+      <stop offset="100%" stop-color="#4a3e2e"/>
+    </radialGradient>
+    <radialGradient id="holeGrad" cx="30%" cy="28%" r="75%">
+      <stop offset="0%"   stop-color="#4a4a4a"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="600" height="600" fill="url(#bg)"/>
+
+  <!-- Outer bakelite ring -->
+  <circle cx="300" cy="300" r="284" fill="#181410"/>
+  <!-- Dial face -->
+  <circle cx="300" cy="300" r="272" fill="url(#dialFace)"/>
+  <!-- Groove rings -->
+  <circle cx="300" cy="300" r="260" fill="none" stroke="#b0a080" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="300" cy="300" r="148" fill="none" stroke="#a09070" stroke-width="2"/>
+  <circle cx="300" cy="300" r="145" fill="none" stroke="#d0c8a8" stroke-width="1" opacity="0.5"/>
+
+  <!--
+    Same 10 positions as numbers.svg  (r=200, clockwise from top, step 36°)
+    y-offset for text = cy + font_size × 0.354  (same rule as original)
+
+    Pos 0 (300,100)  →  ()  скобки
+    Pos 1 (418,138)  →  «»  кавычки
+    Pos 2 (490,238)  →  -   дефис
+    Pos 3 (490,362)  →  —   тире
+    Pos 4 (418,462)  →  .   точка
+    Pos 5 (300,500)  →  ,   запятая
+    Pos 6 (182,462)  →  :   двоеточие
+    Pos 7 (110,362)  →  ;   точка с запятой
+    Pos 8 (110,238)  →  !   восклицательный
+    Pos 9 (182,138)  →  ?   вопросительный
+  -->
+
+  <!-- Pos 0 · () скобки  (300, 100) · font 44 · y=100+16=116 -->
+  <circle cx="300" cy="100" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="300" cy="100" r="44" fill="url(#holeGrad)"/>
+  <text x="300" y="116" text-anchor="middle" font-size="44" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">()</text>
+
+  <!-- Pos 1 · «» кавычки  (418, 138) · font 40 · y=138+14=152 -->
+  <circle cx="418" cy="138" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="418" cy="138" r="44" fill="url(#holeGrad)"/>
+  <text x="418" y="152" text-anchor="middle" font-size="40" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">«»</text>
+
+  <!-- Pos 2 · - дефис  (490, 238) · font 74 · y=238+26=264 -->
+  <circle cx="490" cy="238" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="490" cy="238" r="44" fill="url(#holeGrad)"/>
+  <text x="490" y="264" text-anchor="middle" font-size="74" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">-</text>
+
+  <!-- Pos 3 · — тире  (490, 362) · font 42 · y=362+15=377 -->
+  <circle cx="490" cy="362" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="490" cy="362" r="44" fill="url(#holeGrad)"/>
+  <text x="490" y="377" text-anchor="middle" font-size="42" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">—</text>
+
+  <!-- Pos 4 · . точка  (418, 462) · font 120 · y=462+12=474 (dot ≈ centre) -->
+  <circle cx="418" cy="462" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="418" cy="462" r="44" fill="url(#holeGrad)"/>
+  <text x="418" y="474" text-anchor="middle" font-size="120" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">.</text>
+
+  <!-- Pos 5 · , запятая  (300, 500) · font 108 · y=500+14=514 -->
+  <circle cx="300" cy="500" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="300" cy="500" r="44" fill="url(#holeGrad)"/>
+  <text x="300" y="514" text-anchor="middle" font-size="108" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">,</text>
+
+  <!-- Pos 6 · : двоеточие  (182, 462) · font 58 · y=462+21=483 -->
+  <circle cx="182" cy="462" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="182" cy="462" r="44" fill="url(#holeGrad)"/>
+  <text x="182" y="483" text-anchor="middle" font-size="58" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">:</text>
+
+  <!-- Pos 7 · ; точка с запятой  (110, 362) · font 52 · y=362+18=380 -->
+  <circle cx="110" cy="362" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="110" cy="362" r="44" fill="url(#holeGrad)"/>
+  <text x="110" y="380" text-anchor="middle" font-size="52" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">;</text>
+
+  <!-- Pos 8 · ! восклицательный  (110, 238) · font 64 · y=238+23=261 -->
+  <circle cx="110" cy="238" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="110" cy="238" r="44" fill="url(#holeGrad)"/>
+  <text x="110" y="261" text-anchor="middle" font-size="64" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">!</text>
+
+  <!-- Pos 9 · ? вопросительный  (182, 138) · font 60 · y=138+21=159 -->
+  <circle cx="182" cy="138" r="52" fill="#c8bc9a" stroke="#8a7a5a" stroke-width="2.5"/>
+  <circle cx="182" cy="138" r="44" fill="url(#holeGrad)"/>
+  <text x="182" y="159" text-anchor="middle" font-size="60" font-weight="bold"
+        font-family="Montserrat,Arial,sans-serif" fill="white">?</text>
+
+  <!-- Center hub — identical to numbers.svg -->
+  <circle cx="300" cy="300" r="48" fill="url(#hubGrad)" stroke="#3a2e1e" stroke-width="3"/>
+  <circle cx="300" cy="300" r="32" fill="#3e3224" stroke="#2a2016" stroke-width="2"/>
+  <circle cx="300" cy="300" r="12" fill="#1e1810"/>
+  <circle cx="290" cy="290" r="6"  fill="rgba(255,255,255,0.18)"/>
+</svg>

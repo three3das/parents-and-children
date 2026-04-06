@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#FF5252"/>
+      <stop offset="100%" stop-color="#E00000"/>
+    </linearGradient>
+    <radialGradient id="pal" cx="38%" cy="32%" r="72%">
+      <stop offset="0%"   stop-color="#FFFBEF"/>
+      <stop offset="55%"  stop-color="#F2E2A8"/>
+      <stop offset="100%" stop-color="#C8A048"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="600" fill="url(#bg)"/>
+
+  <!-- Palette drop shadow -->
+  <path d="M 305,100 C 430,95 530,148 563,240 C 595,332 566,442 490,508
+           C 418,572 314,584 214,558 C 114,532 44,454 36,360
+           C 28,266 88,176 176,132 C 221,109 264,103 305,100 Z"
+        fill="rgba(0,0,0,0.25)" transform="translate(10,10)"/>
+
+  <!-- Palette main shape -->
+  <path d="M 295,90 C 420,85 520,138 553,230 C 585,322 556,432 480,498
+           C 408,562 304,574 204,548 C 104,522 34,444 26,350
+           C 18,256 78,166 166,122 C 211,99 254,93 295,90 Z"
+        fill="url(#pal)" stroke="#B89040" stroke-width="5"/>
+
+  <!-- Thumb hole -->
+  <ellipse cx="190" cy="185" rx="54" ry="38" transform="rotate(-28, 190, 185)"
+           fill="#2A1200"/>
+  <ellipse cx="188" cy="183" rx="46" ry="31" transform="rotate(-28, 188, 183)"
+           fill="#1A0A00" opacity="0.85"/>
+  <ellipse cx="185" cy="180" rx="30" ry="20" transform="rotate(-28, 185, 180)"
+           fill="rgba(255,150,80,0.07)"/>
+  <!-- Hole rim -->
+  <ellipse cx="190" cy="185" rx="54" ry="38" transform="rotate(-28, 190, 185)"
+           fill="none" stroke="#B89040" stroke-width="3.5"/>
+
+  <!--
+    12 color blobs in 3 rows × 4 columns, radius = 42
+    Row 1 (y≈265): White, Red, Orange, Yellow
+    Row 2 (y≈368): Green, Blue, Purple, Pink
+    Row 3 (y≈470): Brown, Gray, Light-blue, Black
+  -->
+
+  <!-- Row 1 -->
+  <circle cx="158" cy="265" r="42" fill="#FFFFFF" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+  <circle cx="268" cy="255" r="42" fill="#FF2020" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+  <circle cx="378" cy="255" r="42" fill="#FF8C00" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+  <circle cx="478" cy="265" r="42" fill="#FFE600" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+
+  <!-- Row 2 -->
+  <circle cx="148" cy="368" r="42" fill="#00CC44" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+  <circle cx="258" cy="360" r="42" fill="#1E90FF" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+  <circle cx="368" cy="360" r="42" fill="#9932CC" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+  <circle cx="472" cy="368" r="42" fill="#FF69B4" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+
+  <!-- Row 3 -->
+  <circle cx="162" cy="468" r="42" fill="#8B4513" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+  <circle cx="268" cy="475" r="42" fill="#909090" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+  <circle cx="374" cy="475" r="42" fill="#87CEEB" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+  <circle cx="468" cy="468" r="42" fill="#1A1A1A" stroke="rgba(255,255,255,0.9)" stroke-width="4"/>
+
+  <!-- Paintbrush lying across the palette (decorative) -->
+  <!-- Handle (wood) -->
+  <rect x="62" y="128" width="200" height="14" rx="7"
+        fill="#C07830" stroke="#8B5520" stroke-width="2"
+        transform="rotate(42, 62, 128)"/>
+  <!-- Ferrule (metal band) -->
+  <rect x="218" y="205" width="22" height="14" rx="3"
+        fill="#C0C0C0" stroke="#909090" stroke-width="1.5"
+        transform="rotate(42, 218, 205)"/>
+  <!-- Bristles -->
+  <path d="M 228,211 C 232,206 248,196 255,194 C 262,192 268,198 265,204
+           C 262,210 246,218 238,218 Z"
+        fill="#F5E0A0" stroke="#C8A848" stroke-width="1.5"
+        transform="rotate(42, 248, 206)"/>
+</svg>
