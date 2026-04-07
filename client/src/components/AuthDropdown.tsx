@@ -8,9 +8,10 @@ interface AuthDropdownProps {
   onCreateAccountClick: () => void;
   onProgressClick?: () => void;
   onSettingsClick?: () => void;
+  onSubscribeClick?: () => void;
 }
 
-export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressClick, onSettingsClick }: AuthDropdownProps) {
+export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressClick, onSettingsClick, onSubscribeClick }: AuthDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
@@ -51,6 +52,11 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressCli
   const handleSettingsClick = () => {
     setIsOpen(false);
     onSettingsClick?.();
+  };
+
+  const handleSubscribeClick = () => {
+    setIsOpen(false);
+    onSubscribeClick?.();
   };
 
   // Get user initials for avatar
@@ -103,6 +109,14 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressCli
                   <p className="font-medium text-gray-800">{user?.firstName} {user?.lastName}</p>
                   <p className="text-sm text-gray-500 truncate">{user?.email}</p>
                 </div>
+                {/* Subscribe button */}
+                <button
+                  onClick={handleSubscribeClick}
+                  className="w-full px-4 py-3 text-left text-white bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 transition-colors font-semibold border-b border-orange-300 flex items-center"
+                >
+                  <span className="mr-2">⭐</span>
+                  Оформить подписку
+                </button>
                 {/* Progress button */}
                 {onProgressClick && (
                   <button
@@ -133,6 +147,14 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressCli
               </>
             ) : (
               <>
+                {/* Subscribe button for non-authenticated */}
+                <button
+                  onClick={handleSubscribeClick}
+                  className="w-full px-4 py-3 text-left text-white bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 transition-colors font-semibold border-b border-orange-300 flex items-center"
+                >
+                  <span className="mr-2">⭐</span>
+                  Оформить подписку
+                </button>
                 <button
                   onClick={handleLoginClick}
                   className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
