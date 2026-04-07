@@ -6,6 +6,7 @@ import { insertGameProgressSchema, insertUserAnswerSchema, insertSentenceSchema,
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { sendPasswordResetEmail } from "./email";
+import paymentsRouter from "./routes/payments";
 
 // Blacklist for difficult letters - exclude from letter generation
 const BLACKLISTED_LETTERS = ['Ъ'];
@@ -35,6 +36,10 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
+  // ─── Крипто-платежи NOWPayments ───────────────────────────────────────────
+  app.use("/api/payments", paymentsRouter);
+
   // === AUTHENTICATION API ===
 
   // Register new user
@@ -116,8 +121,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user: userWithoutPassword });
     } catch (error: any) {
       console.error("Error logging in:", error);
-      console.error("Error stack:", error?.stack);
-      console.error("Error message:", error?.message);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Неверные данные для входа", errors: error.errors });
       }
@@ -134,29 +137,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { credential } = googleSchema.parse(req.body);
 
-      // Decode the JWT token from Google (base64 encoded payload)
       const parts = credential.split('.');
       if (parts.length !== 3) {
         return res.status(400).json({ message: "Invalid Google credential" });
       }
 
-      // Decode the payload (second part of JWT)
       const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-
       const { email, given_name, family_name, sub: googleId } = payload;
 
       if (!email) {
         return res.status(400).json({ message: "Email not provided by Google" });
       }
 
-      // Check if user exists
       let user = await storage.getUserByEmail(email);
 
       if (!user) {
-        // Create new user with Google data
-        // Generate a random password for Google users (they won't use it)
         const randomPassword = await bcrypt.hash(googleId + Date.now(), 10);
-
         user = await storage.createUser({
           email,
           firstName: given_name || 'User',
@@ -166,9 +162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
-
       res.json({ user: userWithoutPassword });
     } catch (error) {
       console.error("Error with Google auth:", error);
@@ -183,31 +177,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/forgot-password", async (req, res) => {
     try {
       const { email } = req.body;
-
       if (!email) {
         return res.status(400).json({ message: "Email is required" });
       }
-
-      // Check if user exists
       const user = await storage.getUserByEmail(email);
-
       if (user) {
-        // Generate reset token
         const resetToken = await storage.createPasswordResetToken(user.id);
-        console.log(`Password reset token created for: ${email}`);
-
-        // Send email with reset link
         const emailSent = await sendPasswordResetEmail(email, resetToken, user.firstName);
         if (emailSent) {
           console.log(`Password reset email sent to: ${email}`);
-        } else {
-          console.log(`Password reset email could not be sent. Token: ${resetToken}`);
         }
-      } else {
-        console.log(`Password reset requested for non-existent email: ${email}`);
       }
-
-      // Always return success for security (don't reveal if email exists)
       res.json({ message: "If this email exists, reset instructions have been sent" });
     } catch (error) {
       console.error("Error processing forgot password:", error);
@@ -219,31 +199,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
       const { token, password } = req.body;
-
       if (!token || !password) {
         return res.status(400).json({ message: "Token and password are required" });
       }
-
       if (password.length < 8) {
         return res.status(400).json({ message: "Password must be at least 8 characters" });
       }
-
-      // Verify token
       const resetToken = await storage.getPasswordResetToken(token);
       if (!resetToken) {
         return res.status(400).json({ message: "Invalid or expired token" });
       }
-
-      // Hash new password
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Update user password
       await storage.updateUserPassword(resetToken.userId, hashedPassword);
-
-      // Mark token as used
       await storage.markTokenAsUsed(resetToken.id);
-
-      console.log(`Password reset successful for user: ${resetToken.userId}`);
       res.json({ message: "Password reset successful" });
     } catch (error) {
       console.error("Error resetting password:", error);
@@ -251,24 +219,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get available words (excluding correctly answered ones in last month)
-  // Pass ?all=true to get ALL words without filtering
-  // Pass ?lang=uk to get words with translations for that language
+  // Get available words
   app.get("/api/words", async (req, res) => {
     try {
-      // Cache words list for 2 minutes
       res.set('Cache-Control', 'public, max-age=120');
       const sessionId = req.query.sessionId as string || 'default-session';
       const getAllWords = req.query.all === 'true';
       const language = req.query.lang as string | undefined;
 
-      // If language is specified, get words with translations
       if (language) {
         const wordsWithTranslations = await withRetry(() => storage.getAllWordsWithTranslations(language));
         return res.json(wordsWithTranslations);
       }
 
-      // If all=true, return all words; otherwise filter by session progress
       const words = await withRetry(() =>
         getAllWords ? storage.getAllWords() : storage.getAvailableWords(sessionId)
       );
@@ -279,12 +242,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get a specific word by ID
-  // Pass ?lang=uk to get word with translation for that language
   app.get("/api/words/:id", async (req, res) => {
     try {
       const language = req.query.lang as string | undefined;
-
       if (language) {
         const wordWithTranslation = await storage.getWordWithTranslation(req.params.id, language);
         if (!wordWithTranslation) {
@@ -292,7 +252,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         return res.json(wordWithTranslation);
       }
-
       const word = await storage.getWord(req.params.id);
       if (!word) {
         return res.status(404).json({ message: "Word not found" });
@@ -303,10 +262,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get random words for distractors
   app.get("/api/words/:id/distractors", async (req, res) => {
     try {
-      // Cache distractors for 5 minutes
       res.set('Cache-Control', 'public, max-age=300');
       const count = parseInt(req.query.count as string) || 3;
       const distractors = await withRetry(() => storage.getRandomWords(req.params.id, count));
@@ -316,83 +273,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get letter options for spell word game
   app.get("/api/words/:id/spell-letters", async (req, res) => {
     try {
       const word = await storage.getWord(req.params.id);
       if (!word) {
         return res.status(404).json({ message: "Word not found" });
       }
-
-      const wordText = word.word;
-
-      // Get all letters from the word (including duplicates) and shuffle them
-      const wordLetters = wordText.split('').sort(() => Math.random() - 0.5);
-
-      res.json({
-        availableLetters: wordLetters
-      });
+      const wordLetters = word.word.split('').sort(() => Math.random() - 0.5);
+      res.json({ availableLetters: wordLetters });
     } catch (error) {
       console.error("Error getting spell letters:", error);
       res.status(500).json({ message: "Failed to get spell letters" });
     }
   });
 
-  // Get syllable options for syllables game
   app.get("/api/words/:id/syllables", async (req, res) => {
     try {
       const word = await storage.getWord(req.params.id);
       if (!word) {
         return res.status(404).json({ message: "Word not found" });
       }
-
-      // Import splitIntoSyllables function
       const { splitIntoSyllables } = await import("../client/src/lib/utils");
-
-      // Get correct syllables from the word
       const correctSyllables = splitIntoSyllables(word.word);
-
-      // Generate random distractor syllables
       const allWords = await storage.getAllWords();
       const allSyllables = new Set<string>();
-
-      // Collect syllables from all words (filter out empty strings)
       for (const w of allWords) {
         const wordSyllables = splitIntoSyllables(w.word);
         wordSyllables.forEach(syllable => {
-          if (syllable && syllable.trim()) {
-            allSyllables.add(syllable);
-          }
+          if (syllable && syllable.trim()) allSyllables.add(syllable);
         });
       }
-
-      // Filter correct syllables to remove any empty strings
       const validCorrectSyllables = correctSyllables.filter(s => s && s.trim());
-
-      // Remove correct syllables from distractors
       const distractorSyllables = Array.from(allSyllables).filter(
         syllable => syllable && syllable.trim() && !validCorrectSyllables.includes(syllable)
       );
-
-      // Shuffle and select 3 random distractors
-      const shuffledDistractors = distractorSyllables.sort(() => Math.random() - 0.5);
-      const selectedDistractors = shuffledDistractors.slice(0, 3);
-
-      // Combine correct syllables with distractors and shuffle (final filter for safety)
-      const allOptions = [...validCorrectSyllables, ...selectedDistractors].filter(s => s && s.trim());
-      const shuffledOptions = allOptions.sort(() => Math.random() - 0.5);
-
-      res.json({
-        syllables: shuffledOptions,
-        correctSyllables: validCorrectSyllables
-      });
+      const selectedDistractors = distractorSyllables.sort(() => Math.random() - 0.5).slice(0, 3);
+      const shuffledOptions = [...validCorrectSyllables, ...selectedDistractors]
+        .filter(s => s && s.trim())
+        .sort(() => Math.random() - 0.5);
+      res.json({ syllables: shuffledOptions, correctSyllables: validCorrectSyllables });
     } catch (error) {
       console.error("Error getting syllables:", error);
       res.status(500).json({ message: "Failed to get syllables" });
     }
   });
 
-  // Create game progress
   app.post("/api/game-progress", async (req, res) => {
     try {
       const validatedData = insertGameProgressSchema.parse(req.body);
@@ -406,7 +331,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get game progress
   app.get("/api/game-progress/:id", async (req, res) => {
     try {
       const progress = await storage.getGameProgress(req.params.id);
@@ -419,11 +343,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update game progress
   app.patch("/api/game-progress/:id", async (req, res) => {
     try {
-      const updates = req.body;
-      const progress = await storage.updateGameProgress(req.params.id, updates);
+      const progress = await storage.updateGameProgress(req.params.id, req.body);
       if (!progress) {
         return res.status(404).json({ message: "Game progress not found" });
       }
@@ -433,7 +355,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get today's progress (correct answers count)
   app.get("/api/progress/today", async (req, res) => {
     try {
       const sessionId = req.query.sessionId as string || 'default-session';
@@ -445,17 +366,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get progress statistics for charts
   app.get("/api/progress/stats", async (req, res) => {
     try {
       const sessionId = req.query.sessionId as string || 'default-session';
       const fromDate = req.query.from as string;
       const toDate = req.query.to as string;
-
       if (!fromDate || !toDate) {
         return res.status(400).json({ message: "From and to dates are required" });
       }
-
       const stats = await storage.getProgressStats(sessionId, fromDate, toDate);
       res.json(stats);
     } catch (error) {
@@ -464,7 +382,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Record user answer
   app.post("/api/answers", async (req, res) => {
     try {
       const validatedData = insertUserAnswerSchema.parse(req.body);
@@ -479,12 +396,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // === SENTENCES AND PHRASES API ===
-
-  // Get all sentences
   app.get("/api/sentences", async (req, res) => {
     try {
-      // Cache sentences list for 5 minutes
       res.set('Cache-Control', 'public, max-age=300');
       const sentences = await storage.getAllSentences();
       res.json(sentences);
@@ -494,7 +407,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get a specific sentence by ID
   app.get("/api/sentences/:id", async (req, res) => {
     try {
       const sentence = await storage.getSentence(req.params.id);
@@ -507,10 +419,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get sentences by category
   app.get("/api/sentences/category/:category", async (req, res) => {
     try {
-      // Cache category sentences for 5 minutes
       res.set('Cache-Control', 'public, max-age=300');
       const sentences = await storage.getSentencesByCategory(req.params.category);
       res.json(sentences);
@@ -520,10 +430,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get sentences by difficulty
   app.get("/api/sentences/difficulty/:difficulty", async (req, res) => {
     try {
-      // Cache difficulty sentences for 5 minutes
       res.set('Cache-Control', 'public, max-age=300');
       const sentences = await storage.getSentencesByDifficulty(req.params.difficulty);
       res.json(sentences);
@@ -533,7 +441,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new sentence
   app.post("/api/sentences", async (req, res) => {
     try {
       const validatedData = insertSentenceSchema.parse(req.body);
@@ -548,9 +455,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // === WORD TRANSLATIONS API ===
-
-  // Get translations for a word
   app.get("/api/words/:id/translations", async (req, res) => {
     try {
       const translations = await storage.getWordTranslations(req.params.id);
@@ -561,7 +465,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create a translation for a word
   app.post("/api/words/:id/translations", async (req, res) => {
     try {
       const { language, translation } = req.body;
@@ -576,12 +479,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // === MATERIAL WORLD ACTIVITIES API ===
-
-  // Get material world activities
   app.get("/api/material-world", async (req, res) => {
     try {
-      // Cache material world activities for 5 minutes
       res.set('Cache-Control', 'public, max-age=300');
       const activities = await withRetry(() => storage.getMaterialWorldActivities());
       res.json(activities);
@@ -591,25 +490,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get distractors for material world item (for audio-sentence game)
   app.get("/api/material-world/:id/distractors", async (req, res) => {
     try {
       const { id } = req.params;
-      console.log('Fetching distractors for material world id:', id);
-
       const distractors = await withRetry(() => storage.getRandomMaterialWorldItems(id, 3));
-      console.log('Got material world distractors:', distractors.length);
-
-      // If we don't have enough distractors with valid images, supplement with random words
       if (distractors.length < 3) {
         const neededCount = 3 - distractors.length;
-        console.log('Need', neededCount, 'more distractors from words table');
-
-        // Get all words and pick random ones
         const allWords = await storage.getAllWords();
         const shuffled = allWords.sort(() => Math.random() - 0.5).slice(0, neededCount);
-
-        // Transform words to MaterialWorld-like objects for consistent UI
         const wordDistractors = shuffled.map(word => ({
           id: `word-${word.id}`,
           event: word.word,
@@ -622,12 +510,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           audio_en: null,
           audio_uk: null
         }));
-
-        console.log('Added word distractors:', wordDistractors.length);
         distractors.push(...wordDistractors);
       }
-
-      console.log('Total distractors:', distractors.length);
       res.json(distractors);
     } catch (error) {
       console.error("Error fetching material world distractors:", error);
@@ -635,7 +519,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // === KFC WORDS API (kfc schema) ===
   app.get("/api/kfc/words", async (req, res) => {
     try {
       const result = await pool.query(
@@ -648,51 +531,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-app.post("/api/payment/create", async (req, res) => {
-    try {
-      const axios = require('axios');
-      const { userId, amount } = req.body;
-
-      const response = await axios.post(
-        'https://api.nowpayments.io/v1/payment',
-        {
-          price_amount: amount || 9.99,
-          price_currency: 'usd',
-          pay_currency: 'usdttrc20',
-          order_id: userId,
-          order_description: 'KnowledgeChildren подписка'
-        },
-        {
-          headers: { 'x-api-key': process.env.NOWPAYMENTS_API_KEY }
-        }
-      );
-
-      res.json({
-        payment_id: response.data.payment_id,
-        pay_address: response.data.pay_address,
-        pay_amount: response.data.pay_amount
-      });
-    } catch (error) {
-      console.error("Error creating payment:", error);
-      res.status(500).json({ message: "Failed to create payment" });
-    }
-  });
-
-  app.post("/api/webhook/nowpayments", async (req, res) => {
-    try {
-      const { payment_status, order_id } = req.body;
-
-      if (payment_status === 'finished') {
-        console.log(`✅ Оплата получена для пользователя: ${order_id}`);
-      }
-
-      res.sendStatus(200);
-    } catch (error) {
-      console.error("Webhook error:", error);
-      res.sendStatus(500);
-    }
-  });
-  
   const httpServer = createServer(app);
   return httpServer;
 }
