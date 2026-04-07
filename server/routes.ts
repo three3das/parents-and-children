@@ -6,7 +6,8 @@ import { insertGameProgressSchema, insertUserAnswerSchema, insertSentenceSchema,
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { sendPasswordResetEmail } from "./email";
-import paymentsRouter from "./routes/payments";
+import paymentsRouterModule from "./routes/payments";
+const paymentsRouter = (paymentsRouterModule as any).default || paymentsRouterModule;
 
 // Blacklist for difficult letters - exclude from letter generation
 const BLACKLISTED_LETTERS = ['Ъ'];
