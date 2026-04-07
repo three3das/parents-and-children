@@ -1,4 +1,4 @@
-/ server/middleware/auth.ts
+// server/middleware/auth.ts
 import { Request, Response, NextFunction } from "express";
 import { getActiveSubscription } from "../services/subscriptions";
 

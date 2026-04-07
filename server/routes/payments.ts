@@ -1,9 +1,4 @@
-✅ subscriptions.ts заполнен!
-Вижу код до строки 98 — всё правильно. PROBLEMS уменьшилось с 15 до 13 ✅
-
-Последний файл — payments.ts
-Откройте server/routes/payments.ts и вставьте:
-typescript// server/routes/payments.ts
+// server/routes/payments.ts
 import { Router, Request, Response } from "express";
 import { db } from "../db";
 import { sql } from "drizzle-orm";
@@ -24,6 +19,7 @@ import {
 
 const router = Router();
 
+// POST /api/payments/create-invoice
 router.post("/create-invoice", async (req: Request, res: Response) => {
   try {
     const { plan = "lifetime", userId } = req.body;
@@ -40,11 +36,16 @@ router.post("/create-invoice", async (req: Request, res: Response) => {
       return res.status(409).json({ error: "Доступ уже активирован" });
     }
     const invoice = await createInvoice({
-      userId: uid, amountUsd: planConfig.priceUsd, plan,
+      userId: uid,
+      amountUsd: planConfig.priceUsd,
+      plan,
     });
     await createPendingPayment({
-      userId: uid, orderId: invoice.orderId, plan,
-      invoiceUrl: invoice.invoiceUrl, expiresAt: invoice.expiresAt,
+      userId: uid,
+      orderId: invoice.orderId,
+      plan,
+      invoiceUrl: invoice.invoiceUrl,
+      expiresAt: invoice.expiresAt,
     });
     res.json({
       invoiceUrl: invoice.invoiceUrl,
@@ -57,6 +58,7 @@ router.post("/create-invoice", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/payments/status
 router.get("/status", async (req: Request, res: Response) => {
   try {
     const userId = (req.query.userId as string) || (req.session as any)?.userId;
@@ -71,6 +73,7 @@ router.get("/status", async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/payments/webhook
 router.post("/webhook", async (req: Request, res: Response) => {
   res.sendStatus(200);
   const rawBody = req.body as Buffer;
@@ -80,23 +83,26 @@ router.post("/webhook", async (req: Request, res: Response) => {
     return;
   }
   let payload: any;
-  try { payload = JSON.parse(rawBody.toString()); } catch { return; }
-
+  try {
+    payload = JSON.parse(rawBody.toString());
+  } catch {
+    return;
+  }
   const { payment_id, payment_status, order_id, actually_paid, exchange_rate } = payload;
   console.log(`[Webhook] order=${order_id} status=${payment_status}`);
-
   try {
     if (isPaymentFinished(payment_status)) {
       await activateSubscription({
-        orderId: order_id, nowpaymentsId: String(payment_id),
-        actuallyPaid: actually_paid, exchangeRate: exchange_rate,
+        orderId: order_id,
+        nowpaymentsId: String(payment_id),
+        actuallyPaid: actually_paid,
+        exchangeRate: exchange_rate,
       });
     } else if (isPaymentFailed(payment_status)) {
       await failPayment({ orderId: order_id, status: payment_status });
     } else if (isPaymentPending(payment_status)) {
       await db.execute(
-        sql`UPDATE crypto_payments SET status = ${payment_status}, 
-            updated_at = NOW() WHERE order_id = ${order_id}`
+        sql`UPDATE crypto_payments SET status = ${payment_status}, updated_at = NOW() WHERE order_id = ${order_id}`
       );
     }
   } catch (err: any) {

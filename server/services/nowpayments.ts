@@ -30,9 +30,13 @@ async function apiFetch(path: string, options: RequestInit = {}) {
 }
 
 export async function createInvoice({
-  userId, amountUsd, plan = "lifetime",
+  userId,
+  amountUsd,
+  plan = "lifetime",
 }: {
-  userId: number; amountUsd: number; plan?: string;
+  userId: number;
+  amountUsd: number;
+  plan?: string;
 }) {
   const orderId = `sub_${userId}_${plan}_${Date.now()}`;
   const invoice = await apiFetch("/invoice", {
@@ -42,7 +46,7 @@ export async function createInvoice({
       price_currency: "usd",
       pay_currency: "usdttrc20",
       order_id: orderId,
-      order_description: `KnowledgeChildren — доступ навсегда`,
+      order_description: "KnowledgeChildren — доступ навсегда",
       ipn_callback_url: `${process.env.APP_URL}/api/payments/webhook`,
       success_url: `${process.env.APP_URL}/thank-you`,
       cancel_url: `${process.env.APP_URL}/pricing`,
@@ -56,21 +60,29 @@ export async function createInvoice({
 }
 
 export function verifyWebhookSignature(
-  rawBody: Buffer, signatureHeader: string
+  rawBody: Buffer,
+  signatureHeader: string
 ): boolean {
   if (!IPN_SECRET) return true;
-  const hmac = crypto.createHmac("sha512", IPN_SECRET)
-    .update(rawBody).digest("hex");
+  const hmac = crypto
+    .createHmac("sha512", IPN_SECRET)
+    .update(rawBody)
+    .digest("hex");
   try {
     return crypto.timingSafeEqual(
-      Buffer.from(hmac), Buffer.from(signatureHeader || "")
+      Buffer.from(hmac),
+      Buffer.from(signatureHeader || "")
     );
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 
 export const isPaymentFinished = (s: string) =>
   ["finished", "confirmed"].includes(s);
+
 export const isPaymentFailed = (s: string) =>
   ["failed", "expired", "refunded"].includes(s);
+
 export const isPaymentPending = (s: string) =>
   ["waiting", "confirming", "sending", "partially_paid"].includes(s);
