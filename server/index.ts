@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
+import paymentsRouter from "./routes/payments";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -28,7 +29,7 @@ if (fs.existsSync(publicPath)) {
 }
 
 // ─── Подключить роутер платежей ───────────────────────────────────────────────
-app.use("/api/payments", require("./routes/payments"));
+app.use("/api/payments", paymentsRouter);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -81,7 +82,8 @@ app.use((req, res, next) => {
   }
 
   // ─── Запустить фоновые задачи (проверка истёкших подписок) ───────────────
-  require("./services/cron").startCronJobs();
+  const { startCronJobs } = await import("./services/cron");
+  startCronJobs();
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
