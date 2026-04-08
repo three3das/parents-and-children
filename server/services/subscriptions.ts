@@ -43,13 +43,15 @@ export async function createPendingPayment({
   );
   const subscriptionId = subResult.rows[0].id;
 
+  const expiresAtValue = expiresAt || null;
+
   await db.execute(
     sql`INSERT INTO crypto_payments
           (user_id, subscription_id, order_id, price_amount,
            price_currency, pay_currency, invoice_url, expires_at)
         VALUES (${userId}, ${subscriptionId}, ${orderId},
                 ${planConfig.priceUsd}, 'usd', 'usdttrc20',
-                ${invoiceUrl}, ${expiresAt})`
+                ${invoiceUrl}, ${expiresAtValue})`
   );
 
   return { subscriptionId, orderId };
