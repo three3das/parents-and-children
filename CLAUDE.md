@@ -1,4 +1,4 @@
-# KidRead - Claude Development Guidelines
+# KnowledgeChildren - Claude Development Guidelines
 
 ## Database and Constants Synchronization Rules
 
@@ -11,45 +11,51 @@
 - **Fallback**: Words without emoji mappings will display ❓ as fallback
 
 ### Development Server
-- **Port**: Use port 3456 for development
-- **Command**: `DATABASE_URL="..." PORT=3456 npm run dev`
+- **Port**: Use port 5001 for development (configurable via PORT env var)
+- **Command**: `npm run dev`
 - **Database**: Requires Supabase connection string in DATABASE_URL
+- **Environment**: Requires `.env` file with:
+  - `DATABASE_URL` - Supabase connection string
+  - `PORT` - Server port (default: 5001)
+  - `APP_URL` - Application URL for callbacks (e.g., http://localhost:5001)
+  - `NOWPAYMENTS_API_KEY` - NOWPayments API key
+  - `NOWPAYMENTS_PUBLIC_KEY` - NOWPayments public key
+  - `NOWPAYMENTS_IPN_SECRET` - NOWPayments IPN secret for webhook verification
 
-### Production Build & Heroku Deployment
+### Production Deployment (Render)
+
+#### Deployment URL
+- **Production**: https://knowledge-for-children.onrender.com/
 
 #### Deployment Process
-1. **Full deployment with checks**: `npm run deploy`
-   - Runs TypeScript type checking
-   - Tests local build
-   - Commits any changes
-   - Pushes to GitHub (origin/main)
-   - Deploys to Heroku
-   
-2. **Quick deployment**: `npm run deploy:quick`
-   - Commits all changes with "Quick deploy" message
-   - Pushes directly to Heroku
+- Push to GitHub main branch
+- Render automatically builds and deploys
+- Environment variables must be set in Render dashboard
 
 #### Build Configuration
-- **Build**: `npm run build` - builds client and server locally (for testing)
+- **Build**: `npm run build` - builds client and server
 - **Start**: `npm run start` - runs production server
-- **Database**: Hardcoded Supabase URL with fallback to DATABASE_URL env var
-
-#### Heroku Requirements
-- **Procfile**: `web: npm run start`
+- **Database**: Uses DATABASE_URL from environment
 - **Node.js engine**: >=20.0.0
-- **Dynamic vite imports**: Production compatibility (vite only loaded in dev)
-- **SSL configuration**: Automatic for Supabase connections
-- **Auto-build**: Heroku automatically runs `npm run build` during deployment
 
 ### UI Design Principles
 - **Target Audience**: Children learning to read
 - **Text Usage**: Avoid text where possible - children cannot read yet
 - **Visual Communication**: Use emojis and visual elements for navigation
-- **Exceptions**: Keep essential text like "KidRead" and "Настройки" (Settings)
+- **Exceptions**: Keep essential text like "KnowledgeChildren" and "Настройки" (Settings)
 
 ### Test User Credentials
 - **Email**: test@kidread.com
 - **Password**: Test1234
+
+### Subscription System
+- **Payment Provider**: NOWPayments (crypto payments)
+- **Plans**: Lifetime access plan
+- **Tables**: 
+  - `subscriptions` - user subscription records
+  - `crypto_payments` - payment transactions
+  - `webhook_logs` - NOWPayments webhook events
+- **Important**: `dotenv.config()` must be called in `nowpayments.ts` before accessing env vars
 
 ### Click-Based Game Interactions
 - **Library**: No external drag-and-drop library needed
