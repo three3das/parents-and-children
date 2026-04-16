@@ -2,7 +2,7 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 import type { Language, Translations } from './types';
 import { translations, DEFAULT_LANGUAGE } from './translations';
 
-const STORAGE_KEY = 'kidread-language';
+const STORAGE_KEY = 'knowledgechildren-language';
 
 interface LanguageContextType {
   language: Language;

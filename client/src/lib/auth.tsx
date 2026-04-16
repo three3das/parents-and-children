@@ -25,13 +25,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
  
   useEffect(() => {
-    const storedUser = localStorage.getItem('kidread-user');
+    const storedUser = localStorage.getItem('knowledgechildren-user');
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
       } catch (error) {
         console.error('Failed to parse stored user data:', error);
-        localStorage.removeItem('kidread-user');
+        localStorage.removeItem('knowledgechildren-user');
       } finally {
         setIsLoading(false);
       }
@@ -42,12 +42,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  
   const login = (userData: User) => {
     setUser(userData);
-    localStorage.setItem('kidread-user', JSON.stringify(userData));
+    localStorage.setItem('knowledgechildren-user', JSON.stringify(userData));
   };
  
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('kidread-user');
+    localStorage.removeItem('knowledgechildren-user');
   };
  
   return (

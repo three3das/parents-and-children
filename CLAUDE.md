@@ -45,7 +45,7 @@
 - **Exceptions**: Keep essential text like "KnowledgeChildren" and "Настройки" (Settings)
 
 ### Test User Credentials
-- **Email**: test@kidread.com
+- **Email**: test@knowledgechildren.com
 - **Password**: Test1234
 
 ### Subscription System

@@ -5,10 +5,14 @@ import dotenv from "dotenv";
 // Загрузить .env перед использованием переменных окружения
 dotenv.config();
 
-const BASE_URL = "https://api.nowpayments.io/v1";
+const IS_SANDBOX = process.env.NOWPAYMENTS_SANDBOX === "true";
+const BASE_URL = IS_SANDBOX
+  ? "https://api-sandbox.nowpayments.io/v1"
+  : "https://api.nowpayments.io/v1";
 const API_KEY = process.env.NOWPAYMENTS_API_KEY!;
 const IPN_SECRET = process.env.NOWPAYMENTS_IPN_SECRET!;
 
+console.log("[NOWPayments] Mode:", IS_SANDBOX ? "SANDBOX" : "PRODUCTION");
 console.log("[NOWPayments] API_KEY loaded:", API_KEY ? `${API_KEY.slice(0, 10)}...` : "MISSING");
 
 async function apiFetch(path: string, options: RequestInit = {}) {
