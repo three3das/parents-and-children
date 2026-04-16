@@ -148,6 +148,17 @@ export const translations: Record<Language, Translations> = {
       termsLink: 'Условиями использования',
       privacyLink: 'Политикой конфиденциальности',
     },
+
+    // Modal messages
+    modal: {
+      accessDenied: 'Добро пожаловать!',
+      accessDeniedMessage: 'Чтобы пользоваться этим разделом, пожалуйста, пройдите регистрацию и оформите подписку для полного доступа ко всем возможностям.',
+      register: 'Зарегистрироваться',
+      signIn: 'Войти',
+      subscriptionRequired: 'Отличный выбор!',
+      subscriptionMessage: 'Осталось только оформить подписку, чтобы открыть все задания и возможности!',
+      getSubscription: 'Оформить подписку',
+    },
   },
 
   en: {
@@ -297,6 +308,17 @@ export const translations: Record<Language, Translations> = {
       termsLink: 'Terms of Service',
       privacyLink: 'Privacy Policy',
     },
+
+    // Modal messages
+    modal: {
+      accessDenied: 'Welcome!',
+      accessDeniedMessage: 'To use this section, please register and subscribe for full access to all features.',
+      register: 'Register',
+      signIn: 'Sign In',
+      subscriptionRequired: 'Great choice!',
+      subscriptionMessage: 'Just subscribe to unlock all tasks and features!',
+      getSubscription: 'Get Subscription',
+    },
   },
 
   uk: {
@@ -445,6 +467,17 @@ export const translations: Record<Language, Translations> = {
       termsText: 'Створюючи акаунт, ви погоджуєтесь з',
       termsLink: 'Умовами використання',
       privacyLink: 'Політикою конфіденційності',
+    },
+
+    // Modal messages
+    modal: {
+      accessDenied: 'Вітаю Вас!',
+      accessDeniedMessage: 'Будь-ласка, використовуйте даний розділ за допомогою "Оформлення підписки та підтвердження авторизації" для повного доступу до всіх можливостей.',
+      register: 'Зареєструватися',
+      signIn: 'Увійти',
+      subscriptionRequired: 'Чудовий вибір!',
+      subscriptionMessage: 'Залишилось лише оформити підписку, щоб відкрити всі завдання та можливості!',
+      getSubscription: 'Оформити підписку',
     },
   },
 };

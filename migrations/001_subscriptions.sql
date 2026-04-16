@@ -4,7 +4,7 @@
 -- Подписки пользователей
 CREATE TABLE IF NOT EXISTS subscriptions (
   id              SERIAL PRIMARY KEY,
-  user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id         VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   status          VARCHAR(20) NOT NULL DEFAULT 'inactive',
   -- 'inactive' | 'pending' | 'active' | 'expired' | 'cancelled'
   plan            VARCHAR(50) NOT NULL DEFAULT 'monthly',
@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_expires_at ON subscriptions(expires
 -- Крипто-платежи
 CREATE TABLE IF NOT EXISTS crypto_payments (
   id                  SERIAL PRIMARY KEY,
-  user_id             INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id             VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   subscription_id     INTEGER REFERENCES subscriptions(id),
   nowpayments_id      VARCHAR(100) UNIQUE,   -- ID платежа в NOWPayments
   order_id            VARCHAR(150) UNIQUE NOT NULL,

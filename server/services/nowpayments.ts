@@ -1,9 +1,15 @@
 // server/services/nowpayments.ts
 import crypto from "crypto";
+import dotenv from "dotenv";
+
+// Загрузить .env перед использованием переменных окружения
+dotenv.config();
 
 const BASE_URL = "https://api.nowpayments.io/v1";
 const API_KEY = process.env.NOWPAYMENTS_API_KEY!;
 const IPN_SECRET = process.env.NOWPAYMENTS_IPN_SECRET!;
+
+console.log("[NOWPayments] API_KEY loaded:", API_KEY ? `${API_KEY.slice(0, 10)}...` : "MISSING");
 
 async function apiFetch(path: string, options: RequestInit = {}) {
   const controller = new AbortController();

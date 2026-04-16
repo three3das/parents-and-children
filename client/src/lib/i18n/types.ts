@@ -128,6 +128,17 @@ export interface Translations {
     subtitle: string;
   };
 
+  // Modal messages
+  modal: {
+    accessDenied: string;
+    accessDeniedMessage: string;
+    register: string;
+    signIn: string;
+    subscriptionRequired: string;
+    subscriptionMessage: string;
+    getSubscription: string;
+  };
+
   // Game type names for GameTitle
   pictureMatch: string;
   spellWord: string;

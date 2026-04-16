@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-
+ 
 interface User {
   id: string;
   email: string;
@@ -7,8 +7,9 @@ interface User {
   lastName: string;
   newsletter: boolean;
   createdAt: string;
+  hasSubscription?: boolean;
 }
-
+ 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
@@ -16,13 +17,13 @@ interface AuthContextType {
   login: (user: User) => void;
   logout: () => void;
 }
-
+ 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
+ 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+ 
   useEffect(() => {
     const storedUser = localStorage.getItem('kidread-user');
     if (storedUser) {
@@ -38,33 +39,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
   }, []);
-
+ 
   const login = (userData: User) => {
     setUser(userData);
     localStorage.setItem('kidread-user', JSON.stringify(userData));
   };
-
+ 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('kidread-user');
   };
-
+ 
   return (
     <AuthContext.Provider
-      value= {{
-    user,
-      isAuthenticated: !!user,
+      value={{
+        user,
+        isAuthenticated: !!user,
         isLoading,
         login,
         logout,
-      }
-}
+      }}
     >
-  { children }
-  </AuthContext.Provider>
+      {children}
+    </AuthContext.Provider>
   );
 }
-
+ 
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

@@ -61,7 +61,6 @@ export default function Game() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, language } = useLanguage();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Extended Word type with optional translation
   type WordWithTranslation = Word & { translatedWord?: string };
@@ -471,83 +470,6 @@ export default function Game() {
       }, 1500);
     }
   };
-
-  // Show loading while checking authentication
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            className="text-6xl mb-4"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          >
-            📚
-          </motion.div>
-          <p className="text-2xl font-bold text-child-text">{t.loading}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show login prompt if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100">
-        <motion.div
-          className="text-center bg-white rounded-3xl p-8 shadow-2xl mx-4 max-w-md"
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        >
-          <div className="text-8xl mb-6">📚</div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent mb-4">
-            KidRead
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            {t.auth.loginRequired || "Please log in to play"}
-          </p>
-
-          <div className="space-y-4">
-            <motion.button
-              onClick={() => setShowLoginModal(true)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full text-xl transition-colors duration-200"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {t.auth.login}
-            </motion.button>
-            <motion.button
-              onClick={() => setShowCreateAccountModal(true)}
-              className="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-4 px-8 rounded-full text-xl transition-colors duration-200"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {t.auth.createAccount}
-            </motion.button>
-          </div>
-        </motion.div>
-
-        {/* Auth Modals */}
-        <LoginModal
-          isOpen={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
-          onSwitchToCreateAccount={() => {
-            setShowLoginModal(false);
-            setShowCreateAccountModal(true);
-          }}
-        />
-        <CreateAccountModal
-          isOpen={showCreateAccountModal}
-          onClose={() => setShowCreateAccountModal(false)}
-          onSwitchToLogin={() => {
-            setShowCreateAccountModal(false);
-            setShowLoginModal(true);
-          }}
-        />
-      </div>
-    );
-  }
 
   if (wordsLoading || progressLoading) {
     return (

@@ -5,6 +5,7 @@ const STORAGE_KEY = 'kidread-auth';
 
 interface AuthContextType extends AuthState {
   login: (user: User) => void;
+  register: (user: User) => void;
   logout: () => void;
 }
 
@@ -46,6 +47,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const register = useCallback((user: User) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    setState({
+      user,
+      isAuthenticated: true,
+      isLoading: false,
+    });
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setState({
@@ -56,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout }}>
+    <AuthContext.Provider value={{ ...state, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

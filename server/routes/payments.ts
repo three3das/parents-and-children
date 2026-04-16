@@ -21,27 +21,28 @@ const router = Router();
 
 // POST /api/payments/create-invoice
 router.post("/create-invoice", async (req: Request, res: Response) => {
+  console.log("[CreateInvoice] Запрос получен, body:", req.body);
   try {
     const { plan = "lifetime", userId } = req.body;
-    const uid = userId || (req.session as any)?.userId;
-    if (!uid) {
+    console.log("[CreateInvoice] plan:", plan, "userId:", userId);
+    if (!userId) {
       return res.status(401).json({ error: "Необходима авторизация" });
     }
     const planConfig = PLANS[plan];
     if (!planConfig) {
       return res.status(400).json({ error: `Неизвестный план: ${plan}` });
     }
-    const existingSub = await getActiveSubscription(uid);
+    const existingSub = await getActiveSubscription(userId);
     if (existingSub) {
       return res.status(409).json({ error: "Доступ уже активирован" });
     }
     const invoice = await createInvoice({
-      userId: uid,
+      userId,
       amountUsd: planConfig.priceUsd,
       plan,
     });
     await createPendingPayment({
-      userId: uid,
+      userId,
       orderId: invoice.orderId,
       plan,
       invoiceUrl: invoice.invoiceUrl,
@@ -54,6 +55,7 @@ router.post("/create-invoice", async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error("[CreateInvoice] Ошибка:", err.message);
+    console.error("[CreateInvoice] Stack:", err.stack);
     res.status(500).json({ error: "Не удалось создать инвойс" });
   }
 });
