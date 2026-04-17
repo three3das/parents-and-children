@@ -19,6 +19,7 @@ async function apiFetch(path: string, options: RequestInit = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15_000);
   try {
+    console.log("[apiFetch] Calling:", `${BASE_URL}${path}`);
     const res = await fetch(`${BASE_URL}${path}`, {
       ...options,
       signal: controller.signal,
@@ -28,9 +29,12 @@ async function apiFetch(path: string, options: RequestInit = {}) {
         ...(options.headers || {}),
       },
     });
+    console.log("[apiFetch] Response status:", res.status);
     const data = await res.json();
+    console.log("[apiFetch] Response data:", JSON.stringify(data).slice(0, 200));
     if (!res.ok) {
       const msg = (data as any)?.message || `HTTP ${res.status}`;
+      console.error("[NOWPayments API] Error response:", JSON.stringify(data, null, 2));
       throw new Error(`NOWPayments API error: ${msg}`);
     }
     return data;
@@ -49,12 +53,19 @@ export async function createInvoice({
   plan?: string;
 }) {
   const orderId = `sub_${userId}_${plan}_${Date.now()}`;
+  const payCurrency = "usdttrc20";
+  console.log("[createInvoice] Creating invoice with params:", {
+    orderId,
+    amountUsd,
+    pay_currency: payCurrency,
+    app_url: process.env.APP_URL
+  });
   const invoice = await apiFetch("/invoice", {
     method: "POST",
     body: JSON.stringify({
       price_amount: amountUsd,
       price_currency: "usd",
-      pay_currency: "usdttrc20",
+      pay_currency: payCurrency,
       order_id: orderId,
       order_description: "KnowledgeChildren — доступ навсегда",
       ipn_callback_url: `${process.env.APP_URL}/api/payments/webhook`,
@@ -62,6 +73,10 @@ export async function createInvoice({
       cancel_url: `${process.env.APP_URL}/pricing`,
     }),
   }) as any;
+  console.log("[createInvoice] Invoice created:", {
+    invoiceUrl: invoice.invoice_url,
+    expiresAt: invoice.expiration_estimate_date
+  });
   return {
     orderId,
     invoiceUrl: invoice.invoice_url,

@@ -35,12 +35,18 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
         body: JSON.stringify({ plan: "lifetime", userId: user.id }),
       });
       const data = await res.json();
+      console.log("[SiteHeader] Response from server:", data);
       if (data.invoiceUrl) {
+        console.log("[SiteHeader] Opening invoice URL:", data.invoiceUrl);
         window.open(data.invoiceUrl, "_blank");
       } else if (data.error) {
         alert(data.error);
+      } else {
+        console.error("[SiteHeader] No invoiceUrl in response:", data);
+        alert("Не удалось получить ссылку на оплату");
       }
     } catch (err) {
+      console.error("[SiteHeader] Error:", err);
       alert("Ошибка при создании инвойса. Попробуйте позже.");
     }
   };

@@ -121,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: _, ...userWithoutPassword } = user;
  
       // Проверяем наличие активной подписки
-      const subscription = await getActiveSubscription(Number(user.id));
+      const subscription = await getActiveSubscription(user.id);
  
       console.log(`Login successful for ${email}`);
       res.json({ user: { ...userWithoutPassword, hasSubscription: !!subscription } });
@@ -171,7 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: _, ...userWithoutPassword } = user;
  
       // Проверяем наличие активной подписки
-      const subscription = await getActiveSubscription(Number(user.id));
+      const subscription = await getActiveSubscription(user.id);
  
       res.json({ user: { ...userWithoutPassword, hasSubscription: !!subscription } });
     } catch (error) {

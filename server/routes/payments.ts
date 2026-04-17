@@ -48,6 +48,11 @@ router.post("/create-invoice", async (req: Request, res: Response) => {
       invoiceUrl: invoice.invoiceUrl,
       expiresAt: invoice.expiresAt,
     });
+    console.log("[CreateInvoice] Returning to client:", {
+      invoiceUrl: invoice.invoiceUrl,
+      orderId: invoice.orderId,
+      amountUsd: planConfig.priceUsd,
+    });
     res.json({
       invoiceUrl: invoice.invoiceUrl,
       orderId: invoice.orderId,
@@ -67,7 +72,7 @@ router.get("/status", async (req: Request, res: Response) => {
     if (!userId) {
       return res.status(401).json({ error: "Необходима авторизация" });
     }
-    const sub = await getActiveSubscription(Number(userId));
+    const sub = await getActiveSubscription(userId);
     if (!sub) return res.json({ active: false });
     res.json({ active: true, plan: sub.plan, startedAt: sub.started_at });
   } catch (err: any) {

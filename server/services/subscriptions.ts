@@ -5,14 +5,14 @@ import { sql } from "drizzle-orm";
 export const PLANS: Record<string, { label: string; priceUsd: number }> = {
   lifetime: {
     label: "Единоразовый доступ навсегда",
-    priceUsd: 1,
+    priceUsd: 12,
   },
 };
 
-export async function getActiveSubscription(userId: number) {
+export async function getActiveSubscription(userId: string | number) {
   const result = await db.execute(
     sql`SELECT * FROM subscriptions
-        WHERE user_id = ${userId}
+        WHERE user_id = ${String(userId)}
           AND status = 'active'
         ORDER BY created_at DESC
         LIMIT 1`
