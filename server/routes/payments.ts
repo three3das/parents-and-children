@@ -85,7 +85,9 @@ router.post("/webhook", async (req: Request, res: Response) => {
   res.sendStatus(200);
   const rawBody = req.body as Buffer;
   const signature = req.headers["x-nowpayments-sig"] as string;
-  if (!verifyWebhookSignature(rawBody, signature)) {
+  // Skip signature verification in sandbox mode for testing
+  const isSandbox = process.env.NOWPAYMENTS_SANDBOX === "true";
+  if (!isSandbox && !verifyWebhookSignature(rawBody, signature)) {
     console.warn("[Webhook] Неверная подпись");
     return;
   }

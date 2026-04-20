@@ -5,7 +5,7 @@ import { sql } from "drizzle-orm";
 export const PLANS: Record<string, { label: string; priceUsd: number }> = {
   lifetime: {
     label: "Единоразовый доступ навсегда",
-    priceUsd: 12,
+    priceUsd: 11.99,
   },
 };
 
