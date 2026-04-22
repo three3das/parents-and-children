@@ -8,6 +8,7 @@ import { AuthDropdown } from "./AuthDropdown";
 import { LoginModal } from "./LoginModal";
 import { CreateAccountModal } from "./CreateAccountModal";
 import { ProgressModal } from "./ProgressModal";
+import { P2PPaymentModal } from "./P2PPaymentModal";
 import { useAuth } from "@/lib/auth";
 
 interface SiteHeaderProps {
@@ -20,6 +21,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
   const [showLogin, setShowLogin] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
+  const [showP2PModal, setShowP2PModal] = useState(false);
 
   const sessionId = user ? String(user.id) : "";
 
@@ -28,6 +30,10 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
       setShowLogin(true);
       return;
     }
+    // Show P2P payment modal
+    setShowP2PModal(true);
+
+    /* COMMENTED OUT - NOWPayments integration (can be re-enabled later)
     try {
       const res = await fetch("/api/payments/create-invoice", {
         method: "POST",
@@ -49,6 +55,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
       console.error("[SiteHeader] Error:", err);
       alert("Ошибка при создании инвойса. Попробуйте позже.");
     }
+    */
   };
 
   return (
@@ -128,6 +135,11 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
       </motion.header>
 
       {/* ── Modals (self-contained) ── */}
+      <P2PPaymentModal
+        isOpen={showP2PModal}
+        onClose={() => setShowP2PModal(false)}
+        userEmail={user?.email || ""}
+      />
       <ProgressModal
         isOpen={showProgress}
         onClose={() => setShowProgress(false)}

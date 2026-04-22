@@ -8,7 +8,9 @@ import bcrypt from "bcrypt";
 import { sendPasswordResetEmail } from "./email";
 import { getActiveSubscription } from "./services/subscriptions";
 import paymentsRouterModule from "./routes/payments";
+import p2pPaymentsRouterModule from "./routes/p2p-payments";
 const paymentsRouter = (paymentsRouterModule as any).default || paymentsRouterModule;
+const p2pPaymentsRouter = (p2pPaymentsRouterModule as any).default || p2pPaymentsRouterModule;
  
 // Blacklist for difficult letters - exclude from letter generation
 const BLACKLISTED_LETTERS = ['Ъ'];
@@ -38,10 +40,13 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
 }
  
 export async function registerRoutes(app: Express): Promise<Server> {
- 
-  // ─── Крипто-платежи NOWPayments ───────────────────────────────────────────
-  app.use("/api/payments", paymentsRouter);
- 
+
+  // ─── Крипто-платежи NOWPayments (закомментировано) ───────────────────────────────────────────
+  // app.use("/api/payments", paymentsRouter);
+
+  // ─── P2P платежи на карту ───────────────────────────────────────────
+  app.use("/api/p2p", p2pPaymentsRouter);
+
   // === AUTHENTICATION API ===
  
   // Register new user
