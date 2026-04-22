@@ -35,7 +35,8 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed top-[2%] left-1/2 -translate-x-1/2 w-[90%] max-w-md max-h-[96vh] overflow-y-auto bg-white rounded-xl shadow-2xl z-[9999] p-4"
+            className="fixed top-[2%] left-1/2 -translate-x-1/2 w-[90%] max-w-md max-h-[96vh] overflow-y-auto bg-white rounded-xl shadow-2xl z-[9999] p-4 mx-auto"
+            style={{ transform: 'translateX(-50%)' }}
           >
             {/* Close button */}
             <button
@@ -82,7 +83,7 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
             {/* Instructions */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-3">
               <p className="font-semibold text-blue-900 mb-1 text-xs">📝 Инструкция:</p>
-              <ol className="text-[10px] text-blue-800 space-y-0.5 list-decimal list-inside">
+              <ol className="text-xs text-blue-800 space-y-0.5 list-decimal list-inside">
                 <li>Переведите <strong>{amount} грн</strong> на карту выше</li>
                 <li>После оплаты отправьте письмо на <strong>{contactEmail}</strong></li>
                 <li>В теме письма укажите: <strong>"Подписка"</strong></li>
