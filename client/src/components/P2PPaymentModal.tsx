@@ -35,7 +35,7 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-white rounded-2xl shadow-2xl z-[9999] p-6"
+            className="fixed top-[2%] left-1/2 -translate-x-1/2 w-[90%] max-w-md max-h-[96vh] overflow-y-auto bg-white rounded-xl shadow-2xl z-[9999] p-4"
           >
             {/* Close button */}
             <button
@@ -46,27 +46,27 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
             </button>
 
             {/* Title */}
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            <h2 className="text-lg font-bold text-gray-800 mb-2">
               💳 Оплата подписки
             </h2>
 
             {/* Amount */}
-            <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl p-4 mb-6">
-              <p className="text-white text-sm mb-1">Сумма к оплате:</p>
-              <p className="text-white text-3xl font-bold">{amount} грн</p>
+            <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg p-2 mb-3">
+              <p className="text-white text-xs mb-1">Сумма к оплате:</p>
+              <p className="text-white text-xl font-bold">{amount} грн</p>
             </div>
 
             {/* Card details */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-2 mb-3">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Номер карты ПриватБанка:</p>
+                <p className="text-xs text-gray-600 mb-1">Номер карты ПриватБанка:</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-gray-100 px-3 py-2 rounded-lg font-mono text-lg">
+                  <code className="flex-1 bg-gray-100 px-2 py-1 rounded-lg font-mono text-base">
                     {cardNumber}
                   </code>
                   <button
                     onClick={() => copyToClipboard(cardNumber.replace(/\s/g, ""))}
-                    className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    className="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
                   >
                     📋
                   </button>
@@ -74,15 +74,15 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
               </div>
 
               <div>
-                <p className="text-sm text-gray-600 mb-1">Получатель:</p>
-                <p className="bg-gray-100 px-3 py-2 rounded-lg">{recipient}</p>
+                <p className="text-xs text-gray-600 mb-1">Получатель:</p>
+                <p className="bg-gray-100 px-2 py-1 rounded-lg text-sm">{recipient}</p>
               </div>
             </div>
 
             {/* Instructions */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-              <p className="font-semibold text-blue-900 mb-2">📝 Инструкция:</p>
-              <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-3">
+              <p className="font-semibold text-blue-900 mb-1 text-xs">📝 Инструкция:</p>
+              <ol className="text-[10px] text-blue-800 space-y-0.5 list-decimal list-inside">
                 <li>Переведите <strong>{amount} грн</strong> на карту выше</li>
                 <li>После оплаты отправьте письмо на <strong>{contactEmail}</strong></li>
                 <li>В теме письма укажите: <strong>"Подписка"</strong></li>
@@ -94,7 +94,7 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
             {/* Email template button */}
             <a
               href={`mailto:${contactEmail}?subject=Подписка&body=Здравствуйте!%0A%0AОплатил(а) подписку на сумму ${amount} грн.%0AMой email: ${userEmail}%0A%0AСпасибо!`}
-              className="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl text-center transition-colors"
+              className="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg text-center transition-colors text-xs"
             >
               ✉️ Отправить письмо
             </a>
@@ -102,7 +102,7 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
             {/* Close button */}
             <button
               onClick={onClose}
-              className="w-full mt-3 text-gray-600 hover:text-gray-800 py-2"
+              className="w-full mt-2 text-gray-600 hover:text-gray-800 py-1 text-xs"
             >
               Закрыть
             </button>
