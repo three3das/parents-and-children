@@ -649,4 +649,4 @@ export const LANGUAGE_FLAGS: Record<Language, string> = {
   sa: 'SA',
 };
 
-export const DEFAULT_LANGUAGE: Language = 'ru';
+export const DEFAULT_LANGUAGE: Language = 'sa';

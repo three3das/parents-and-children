@@ -67,10 +67,12 @@ export default function Game() {
 
   // Fetch all words (with all=true to get ALL words from the table)
   // Pass language to get translated words when not Russian
+  // For Sanskrit, use Russian as fallback since we don't have Sanskrit words yet
   const { data: words = [], isLoading: wordsLoading } = useQuery<WordWithTranslation[]>({
     queryKey: ["/api/words", sessionId, "all", language],
     queryFn: () => {
-      const langParam = language !== 'ru' ? `&lang=${language}` : '';
+      const effectiveLang = language === 'sa' ? 'ru' : language;
+      const langParam = effectiveLang !== 'ru' ? `&lang=${effectiveLang}` : '';
       return fetch(`/api/words?sessionId=${sessionId}&all=true${langParam}`).then(res => res.json());
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
