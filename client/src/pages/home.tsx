@@ -133,11 +133,10 @@ export default function HomePage() {
                       bottom: 0,
                       display: "flex",
                       alignItems: "flex-end",
-                      justifyContent: "flex-end",
+                      justifyContent: "center",
                       background: "rgba(0,0,0,0.38)",
                       borderRadius: "inherit",
                       zIndex: 2,
-                      paddingRight: "3mm",
                       paddingBottom: "3mm",
                     }}
                   >
