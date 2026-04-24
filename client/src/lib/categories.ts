@@ -45,7 +45,7 @@ const sub = (emojis: string[], labels: string[]): SubIcon[] =>
 export const CATEGORIES: Category[] = [
   {
     id: "reading",
-    path: "/reading",
+    path: "/game",
     emoji: "📖",
     label: "Чтение",
     text: { ru: "Язык", en: "Language", uk: "Мова", sa: "भाषा (Bhāṣā)" },
