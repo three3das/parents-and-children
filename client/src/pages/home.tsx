@@ -153,10 +153,10 @@ export default function HomePage() {
                         {/* Zamok */}
                         <g transform="translate(10, 20)">
                           {/* Osnovanie zamka */}
-                          <rect x="5" y="25" width="50" height="35" fill="url(#goldGradient2)" stroke="#B8860B" strokeWidth="2" />
+                          <rect x="5" y="25" width="50" height="35" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
                           {/* Bashni */}
-                          <rect x="0" y="15" width="10" height="45" fill="url(#goldGradient2)" stroke="#B8860B" strokeWidth="2" />
-                          <rect x="50" y="15" width="10" height="45" fill="url(#goldGradient2)" stroke="#B8860B" strokeWidth="2" />
+                          <rect x="0" y="15" width="10" height="45" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
+                          <rect x="50" y="15" width="10" height="45" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
                           {/* Vorota */}
                           <rect x="20" y="35" width="20" height="25" fill="#8B4513" stroke="#654321" strokeWidth="1" />
                           {/* Okna */}
@@ -180,10 +180,16 @@ export default function HomePage() {
 
                         {/* Gradient */}
                         <defs>
+                          {/* Золотой градиент для ключа */}
                           <linearGradient id="goldGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style={{ stopColor: "#FFD700", stopOpacity: 1 }} />
                             <stop offset="50%" style={{ stopColor: "#FFA500", stopOpacity: 1 }} />
                             <stop offset="100%" style={{ stopColor: "#FFD700", stopOpacity: 1 }} />
+                          </linearGradient>
+                          {/* Градиент замка - цвет кнопки */}
+                          <linearGradient id={`lockGradient${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style={{ stopColor: cat.gradient.match(/#[0-9A-Fa-f]{6}/g)?.[0] || "#FF5252", stopOpacity: 1 }} />
+                            <stop offset="100%" style={{ stopColor: cat.gradient.match(/#[0-9A-Fa-f]{6}/g)?.[1] || "#E00000", stopOpacity: 1 }} />
                           </linearGradient>
                         </defs>
                       </svg>
