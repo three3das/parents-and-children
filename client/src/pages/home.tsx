@@ -132,11 +132,12 @@ export default function HomePage() {
                       right: 0,
                       bottom: 0,
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      alignItems: "flex-end",
+                      justifyContent: "flex-end",
                       background: "rgba(0,0,0,0.38)",
                       borderRadius: "inherit",
                       zIndex: 2,
+                      padding: "1mm",
                     }}
                   >
                     <div
