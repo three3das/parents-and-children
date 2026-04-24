@@ -48,7 +48,7 @@ export const CATEGORIES: Category[] = [
     path: "/game",
     emoji: "📖",
     label: "Чтение",
-    text: { ru: "Языки", en: "Languages", uk: "Мови", sa: "भाषाः (Bhāṣāḥ)" },
+    text: { ru: "Язык", en: "Language", uk: "Мова", sa: "भाषा (Bhāṣā)" },
     image: "/images/book.png",
     gradient: "linear-gradient(140deg, #FF5252, #E00000)",
     shadow: "rgba(220,0,0,0.40)",
