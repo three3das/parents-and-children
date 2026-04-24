@@ -98,15 +98,16 @@ export default function ReadingPage() {
             >
               {icon.images ? (
                 <img
-                  src={icon.images[language] || icon.images['ru']}
+                  src={icon.images[language as keyof typeof icon.images] || icon.images['ru'] || icon.images['en']}
                   alt={icon.label}
                   style={{
                     position: "absolute",
                     top: 0, left: 0,
                     width: "100%", height: "100%",
-                    objectFit: "cover",
+                    objectFit: "contain",
                     borderRadius: "inherit",
                     pointerEvents: "none",
+                    padding: "10%",
                   }}
                 />
               ) : (
