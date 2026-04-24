@@ -137,7 +137,8 @@ export default function HomePage() {
                       background: "rgba(0,0,0,0.38)",
                       borderRadius: "inherit",
                       zIndex: 2,
-                      padding: "1mm",
+                      paddingRight: "3mm",
+                      paddingBottom: "3mm",
                     }}
                   >
                     <div
