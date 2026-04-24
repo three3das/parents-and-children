@@ -153,16 +153,32 @@ export default function HomePage() {
                         {/* Zamok */}
                         <g transform="translate(10, 20)">
                           {/* Osnovanie zamka */}
-                          <rect x="5" y="25" width="50" height="35" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
-                          {/* Bashni */}
-                          <rect x="0" y="15" width="10" height="45" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
-                          <rect x="50" y="15" width="10" height="45" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
+                          <rect x="5" y="30" width="50" height="30" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" rx="2" />
+
+                          {/* Levaya bashnya */}
+                          <rect x="0" y="20" width="10" height="40" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
+                          {/* Levyy kupol */}
+                          <ellipse cx="5" cy="20" rx="6" ry="8" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
+                          <circle cx="5" cy="15" r="2" fill="#FFD700" />
+
+                          {/* Pravaya bashnya */}
+                          <rect x="50" y="20" width="10" height="40" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
+                          {/* Pravyy kupol */}
+                          <ellipse cx="55" cy="20" rx="6" ry="8" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
+                          <circle cx="55" cy="15" r="2" fill="#FFD700" />
+
+                          {/* Tsentralnaya bashnya */}
+                          <rect x="22" y="25" width="16" height="35" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
+                          {/* Tsentralnyy kupol */}
+                          <ellipse cx="30" cy="25" rx="9" ry="10" fill={`url(#lockGradient${index})`} stroke="#B8860B" strokeWidth="2" />
+                          <circle cx="30" cy="18" r="3" fill="#FFD700" />
+
                           {/* Vorota */}
-                          <rect x="20" y="35" width="20" height="25" fill="#8B4513" stroke="#654321" strokeWidth="1" />
+                          <path d="M 24 40 Q 24 35 30 35 Q 36 35 36 40 L 36 60 L 24 60 Z" fill="#8B4513" stroke="#654321" strokeWidth="1" />
+
                           {/* Okna */}
-                          <circle cx="12" cy="25" r="3" fill="#4A4A4A" />
-                          <circle cx="48" cy="25" r="3" fill="#4A4A4A" />
-                          <circle cx="30" cy="30" r="2" fill="#4A4A4A" />
+                          <circle cx="8" cy="35" r="2" fill="#4A4A4A" />
+                          <circle cx="52" cy="35" r="2" fill="#4A4A4A" />
                         </g>
 
                         {/* Klyuch */}
