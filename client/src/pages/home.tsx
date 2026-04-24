@@ -188,10 +188,11 @@ export default function HomePage() {
                           <circle cx="0" cy="0" r="5" fill="url(#goldGradient2)" />
                           {/* Sterzhen' */}
                           <rect x="-2" y="8" width="4" height="25" fill="url(#goldGradient2)" />
-                          {/* Zubtsy */}
+                          {/* Zubtsy - simmetrichnye */}
                           <rect x="-6" y="28" width="4" height="6" fill="url(#goldGradient2)" />
-                          <rect x="2" y="30" width="4" height="4" fill="url(#goldGradient2)" />
+                          <rect x="2" y="28" width="4" height="6" fill="url(#goldGradient2)" />
                           <rect x="-6" y="35" width="4" height="4" fill="url(#goldGradient2)" />
+                          <rect x="2" y="35" width="4" height="4" fill="url(#goldGradient2)" />
                         </g>
 
                         {/* Gradient */}
