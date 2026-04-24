@@ -49,7 +49,7 @@ export const CATEGORIES: Category[] = [
     emoji: "📖",
     label: "Чтение",
     text: { ru: "Язык", en: "Language", uk: "Мова", sa: "भाषा (Bhāṣā)" },
-    image: "/images/book.png",
+    image: "/images/om_symbol.png",
     gradient: "linear-gradient(140deg, #FF5252, #E00000)",
     shadow: "rgba(220,0,0,0.40)",
     bgGradient: "linear-gradient(160deg, #FF6B6B 0%, #FF2222 55%, #C00000 100%)",
