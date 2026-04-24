@@ -3,12 +3,13 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage, LANGUAGE_FLAGS, type Language } from "@/lib/i18n";
 
-const LANGUAGES: Language[] = ['ru', 'en', 'uk'];
+const LANGUAGES: Language[] = ['ru', 'en', 'uk', 'sa'];
 
 const LANGUAGE_NAMES: Record<Language, string> = {
   ru: 'Русский',
   en: 'English',
   uk: 'Українська',
+  sa: 'संस्कृतम् (Saṃskṛtam)',
 };
 
 export function LanguageSwitcher() {

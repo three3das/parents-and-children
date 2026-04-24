@@ -15,7 +15,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 function getStoredLanguage(): Language {
   if (typeof window !== 'undefined') {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'en' || stored === 'ru' || stored === 'uk') {
+    if (stored === 'en' || stored === 'ru' || stored === 'uk' || stored === 'sa') {
       return stored;
     }
   }

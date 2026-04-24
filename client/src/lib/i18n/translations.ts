@@ -480,12 +480,173 @@ export const translations: Record<Language, Translations> = {
       getSubscription: 'Оформити підписку',
     },
   },
+
+  sa: {
+    // Header
+    settings: 'सेटिंग्स (Seṭiṅgs)',
+    goalReached: 'लक्ष्य प्राप्त! (Lakṣya prāpta!)',
+    almostDone: 'लगभग पूर्ण! (Lagabhaga pūrṇa!)',
+
+    // Loading states
+    loadingWords: 'शब्दाः लोड्यन्ते... (Śabdāḥ loḍyante...)',
+    preparingTask: 'कार्यं तैयार्यते... (Kāryaṃ taiyāryate...)',
+    preparingLetters: 'अक्षराणि तैयार्यन्ते... (Akṣarāṇi taiyāryante...)',
+    creatingTask: 'कार्यं सृज्यते... (Kāryaṃ sṛjyate...)',
+    loadingSyllables: 'अक्षराणि लोड्यन्ते... (Akṣarāṇi loḍyante...)',
+    loadingImages: 'चित्राणि लोड्यन्ते... (Citrāṇi loḍyante...)',
+    loadingOptions: 'विकल्पाः लोड्यन्ते... (Vikalpāḥ loḍyante...)',
+    loading: 'लोडिंग... (Loḍiṅg...)',
+
+    // Game completion
+    congratulations: 'अभिनन्दनम्! (Abhinandanam!)',
+    completedAllWords: 'त्वं सर्वाणि शब्दानि पूर्णानि कृतवान्! (Tvaṃ sarvāṇi śabdāni pūrṇāni kṛtavān!)',
+    correctAnswersToday: 'अद्य सम्यक् उत्तराणि: (Adya samyak uttarāṇi:)',
+    playAgain: 'पुनः क्रीड! (Punaḥ krīḍa!)',
+
+    // Settings
+    settingsTitle: 'सेटिंग्स (Seṭiṅgs)',
+    settingsDescription: 'प्रगतिं पुनः स्थापयितुं अत्र क्लिक् कुरु (Pragatiṃ punaḥ sthāpayituṃ atra klik kuru)',
+    resetProgress: 'प्रगतिं पुनः स्थापय (Pragatiṃ punaḥ sthāpaya)',
+
+    // Game instructions
+    howToPlay: 'कथं क्रीडितव्यम् (Kathaṃ krīḍitavyam)',
+    gotIt: 'अवगतम्! (Avagatam!)',
+    instructions: {
+      pictureMatch: 'शब्दं पश्य चित्रं च सम्यक् अन्विष्य। शब्देन सह योज्यमानं चित्रं स्पृश। (Śabdaṃ paśya citraṃ ca samyak anviṣya. Śabdena saha yojyamānaṃ citraṃ spṛśa.)',
+      spellWord: 'चित्रं पश्य शब्दं च रच। अक्षराणि आकर्षय वा स्पृश वा। (Citraṃ paśya śabdaṃ ca raca. Akṣarāṇi ākarṣaya vā spṛśa vā.)',
+      syllables: 'चित्रं पश्य शब्दस्य सम्यक् अन्तं च चिनु। (Citraṃ paśya śabdasya samyak antaṃ ca cinu.)',
+      sentences: 'वाक्यं पठ वर्णनेन सह योज्यमानं चित्रं च अन्विष्य। (Vākyaṃ paṭha varṇanena saha yojyamānaṃ citraṃ ca anviṣya.)',
+      audioPicture: 'शब्दं शृणु सम्यक् चित्रं च अन्विष्य। ध्वनि-भाषां ऊर्ध्वे परिवर्तयितुं शक्यते। (Śabdaṃ śṛṇu samyak citraṃ ca anviṣya. Dhvani-bhāṣāṃ ūrdhve parivartayituṃ śakyate.)',
+      audioSentence: 'वाक्यं शृणु वर्णनेन सह योज्यमानं चित्रं च अन्विष्य। (Vākyaṃ śṛṇu varṇanena saha yojyamānaṃ citraṃ ca anviṣya.)',
+      default: 'पर्दायाः निर्देशान् अनुसर। (Pardāyāḥ nirdeśān anusara.)',
+    },
+
+    // Game type names
+    gameTypes: {
+      findPicture: 'चित्रं अन्विष्य (Citraṃ anviṣya)',
+      spellWord: 'शब्दं रच (Śabdaṃ raca)',
+    },
+
+    // Results screen
+    results: 'परिणामाः (Pariṇāmāḥ)',
+    correctAnswers: 'सम्यक् उत्तराणि: (Samyak uttarāṇi:)',
+    totalQuestions: 'कुल प्रश्नाः: (Kula praśnāḥ:)',
+    skipped: 'त्यक्तम्: (Tyaktam:)',
+    percentage: 'प्रतिशतम्: (Pratiśatam:)',
+    question: 'प्रश्नः (Praśnaḥ)',
+    of: 'तः (Taḥ)',
+
+    // Syllables game
+    chooseCorrectEnding: 'शब्दस्य सम्यक् अन्तं चिनु: (Śabdasya samyak antaṃ cinu:)',
+    correctAnswer: 'सम्यक् उत्तरम्: (Samyak uttaram:)',
+
+    // Sentence game
+    event: 'घटना: (Ghaṭanā:)',
+    syllablesLabel: 'अक्षराणि: (Akṣarāṇi:)',
+    syllablesNotSpecified: 'अक्षराणि न निर्दिष्टानि (Akṣarāṇi na nirdiṣṭāni)',
+
+    // Buttons
+    next: 'अग्रे (Agre)',
+    skip: 'त्यज (Tyaja)',
+
+    // Celebrations
+    celebrations: [
+      'उत्तमम्! (Uttamam!)',
+      'साधु! (Sādhu!)',
+      'सुन्दरम्! (Sundaram!)',
+      'सम्यक्! (Samyak!)',
+      'बुद्धिमान्! (Buddhimān!)',
+      'शोभनम्! (Śobhanam!)',
+      'प्रशस्तम्! (Praśastam!)',
+      'आश्चर्यम्! (Āścaryam!)',
+      'महत्! (Mahat!)',
+      'धन्यवादः! (Dhanyavādaḥ!)'
+    ],
+
+    // Progress
+    progress: {
+      title: 'प्रगतिः (Pragatiḥ)',
+      fromDate: 'दिनाङ्कतः (Dināṅkataḥ)',
+      toDate: 'दिनाङ्कपर्यन्तम् (Dināṅkaparyantam)',
+      attempted: 'प्रयत्नाः (Prayatnāḥ)',
+      correct: 'सम्यक् (Samyak)',
+      incorrect: 'असम्यक् (Asamyak)',
+      skipped: 'त्यक्तम् (Tyaktam)',
+      summary: 'सारांशः (Sārāṃśaḥ)',
+      noData: 'चयनिते कालखण्डे दत्तांशः नास्ति (Cayanite kālakhaṇḍe dattāṃśaḥ nāsti)',
+      gameNames: {
+        pictureMatch: 'शब्द-पठनम् (Śabda-paṭhanam)',
+        spellWord: 'शब्द-रचना (Śabda-racanā)',
+        syllables: 'अक्षर-अन्वेषणम् (Akṣara-anveṣaṇam)',
+        sentenceGame: 'वाक्य-पठनम् (Vākya-paṭhanam)',
+        audioPicture: 'शब्द-श्रवणम् (Śabda-śravaṇam)',
+        audioSentence: 'वाक्य-श्रवणम् (Vākya-śravaṇam)',
+      },
+    },
+
+    // Home page
+    home: {
+      title: 'बालानां ज्ञानम् (Bālānāṃ jñānam)',
+      subtitle: 'शिक्षणं रोचकं च आनन्दप्रदं च! (Śikṣaṇaṃ rocakaṃ ca ānandapradaṃ ca!)',
+    },
+
+    // Game type names for GameTitle
+    pictureMatch: 'शब्द-पठनम् (Śabda-paṭhanam)',
+    spellWord: 'शब्द-रचना (Śabda-racanā)',
+    syllables: 'अक्षर-अन्वेषणम् (Akṣara-anveṣaṇam)',
+    sentences: 'वाक्य-पठनम् (Vākya-paṭhanam)',
+    audioPicture: 'शब्द-श्रवणम् (Śabda-śravaṇam)',
+    audioSentence: 'वाक्य-श्रवणम् (Vākya-śravaṇam)',
+    gameInstructions: 'कार्यं पूरय (Kāryaṃ pūraya)',
+
+    // Authentication
+    auth: {
+      login: 'प्रवेशः (Praveśaḥ)',
+      createAccount: 'पञ्जीकरणम् (Pañjīkaraṇam)',
+      logout: 'निर्गमः (Nirgamaḥ)',
+      email: 'ईमेल (Īmel)',
+      password: 'गुप्तशब्दः (Guptaśabdaḥ)',
+      firstName: 'प्रथम-नाम (Prathama-nāma)',
+      lastName: 'कुल-नाम (Kula-nāma)',
+      forgotPassword: 'गुप्तशब्दं विस्मृतवान्? (Guptaśabdaṃ vismṛtavān?)',
+      orContinueWith: 'अथवा एतेन सह चल (Athavā etena saha cala)',
+      continueWithGoogle: 'गूगलेन सह चल (Gūgalena saha cala)',
+      alreadyHaveAccount: 'खाता अस्ति किम्? (Khātā asti kim?)',
+      dontHaveAccount: 'खाता नास्ति किम्? (Khātā nāsti kim?)',
+      signInHere: 'अत्र प्रविश (Atra praviśa)',
+      createAccountHere: 'अत्र सृज (Atra sṛja)',
+      loginRequired: 'क्रीडितुं प्रविश (Krīḍituṃ praviśa)',
+      passwordRequirements: {
+        title: 'गुप्तशब्दे भवेत्: (Guptaśabde bhavet:)',
+        length: '८ वा अधिकानि चिह्नानि (8 vā adhikāni cihnāni)',
+        number: 'न्यूनतमम् १ अङ्कः (Nyūnatamam 1 aṅkaḥ)',
+        uppercase: 'न्यूनतमम् १ बृहत् अक्षरम् (Nyūnatamam 1 bṛhat akṣaram)',
+        lowercase: 'न्यूनतमम् १ लघु अक्षरम् (Nyūnatamam 1 laghu akṣaram)',
+      },
+      newsletter: 'ईमेलद्वारा समाचारान् अद्यतनानि च प्राप्तुम् इच्छामि (Īmeldvārā samācārān adyatanāni ca prāptum icchāmi)',
+      termsText: 'खातां सृजन् त्वं अङ्गीकरोषि (Khātāṃ sṛjan tvaṃ aṅgīkaroṣi)',
+      termsLink: 'उपयोग-शर्ताः (Upayoga-śartāḥ)',
+      privacyLink: 'गोपनीयता-नीतिः (Gopanīyatā-nītiḥ)',
+    },
+
+    // Modal messages
+    modal: {
+      accessDenied: 'स्वागतम्! (Svāgatam!)',
+      accessDeniedMessage: 'एतस्य विभागस्य उपयोगाय पञ्जीकरणं कुरु सदस्यतां च प्राप्नुहि सर्वेषां सुविधानां पूर्ण-प्रवेशाय। (Etasya vibhāgasya upayogāya pañjīkaraṇaṃ kuru sadasyatāṃ ca prāpnuhi sarveṣāṃ suvidhānāṃ pūrṇa-praveśāya.)',
+      register: 'पञ्जीकरणम् (Pañjīkaraṇam)',
+      signIn: 'प्रवेशः (Praveśaḥ)',
+      subscriptionRequired: 'उत्तमः चयनः! (Uttamaḥ cayanaḥ!)',
+      subscriptionMessage: 'सर्वाणि कार्याणि सुविधाश्च उद्घाटयितुं केवलं सदस्यतां प्राप्नुहि! (Sarvāṇi kāryāṇi suvidhāśca udghaṭayituṃ kevalaṃ sadasyatāṃ prāpnuhi!)',
+      getSubscription: 'सदस्यतां प्राप्नुहि (Sadasyatāṃ prāpnuhi)',
+    },
+  },
 };
 
 export const LANGUAGE_FLAGS: Record<Language, string> = {
   en: 'EN',
   ru: 'RU',
   uk: 'UA',
+  sa: 'SA',
 };
 
 export const DEFAULT_LANGUAGE: Language = 'ru';
