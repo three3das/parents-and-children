@@ -98,7 +98,7 @@ export default function ReadingPage() {
             >
               {icon.images ? (
                 <img
-                  src={icon.images[language]}
+                  src={icon.images[language] || icon.images['ru']}
                   alt={icon.label}
                   style={{
                     position: "absolute",
