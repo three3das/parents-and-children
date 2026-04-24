@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage, LANGUAGE_FLAGS, type Language } from "@/lib/i18n";
 
-const LANGUAGES: Language[] = ['ru', 'en', 'uk', 'sa'];
+const LANGUAGES: Language[] = ['sa', 'uk', 'en', 'ru'];
 
 const LANGUAGE_NAMES: Record<Language, string> = {
   ru: 'Русский',
