@@ -50,7 +50,7 @@ export function AudioSentenceGame({
       return (sentence as any).event_uk;
     }
 
-    return sentence.event;
+    return (sentence as any).event_ru || sentence.event || '';
   }, [sentence, language]);
 
   // Play audio using file or speech synthesis as fallback
