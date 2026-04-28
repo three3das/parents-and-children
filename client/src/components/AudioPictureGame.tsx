@@ -38,16 +38,7 @@ export function AudioPictureGame({
     }
   }, [getAudioPath, playCustomAudio]);
 
-  // Auto-play audio when word changes
-  useEffect(() => {
-    if (word?.id && !disabled) {
-      // Small delay to ensure component is mounted
-      const timer = setTimeout(() => {
-        playWordAudio();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [word?.id, disabled, playWordAudio]);
+  // Audio will only play when speaker button is clicked
 
   return (
     <div>

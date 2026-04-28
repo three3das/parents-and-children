@@ -85,15 +85,7 @@ export function AudioSentenceGame({
     }
   }, [getAudioPath, getSentenceText, playCustomAudio, language]);
 
-  // Auto-play audio when sentence changes
-  useEffect(() => {
-    if (sentence?.id && !disabled) {
-      const timer = setTimeout(() => {
-        playSentenceAudio();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [sentence?.id, disabled, playSentenceAudio]);
+  // Audio will only play when headphones button is clicked
 
   // Shuffle options
   const shuffledOptions = useMemo(() => {

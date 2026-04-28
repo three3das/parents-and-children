@@ -509,24 +509,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const distractors = await withRetry(() => storage.getRandomMaterialWorldItems(id, 3));
-      if (distractors.length < 3) {
-        const neededCount = 3 - distractors.length;
-        const allWords = await storage.getAllWords();
-        const shuffled = allWords.sort(() => Math.random() - 0.5).slice(0, neededCount);
-        const wordDistractors = shuffled.map(word => ({
-          id: `word-${word.id}`,
-          event: word.word,
-          syllables: null,
-          image: word.image,
-          audio: null,
-          event_en: null,
-          event_uk: null,
-          audio_ru: null,
-          audio_en: null,
-          audio_uk: null
-        }));
-        distractors.push(...wordDistractors);
-      }
       res.json(distractors);
     } catch (error) {
       console.error("Error fetching material world distractors:", error);
