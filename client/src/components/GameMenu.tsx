@@ -3,6 +3,7 @@ import { type GameType } from "@shared/schema";
 import { HelpButton } from "./HelpButton";
 
 const GAME_ICONS: Record<GameType, string> = {
+  'alphabet-placeholder': '🔤',
   'picture-match': '🖼️',
   'spell-word': '✏️',
   'sentence-game': '📝',
@@ -17,7 +18,7 @@ interface GameMenuProps {
 }
 
 export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
-  const gameTypes: GameType[] = ['picture-match', 'spell-word', 'syllables', 'sentence-game', 'audio-picture', 'audio-sentence'];
+  const gameTypes: GameType[] = ['alphabet-placeholder', 'picture-match', 'spell-word', 'syllables', 'sentence-game', 'audio-picture', 'audio-sentence'];
 
   return (
     <div className="flex gap-1 sm:gap-2 mb-4 justify-between items-center">
