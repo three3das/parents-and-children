@@ -58,15 +58,15 @@ export function LanguageSwitcher() {
       <motion.button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 bg-white shadow-md hover:shadow-lg transition-all border border-gray-200"
-        style={{ borderRadius: "6px", height: "40px" }}
+        className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 bg-white shadow-md hover:shadow-lg transition-all border border-gray-200"
+        style={{ borderRadius: "6px", height: "32px" }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        <span className="text-sm font-medium">{LANGUAGE_FLAGS[language]}</span>
-        <span className="text-sm font-medium text-gray-700">{LANGUAGE_NAMES[language]}</span>
+        <span className="text-xs md:text-sm font-medium">{LANGUAGE_FLAGS[language]}</span>
+        <span className="text-xs md:text-sm font-medium text-gray-700 hidden sm:inline">{LANGUAGE_NAMES[language]}</span>
         <motion.svg
-          className="w-4 h-4 text-gray-500"
+          className="w-3 h-3 md:w-4 md:h-4 text-gray-500"
           animate={{ rotate: isOpen ? 180 : 0 }}
           fill="none"
           stroke="currentColor"

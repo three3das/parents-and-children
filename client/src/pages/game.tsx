@@ -15,6 +15,7 @@ import { SyllablesGame } from "@/components/SyllablesGame";
 import { SentenceGame } from "@/components/SentenceGame";
 import { AudioPictureGame } from "@/components/AudioPictureGame";
 import { AudioSentenceGame } from "@/components/AudioSentenceGame";
+import { AlphabetTutor } from "@/components/AlphabetTutor";
 import { LoginModal } from "@/components/LoginModal";
 import { CreateAccountModal } from "@/components/CreateAccountModal";
 import { ProgressModal } from "@/components/ProgressModal";
@@ -61,6 +62,11 @@ export default function Game() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, language } = useLanguage();
+
+  // Switch to alphabet when language changes
+  useEffect(() => {
+    setGameType('alphabet-placeholder');
+  }, [language]);
 
   // Extended Word type with optional translation
   type WordWithTranslation = Word & { translatedWord?: string };
@@ -549,11 +555,15 @@ export default function Game() {
         onProgressClick={() => setShowProgressModal(true)}
       />
 
-      <main className="flex-1 overflow-y-auto max-w-6xl mx-auto px-4 pb-8 w-full">
+      <main className="flex-1 overflow-y-auto max-w-6xl mx-auto px-4 pt-2 pb-8 w-full">
         <GameMenu
           currentGameType={gameType}
           onGameTypeChange={handleGameTypeChange}
         />
+
+        {gameType === 'alphabet-placeholder' && (
+          <AlphabetTutor />
+        )}
 
         {gameType === 'picture-match' && (
           <>

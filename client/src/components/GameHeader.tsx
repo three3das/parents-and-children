@@ -52,40 +52,55 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
       {...ANIMATION_VARIANTS.slideDown}
     >
       <div className="max-w-4xl mx-auto overflow-visible">
-        <div className="flex items-center justify-between overflow-visible">
-          {/* Logo with KidRead */}
+        <div className="flex items-center justify-between overflow-visible gap-1">
+          {/* Back button for mobile + Logo with KidRead */}
           <motion.div
-            className="flex items-center"
+            className="flex items-center gap-1"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <span className="text-2xl mr-2">📚</span>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+            {/* Back button - visible only on mobile */}
+            <button
+              onClick={() => window.history.back()}
+              className="md:hidden flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex-shrink-0"
+            >
+              <svg
+                className="w-4 h-4 text-gray-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <span className="text-xl md:text-2xl flex-shrink-0">📚</span>
+            <h1 className="text-sm md:text-xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent whitespace-nowrap">
               KidRead
             </h1>
           </motion.div>
 
           {/* Visual Progress - Icons Only */}
           <motion.div
-            className="flex items-center gap-4"
+            className="flex items-center gap-1 md:gap-4 flex-shrink"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             {/* Daily Progress with Stars */}
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🌟</span>
-              <div className="flex items-center gap-1">
-                <span className={`text-lg font-bold ${achievementStatus.color}`}>
+            <div className="flex items-center gap-1">
+              <span className="text-sm md:text-lg flex-shrink-0">🌟</span>
+              <div className="flex items-center gap-0.5">
+                <span className={`text-sm md:text-lg font-bold ${achievementStatus.color}`}>
                   {correctAnswersToday}
                 </span>
-                <span className="text-sm text-muted-foreground">/</span>
-                <span className="text-sm text-muted-foreground">{targetAnswers}</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">{targetAnswers}</span>
               </div>
-              <div className="bg-muted/50 rounded-full h-2 w-16 overflow-hidden">
+              <div className="bg-muted/50 rounded-full h-1.5 md:h-2 w-8 md:w-16 overflow-hidden flex-shrink-0">
                 <motion.div
-                  className={`bg-gradient-to-r ${achievementStatus.bgColor} rounded-full h-2`}
+                  className={`bg-gradient-to-r ${achievementStatus.bgColor} rounded-full h-1.5 md:h-2`}
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercentage}%` }}
                   transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
@@ -93,7 +108,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
               </div>
               {isGoalReached && (
                 <motion.span
-                  className="text-xl"
+                  className="text-sm md:text-xl flex-shrink-0"
                   animate={{
                     scale: [1, 1.3, 1],
                     rotate: [0, 15, -15, 0]
@@ -111,7 +126,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
 
             {/* Session Progress with Game Icons */}
             {totalWords > 0 && (
-              <div className="flex items-center gap-2 border-l border-border/50 pl-4">
+              <div className="hidden sm:flex items-center gap-2 border-l border-border/50 pl-4">
                 <span className="text-lg">🎮</span>
                 <span className="text-sm font-bold">
                   {Math.min(currentWordIndex + 1, totalWords)}
@@ -129,7 +144,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            className="relative overflow-visible"
+            className="relative overflow-visible flex-shrink-0"
           >
             <LanguageSwitcher />
           </motion.div>
@@ -139,6 +154,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.28 }}
+            className="flex-shrink-0"
           >
             <AuthDropdown
               onLoginClick={onLoginClick}

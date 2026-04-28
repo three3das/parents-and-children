@@ -12,6 +12,16 @@ const GAME_ICONS: Record<GameType, string> = {
   'audio-sentence': '🎧'
 };
 
+const GAME_COLORS: Record<GameType, string> = {
+  'alphabet-placeholder': 'bg-red-400 hover:bg-red-500',
+  'picture-match': 'bg-orange-400 hover:bg-orange-500',
+  'spell-word': 'bg-yellow-400 hover:bg-yellow-500',
+  'syllables': 'bg-green-400 hover:bg-green-500',
+  'sentence-game': 'bg-blue-400 hover:bg-blue-500',
+  'audio-picture': 'bg-indigo-400 hover:bg-indigo-500',
+  'audio-sentence': 'bg-purple-400 hover:bg-purple-500'
+};
+
 interface GameMenuProps {
   currentGameType: GameType;
   onGameTypeChange: (gameType: GameType) => void;
@@ -29,10 +39,11 @@ export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onGameTypeChange(gameType)}
-            className={`w-10 h-10 sm:w-16 sm:h-16 rounded-xl text-xl sm:text-3xl transition-colors flex items-center justify-center ${currentGameType === gameType
-              ? 'bg-blue-500 text-white shadow-md'
-              : 'bg-gray-100 hover:bg-gray-200'
-              }`}
+            className={`w-10 h-10 sm:w-16 sm:h-16 rounded-xl text-xl sm:text-3xl transition-colors flex items-center justify-center shadow-md ${
+              currentGameType === gameType
+                ? 'ring-4 ring-red-500'
+                : ''
+            } ${GAME_COLORS[gameType]}`}
           >
             {GAME_ICONS[gameType]}
           </motion.button>
