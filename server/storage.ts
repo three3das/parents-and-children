@@ -564,7 +564,7 @@ export class DatabaseStorage implements IStorage {
     try {
       // Return all material world items with audio paths for all languages
       const result = await db.execute(sql`
-        SELECT id, event, event_en, event_uk, syllables, image, audio_ru, audio_en, audio_uk
+        SELECT id, event_ru as event, event_en, event_uk, syllables_ru as syllables, image, audio_ru, audio_en, audio_uk
         FROM public.material_world
         WHERE image IS NOT NULL AND image != ''
         ORDER BY RANDOM()
@@ -581,7 +581,7 @@ export class DatabaseStorage implements IStorage {
   async getMaterialWorldItem(id: string): Promise<MaterialWorld | undefined> {
     try {
       const result = await db.execute(sql`
-        SELECT id, event, event_en, event_uk, syllables, image, audio_ru, audio_en, audio_uk
+        SELECT id, event_ru as event, event_en, event_uk, syllables_ru as syllables, image, audio_ru, audio_en, audio_uk
         FROM public.material_world
         WHERE id = ${id}
         LIMIT 1
@@ -598,7 +598,7 @@ export class DatabaseStorage implements IStorage {
     try {
       // Return random material world items with audio paths
       const result = await db.execute(sql`
-        SELECT id, event, event_en, event_uk, syllables, image, audio_ru, audio_en, audio_uk
+        SELECT id, event_ru as event, event_en, event_uk, syllables_ru as syllables, image, audio_ru, audio_en, audio_uk
         FROM public.material_world
         WHERE id != ${excludeId}
           AND image IS NOT NULL AND image != ''
