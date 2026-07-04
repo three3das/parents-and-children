@@ -1,7 +1,20 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/lib/i18n";
-import { SANSKRIT_VOWELS, SANSKRIT_CONSONANTS, SANSKRIT_SPECIAL, ALPHABET_CATEGORIES, type SanskritLetter } from "@/lib/sanskritAlphabet";
+import {
+  SANSKRIT_VOWELS,
+  GUTTURALS,
+  PALATALS,
+  RETROFLEXES,
+  DENTALS,
+  LABIALS,
+  SEMIVOWELS,
+  SIBILANTS,
+  ASPIRATE,
+  SANSKRIT_SPECIAL,
+  ALPHABET_CATEGORIES,
+  type SanskritLetter
+} from "@/lib/sanskritAlphabet";
 import {
   RUSSIAN_VOWELS,
   RUSSIAN_CONSONANTS,
@@ -23,7 +36,7 @@ export function AlphabetTutor() {
   const { language } = useLanguage();
   const [displayMode, setDisplayMode] = useState<DisplayMode>('detailed');
   const [showTooltip, setShowTooltip] = useState(false);
-  const [autoAudio, setAutoAudio] = useState(true);
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const [selectedLetter, setSelectedLetter] = useState<AlphabetLetter | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [hoveredLetter, setHoveredLetter] = useState<string | null>(null);
@@ -34,14 +47,24 @@ export function AlphabetTutor() {
       case 'sa':
         return {
           vowels: SANSKRIT_VOWELS,
-          consonants: SANSKRIT_CONSONANTS,
+          consonantGroups: [
+            { title: 'Gutturals (Velar)', letters: GUTTURALS },
+            { title: 'Palatals', letters: PALATALS },
+            { title: 'Retroflexes (Cerebral)', letters: RETROFLEXES },
+            { title: 'Dentals', letters: DENTALS },
+            { title: 'Labials', letters: LABIALS },
+            { title: 'Semivowels', letters: SEMIVOWELS },
+            { title: 'Sibilants', letters: SIBILANTS },
+            { title: 'Aspirate', letters: ASPIRATE }
+          ],
           special: SANSKRIT_SPECIAL,
           categories: ALPHABET_CATEGORIES,
-          title: 'Sanskrit Alphabet (Devanagari)',
-          vowelsTitle: 'Vowels (Swaras)',
-          consonantsTitle: 'Consonants (Vyanjanas)',
-          specialTitle: 'Special Characters',
-          audioPath: '/audio/sanskrit/'
+          title: 'Sanskrit Alphabet (Devanagari) - 50 letters',
+          vowelsTitle: 'Vowels (Swaras) - 13 letters',
+          consonantsTitle: 'Consonants (Vyanjanas) - 33 letters',
+          specialTitle: 'Special Characters - 4 letters',
+          audioPath: '/audio/letters/sanscrit/',
+          useGroups: true
         };
       case 'ru':
         return {
@@ -53,7 +76,8 @@ export function AlphabetTutor() {
           vowelsTitle: 'Гласные',
           consonantsTitle: 'Согласные',
           specialTitle: 'Специальные знаки',
-          audioPath: '/audio/russian/'
+          audioPath: '/audio/letters/рос/',
+          useGroups: false
         };
       case 'uk':
         return {
@@ -65,7 +89,8 @@ export function AlphabetTutor() {
           vowelsTitle: 'Голосні',
           consonantsTitle: 'Приголосні',
           specialTitle: 'Спеціальні знаки',
-          audioPath: '/audio/ukrainian/'
+          audioPath: '/audio/letters/укр/',
+          useGroups: false
         };
       case 'en':
         return {
@@ -77,25 +102,40 @@ export function AlphabetTutor() {
           vowelsTitle: 'Vowels',
           consonantsTitle: 'Consonants',
           specialTitle: 'Special Characters',
-          audioPath: '/audio/english/'
+          audioPath: '/audio/letters/en/',
+          useGroups: false
         };
       default:
         return {
           vowels: SANSKRIT_VOWELS,
-          consonants: SANSKRIT_CONSONANTS,
+          consonantGroups: [
+            { title: 'Gutturals (Velar)', letters: GUTTURALS },
+            { title: 'Palatals', letters: PALATALS },
+            { title: 'Retroflexes (Cerebral)', letters: RETROFLEXES },
+            { title: 'Dentals', letters: DENTALS },
+            { title: 'Labials', letters: LABIALS },
+            { title: 'Semivowels', letters: SEMIVOWELS },
+            { title: 'Sibilants', letters: SIBILANTS },
+            { title: 'Aspirate', letters: ASPIRATE }
+          ],
           special: SANSKRIT_SPECIAL,
           categories: ALPHABET_CATEGORIES,
-          title: 'Sanskrit Alphabet (Devanagari)',
-          vowelsTitle: 'Vowels (Swaras)',
-          consonantsTitle: 'Consonants (Vyanjanas)',
-          specialTitle: 'Special Characters',
-          audioPath: '/audio/sanskrit/'
+          title: 'Sanskrit Alphabet (Devanagari) - 50 letters',
+          vowelsTitle: 'Vowels (Swaras) - 13 letters',
+          consonantsTitle: 'Consonants (Vyanjanas) - 33 letters',
+          specialTitle: 'Special Characters - 4 letters',
+          audioPath: '/audio/letters/sanscrit/',
+          useGroups: true
         };
     }
   };
 
   const alphabetData = getAlphabetData();
-  const allLetters = [...alphabetData.vowels, ...alphabetData.consonants, ...alphabetData.special];
+
+  // Get all letters for filtering
+  const allLetters = alphabetData.useGroups
+    ? [...alphabetData.vowels, ...alphabetData.consonantGroups!.flatMap(g => g.letters), ...alphabetData.special]
+    : [...alphabetData.vowels, ...alphabetData.consonants!, ...alphabetData.special];
 
   const isLetterHighlighted = (letter: AlphabetLetter) => {
     if (!activeCategory) return false;
@@ -106,7 +146,7 @@ export function AlphabetTutor() {
 
   const handleLetterClick = (letter: AlphabetLetter) => {
     setSelectedLetter(letter);
-    if (autoAudio && letter.audioFile) {
+    if (audioEnabled && letter.audioFile) {
       const audio = new Audio(`${alphabetData.audioPath}${letter.audioFile}`);
       audio.play().catch(() => {});
     }
@@ -119,9 +159,9 @@ export function AlphabetTutor() {
   const getLetterDisplay = (letter: AlphabetLetter) => {
     if ('devanagari' in letter) {
       return {
-        main: letter.transliteration,
+        main: letter.devanagari,
         hover: letter.devanagari,
-        detail: letter.devanagari
+        detail: letter.transliteration
       };
     } else {
       return {
@@ -132,245 +172,325 @@ export function AlphabetTutor() {
     }
   };
 
-  // Group categories for Sanskrit
-  const vowelCategories = language === 'sa'
-    ? alphabetData.categories.filter(c => 'group' in c && c.group === 'vowels')
-    : [];
-  const consonantCategories = language === 'sa'
-    ? alphabetData.categories.filter(c => 'group' in c && c.group === 'consonants')
-    : [];
-  const characteristicCategories = language === 'sa'
-    ? alphabetData.categories.filter(c => 'group' in c && c.group === 'characteristics')
-    : [];
+  // Group categories based on language
+  const getCategoriesByLanguage = () => {
+    if (language === 'sa') {
+      return {
+        vowelCategories: alphabetData.categories.filter(c => 'group' in c && c.group === 'vowels'),
+        consonantCategories: alphabetData.categories.filter(c => 'group' in c && c.group === 'consonants'),
+        characteristicCategories: alphabetData.categories.filter(c => 'group' in c && c.group === 'characteristics')
+      };
+    } else {
+      // For Russian, Ukrainian, and English - simple categories
+      return {
+        simpleCategories: alphabetData.categories
+      };
+    }
+  };
+
+  const categories = getCategoriesByLanguage();
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4 text-center">{alphabetData.title}</h2>
-
-      {/* Controls */}
-      <div className="mb-6 flex flex-wrap gap-4 items-center bg-white p-4 rounded-lg shadow">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Display:</span>
-          <button
-            onClick={() => setDisplayMode('basic')}
-            className={`px-3 py-1 rounded ${displayMode === 'basic' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-          >
-            Basic
-          </button>
-          <button
-            onClick={() => setDisplayMode('detailed')}
-            className={`px-3 py-1 rounded ${displayMode === 'detailed' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-          >
-            Detailed
-          </button>
+      <div className="flex gap-4">
+        {/* Left side - Function controls */}
+        <div className="w-40 space-y-2">
+          <div>
+            <h4 className="text-[10px] font-semibold text-gray-600 mb-1">
+              {language === 'ru' ? 'Функции' : language === 'uk' ? 'Функції' : language === 'en' ? 'Functions' : 'Функции'}
+            </h4>
+            <div className="space-y-0.5">
+              <button
+                onClick={() => setAudioEnabled(!audioEnabled)}
+                className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
+                  audioEnabled
+                    ? 'bg-green-400 text-gray-900 font-semibold'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                🔊 {language === 'ru' ? 'Озвучивание' : language === 'uk' ? 'Озвучування' : language === 'en' ? 'Audio' : 'Озвучивание'}
+              </button>
+            </div>
+          </div>
         </div>
 
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showTooltip}
-            onChange={(e) => setShowTooltip(e.target.checked)}
-            className="w-4 h-4"
-          />
-          <span className="text-sm">On hover: Tooltip</span>
-        </label>
-
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={autoAudio}
-            onChange={(e) => setAutoAudio(e.target.checked)}
-            className="w-4 h-4"
-          />
-          <span className="text-sm">Auto audio</span>
-        </label>
-      </div>
-
-      <div className="flex gap-6">
-        {/* Alphabet Table */}
+        {/* Center - Alphabet Table */}
         <div className="flex-1">
-          {/* Vowels */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3">{alphabetData.vowelsTitle}</h3>
-            <div className="grid grid-cols-5 sm:grid-cols-7 gap-2">
-              {alphabetData.vowels.map((letter) => (
-                <LetterCard
-                  key={getLetterDisplay(letter).main}
-                  letter={letter}
-                  display={getLetterDisplay(letter)}
-                  isHighlighted={isLetterHighlighted(letter)}
-                  isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
-                  displayMode={displayMode}
-                  showTooltip={showTooltip}
-                  isHovered={hoveredLetter === getLetterDisplay(letter).main}
-                  onClick={() => handleLetterClick(letter)}
-                  onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
-                  onMouseLeave={() => setHoveredLetter(null)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Consonants */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3">{alphabetData.consonantsTitle}</h3>
-            <div className="grid grid-cols-5 sm:grid-cols-7 gap-2">
-              {alphabetData.consonants.map((letter) => (
-                <LetterCard
-                  key={getLetterDisplay(letter).main}
-                  letter={letter}
-                  display={getLetterDisplay(letter)}
-                  isHighlighted={isLetterHighlighted(letter)}
-                  isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
-                  displayMode={displayMode}
-                  showTooltip={showTooltip}
-                  isHovered={hoveredLetter === getLetterDisplay(letter).main}
-                  onClick={() => handleLetterClick(letter)}
-                  onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
-                  onMouseLeave={() => setHoveredLetter(null)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Special Characters */}
-          {alphabetData.special.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3">{alphabetData.specialTitle}</h3>
-              <div className="grid grid-cols-5 sm:grid-cols-7 gap-2">
-                {alphabetData.special.map((letter) => (
-                  <LetterCard
-                    key={getLetterDisplay(letter).main}
-                    letter={letter}
-                    display={getLetterDisplay(letter)}
-                    isHighlighted={isLetterHighlighted(letter)}
-                    isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
-                    displayMode={displayMode}
-                    showTooltip={showTooltip}
-                    isHovered={hoveredLetter === getLetterDisplay(letter).main}
-                    onClick={() => handleLetterClick(letter)}
-                    onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
-                    onMouseLeave={() => setHoveredLetter(null)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Category Buttons */}
-          <div className="space-y-3">
+          <div className="bg-gray-200 p-3 rounded">
             {language === 'sa' ? (
-              <>
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 text-gray-600">Vowels:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {vowelCategories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => handleCategoryClick(category.id)}
-                        className={`px-3 py-1 rounded text-sm ${
-                          activeCategory === category.id
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 hover:bg-gray-300'
-                        }`}
-                      >
-                        {category.label}
-                      </button>
-                    ))}
-                  </div>
+              // Sanskrit alphabet in grid format matching the screenshot
+              <div className="space-y-0.5">
+                {/* Row 1: Vowels (13 letters) */}
+                <div className="flex gap-0.5 justify-start">
+                  {alphabetData.vowels.map((letter, index) => (
+                    <LetterCard
+                      key={getLetterDisplay(letter).main}
+                      letter={letter}
+                      display={getLetterDisplay(letter)}
+                      isHighlighted={isLetterHighlighted(letter)}
+                      isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
+                      displayMode={displayMode}
+                      showTooltip={showTooltip}
+                      isHovered={hoveredLetter === getLetterDisplay(letter).main}
+                      onClick={() => handleLetterClick(letter)}
+                      onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
+                      onMouseLeave={() => setHoveredLetter(null)}
+                      number={index + 1}
+                    />
+                  ))}
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 text-gray-600">Consonants:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {consonantCategories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => handleCategoryClick(category.id)}
-                        className={`px-3 py-1 rounded text-sm ${
-                          activeCategory === category.id
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 hover:bg-gray-300'
-                        }`}
-                      >
-                        {category.label}
-                      </button>
-                    ))}
+                {/* Rows 2-9: Consonants (8 rows of 5 letters each) */}
+                {alphabetData.consonantGroups!.map((group, groupIndex) => (
+                  <div key={groupIndex} className="flex gap-0.5 justify-start">
+                    {group.letters.map((letter, letterIndex) => {
+                      const consonantNumber = alphabetData.vowels.length +
+                        alphabetData.consonantGroups!.slice(0, groupIndex).reduce((sum, g) => sum + g.letters.length, 0) +
+                        letterIndex + 1;
+                      return (
+                        <LetterCard
+                          key={getLetterDisplay(letter).main}
+                          letter={letter}
+                          display={getLetterDisplay(letter)}
+                          isHighlighted={isLetterHighlighted(letter)}
+                          isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
+                          displayMode={displayMode}
+                          showTooltip={showTooltip}
+                          isHovered={hoveredLetter === getLetterDisplay(letter).main}
+                          onClick={() => handleLetterClick(letter)}
+                          onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
+                          onMouseLeave={() => setHoveredLetter(null)}
+                          number={consonantNumber}
+                        />
+                      );
+                    })}
                   </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 text-gray-600">Characteristics:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {characteristicCategories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => handleCategoryClick(category.id)}
-                        className={`px-3 py-1 rounded text-sm ${
-                          activeCategory === category.id
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 hover:bg-gray-300'
-                        }`}
-                      >
-                        {category.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {alphabetData.categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => handleCategoryClick(category.id)}
-                    className={`px-3 py-1 rounded text-sm ${
-                      activeCategory === category.id
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 hover:bg-gray-300'
-                    }`}
-                  >
-                    {category.label}
-                  </button>
                 ))}
+
+                {/* Row 10: Special characters (4 letters) */}
+                <div className="flex gap-0.5 justify-start">
+                  {alphabetData.special.map((letter, index) => (
+                    <LetterCard
+                      key={getLetterDisplay(letter).main}
+                      letter={letter}
+                      display={getLetterDisplay(letter)}
+                      isHighlighted={isLetterHighlighted(letter)}
+                      isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
+                      displayMode={displayMode}
+                      showTooltip={showTooltip}
+                      isHovered={hoveredLetter === getLetterDisplay(letter).main}
+                      onClick={() => handleLetterClick(letter)}
+                      onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
+                      onMouseLeave={() => setHoveredLetter(null)}
+                      number={alphabetData.vowels.length + 33 + index + 1}
+                    />
+                  ))}
+                </div>
               </div>
+            ) : (
+              // Other languages - keep original layout
+              <>
+                {/* Vowels section with title */}
+                <div className="mb-2">
+                  <h3 className="text-xs font-semibold text-gray-700 mb-1">{alphabetData.vowelsTitle}</h3>
+                  <div className="flex gap-0.5 justify-center flex-wrap">
+                    {alphabetData.vowels.map((letter, index) => (
+                      <LetterCard
+                        key={getLetterDisplay(letter).main}
+                        letter={letter}
+                        display={getLetterDisplay(letter)}
+                        isHighlighted={isLetterHighlighted(letter)}
+                        isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
+                        displayMode={displayMode}
+                        showTooltip={showTooltip}
+                        isHovered={hoveredLetter === getLetterDisplay(letter).main}
+                        onClick={() => handleLetterClick(letter)}
+                        onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
+                        onMouseLeave={() => setHoveredLetter(null)}
+                        number={index + 1}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Consonants section with title */}
+                <div className="mb-2">
+                  <h3 className="text-xs font-semibold text-gray-700 mb-1">{alphabetData.consonantsTitle}</h3>
+                  {alphabetData.useGroups ? (
+                    <div className="space-y-0.5">
+                      {alphabetData.consonantGroups!.map((group, groupIndex) => (
+                        <div key={groupIndex} className="grid grid-cols-5 gap-0.5">
+                          {group.letters.map((letter, letterIndex) => {
+                            const consonantNumber = alphabetData.vowels.length +
+                              alphabetData.consonantGroups!.slice(0, groupIndex).reduce((sum, g) => sum + g.letters.length, 0) +
+                              letterIndex + 1;
+                            return (
+                              <LetterCard
+                                key={getLetterDisplay(letter).main}
+                                letter={letter}
+                                display={getLetterDisplay(letter)}
+                                isHighlighted={isLetterHighlighted(letter)}
+                                isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
+                                displayMode={displayMode}
+                                showTooltip={showTooltip}
+                                isHovered={hoveredLetter === getLetterDisplay(letter).main}
+                                onClick={() => handleLetterClick(letter)}
+                                onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
+                                onMouseLeave={() => setHoveredLetter(null)}
+                                number={consonantNumber}
+                              />
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-5 sm:grid-cols-7 gap-0.5">
+                      {alphabetData.consonants!.map((letter, index) => (
+                        <LetterCard
+                          key={getLetterDisplay(letter).main}
+                          letter={letter}
+                          display={getLetterDisplay(letter)}
+                          isHighlighted={isLetterHighlighted(letter)}
+                          isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
+                          displayMode={displayMode}
+                          showTooltip={showTooltip}
+                          isHovered={hoveredLetter === getLetterDisplay(letter).main}
+                          onClick={() => handleLetterClick(letter)}
+                          onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
+                          onMouseLeave={() => setHoveredLetter(null)}
+                          number={alphabetData.vowels.length + index + 1}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Special characters section with title */}
+                {alphabetData.special.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-700 mb-1">{alphabetData.specialTitle}</h3>
+                    <div className="flex gap-0.5 justify-center flex-wrap">
+                      {alphabetData.special.map((letter, index) => (
+                        <LetterCard
+                          key={getLetterDisplay(letter).main}
+                          letter={letter}
+                          display={getLetterDisplay(letter)}
+                          isHighlighted={isLetterHighlighted(letter)}
+                          isSelected={selectedLetter && getLetterDisplay(selectedLetter).main === getLetterDisplay(letter).main}
+                          displayMode={displayMode}
+                          showTooltip={showTooltip}
+                          isHovered={hoveredLetter === getLetterDisplay(letter).main}
+                          onClick={() => handleLetterClick(letter)}
+                          onMouseEnter={() => setHoveredLetter(getLetterDisplay(letter).main)}
+                          onMouseLeave={() => setHoveredLetter(null)}
+                          number={alphabetData.vowels.length + 33 + index + 1}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
 
-        {/* Detail Panel */}
-        {selectedLetter && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="w-80 bg-white p-6 rounded-lg shadow-lg sticky top-4 h-fit"
-          >
-            <div className="text-center mb-4">
-              <div className="text-6xl mb-2">{getLetterDisplay(selectedLetter).detail}</div>
-              <div className="text-2xl text-gray-600 mb-2">
-                {'devanagari' in selectedLetter
-                  ? selectedLetter.transliteration
-                  : selectedLetter.name}
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <h4 className="font-semibold text-sm text-gray-600 mb-1">Pronunciation:</h4>
-                <p className="text-sm">{selectedLetter.pronunciation}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-sm text-gray-600 mb-1">Categories:</h4>
-                <div className="flex flex-wrap gap-1">
-                  {selectedLetter.category.map((cat) => (
-                    <span key={cat} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-                      {cat}
-                    </span>
-                  ))}
+        {/* Right side - Category filters */}
+        <div className="w-40 space-y-2">
+          {language === 'sa' ? (
+            <>
+              {/* Sanskrit categories - grouped */}
+              {categories.vowelCategories && categories.vowelCategories.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-semibold text-gray-600 mb-1">Vowel Types</h4>
+                  <div className="space-y-0.5">
+                    {categories.vowelCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => handleCategoryClick(category.id)}
+                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
+                          activeCategory === category.id
+                            ? 'bg-yellow-400 text-gray-900 font-semibold'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
+              )}
+
+              {categories.consonantCategories && categories.consonantCategories.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-semibold text-gray-600 mb-1">Consonant Groups</h4>
+                  <div className="space-y-0.5">
+                    {categories.consonantCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => handleCategoryClick(category.id)}
+                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
+                          activeCategory === category.id
+                            ? 'bg-yellow-400 text-gray-900 font-semibold'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {categories.characteristicCategories && categories.characteristicCategories.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-semibold text-gray-600 mb-1">Characteristics</h4>
+                  <div className="space-y-0.5">
+                    {categories.characteristicCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => handleCategoryClick(category.id)}
+                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
+                          activeCategory === category.id
+                            ? 'bg-yellow-400 text-gray-900 font-semibold'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Other languages - simple list */}
+              {categories.simpleCategories && categories.simpleCategories.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-semibold text-gray-600 mb-1">
+                    {language === 'ru' ? 'Категории' : language === 'uk' ? 'Категорії' : 'Categories'}
+                  </h4>
+                  <div className="space-y-0.5">
+                    {categories.simpleCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => handleCategoryClick(category.id)}
+                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
+                          activeCategory === category.id
+                            ? 'bg-yellow-400 text-gray-900 font-semibold'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -387,6 +507,7 @@ interface LetterCardProps {
   onClick: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  number?: number;
 }
 
 function LetterCard({
@@ -400,6 +521,7 @@ function LetterCard({
   onClick,
   onMouseEnter,
   onMouseLeave,
+  number,
 }: LetterCardProps) {
   return (
     <motion.button
@@ -408,19 +530,24 @@ function LetterCard({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`relative aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 transition-colors ${
+      className={`relative w-14 h-14 border flex flex-col items-center justify-center transition-colors flex-shrink-0 ${
         isSelected
           ? 'border-blue-500 bg-blue-50'
           : isHighlighted
-          ? 'border-yellow-400 bg-yellow-50'
+          ? 'border-yellow-500 bg-yellow-50'
           : 'border-gray-300 bg-white hover:bg-gray-50'
       }`}
     >
-      <div className="text-2xl font-semibold">
-        {isHovered ? display.hover : display.main}
+      {number && (
+        <div className="absolute top-0 right-0 text-[8px] text-gray-500 px-0.5">
+          {number}
+        </div>
+      )}
+      <div className="text-xl font-semibold text-gray-900">
+        {display.main}
       </div>
-      {displayMode === 'detailed' && !isHovered && (
-        <div className="text-xs text-gray-500 mt-1">{display.detail}</div>
+      {!isHovered && 'devanagari' in letter && (
+        <div className="text-[9px] text-gray-600 leading-none">{display.detail}</div>
       )}
 
       {showTooltip && isHovered && (

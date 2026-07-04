@@ -85,20 +85,28 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
               <p className="font-semibold text-blue-900 mb-1 text-xs">📝 Инструкция:</p>
               <ol className="text-xs text-blue-800 space-y-0.5 list-decimal list-inside">
                 <li>Переведите <strong>{amount} грн</strong> на карту выше</li>
-                <li>После оплаты отправьте письмо на <strong>{contactEmail}</strong></li>
+                <li>После оплаты отправьте письмо на email ниже</li>
                 <li>В теме письма укажите: <strong>"Подписка"</strong></li>
                 <li>В письме укажите ваш email: <strong>{userEmail}</strong></li>
                 <li>Подписка будет активирована в течение 24 часов</li>
               </ol>
             </div>
 
-            {/* Email template button */}
-            <a
-              href={`mailto:${contactEmail}?subject=Подписка&body=Здравствуйте!%0A%0AОплатил(а) подписку на сумму ${amount} грн.%0AMой email: ${userEmail}%0A%0AСпасибо!`}
-              className="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg text-center transition-colors text-xs"
-            >
-              ✉️ Отправить письмо
-            </a>
+            {/* Contact email */}
+            <div className="mb-3">
+              <p className="text-xs text-gray-600 mb-1">Email для подтверждения оплаты:</p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 bg-gray-100 px-2 py-1 rounded-lg text-xs break-all">
+                  {contactEmail}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(contactEmail)}
+                  className="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                >
+                  📋
+                </button>
+              </div>
+            </div>
 
             {/* Close button */}
             <button

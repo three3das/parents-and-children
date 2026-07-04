@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { CATEGORIES } from "@/lib/categories";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { useLanguage } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 
@@ -38,7 +39,7 @@ export default function HomePage() {
       <div
         style={{
           flex: 1,
-          background: "linear-gradient(160deg, #FFE49A 0%, #FFCA5A 60%, #FFB830 100%)",
+          background: "#ffffff",
           display: "flex",
           flexDirection: "column",
           alignItems: "stretch",
@@ -528,6 +529,9 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <SiteFooter />
 
       {/* CSS анимации */}
       <style>{`

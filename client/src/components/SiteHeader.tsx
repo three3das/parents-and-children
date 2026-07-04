@@ -66,7 +66,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
         transition={{ duration: 0.35 }}
         style={{
           width: "100%",
-          background: "rgba(255,255,255,0.95)",
+          background: "#ffffff",
           backdropFilter: "blur(10px)",
           boxShadow: "0 2px 12px rgba(0,0,0,0.10)",
           display: "flex",
@@ -100,27 +100,217 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
         )}
 
         {/* ── Logo ── */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
           <img
-            src="/images/book.png"
-            alt="logo"
-            style={{ height: "clamp(1.8rem, 3.5vw, 2.6rem)", width: "auto", objectFit: "contain" }}
-          />
-          <span
+            src="https://audioveda.ru/uploads/union/92/lechenie_dush_v_obschinah_vayshnavov.jpg"
+            alt="Krishna"
             style={{
-              fontSize: "clamp(0.95rem, 2.2vw, 1.35rem)",
-              fontWeight: 800,
-              background: "linear-gradient(135deg, #FF6B6B, #FF9F43, #FFE033, #2ECC71, #3EA6FF, #6C63FF, #C84BFF)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              letterSpacing: "-0.02em",
-              whiteSpace: "nowrap",
+              width: "96px",
+              height: "96px",
+              borderRadius: "27px",
+              objectFit: "cover",
+              border: "6px solid #FFD700",
+              boxSizing: "border-box"
+            }}
+          />
+          <div>
+            <div
+              style={{
+                margin: "0 0 6px",
+                color: "#FFD700",
+                fontSize: "1rem",
+                fontWeight: 700,
+                letterSpacing: "0.01em",
+              }}
+            >
+              Знание для детей
+            </div>
+            <p
+              style={{
+                margin: 0,
+                color: "#FFD700",
+                fontSize: "1rem",
+                fontWeight: 700,
+              }}
+            >
+              Образовательный сайт
+            </p>
+          </div>
+        </div>
+
+        {/* ── Navigation buttons ── */}
+        <nav style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <a
+            href="ishvara.html"
+            style={{
+              minWidth: "120px",
+              height: "50px",
+              borderRadius: "12px",
+              border: "4px solid #FFD700",
+              background: "#ffffff",
+              color: "#FFD700",
+              fontSize: "1rem",
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textDecoration: "none",
+              padding: "8px 16px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#FFD700";
+              e.currentTarget.style.color = "#ffffff";
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(255, 215, 0, 0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#ffffff";
+              e.currentTarget.style.color = "#FFD700";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
             }}
           >
-            KnowledgeChildren
-          </span>
-        </div>
+            Ишвара
+          </a>
+          <a
+            href="jiva.html"
+            style={{
+              minWidth: "120px",
+              height: "50px",
+              borderRadius: "12px",
+              border: "4px solid #FFD700",
+              background: "#ffffff",
+              color: "#FFD700",
+              fontSize: "1rem",
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textDecoration: "none",
+              padding: "8px 16px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#FFD700";
+              e.currentTarget.style.color = "#ffffff";
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(255, 215, 0, 0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#ffffff";
+              e.currentTarget.style.color = "#FFD700";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            Джива
+          </a>
+          <a
+            href="prakriti.html"
+            style={{
+              minWidth: "120px",
+              height: "50px",
+              borderRadius: "12px",
+              border: "4px solid #FFD700",
+              background: "#ffffff",
+              color: "#FFD700",
+              fontSize: "1rem",
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textDecoration: "none",
+              padding: "8px 16px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#FFD700";
+              e.currentTarget.style.color = "#ffffff";
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(255, 215, 0, 0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#ffffff";
+              e.currentTarget.style.color = "#FFD700";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            Пракрити
+          </a>
+          <a
+            href="karma.html"
+            style={{
+              minWidth: "120px",
+              height: "50px",
+              borderRadius: "12px",
+              border: "4px solid #FFD700",
+              background: "#ffffff",
+              color: "#FFD700",
+              fontSize: "1rem",
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textDecoration: "none",
+              padding: "8px 16px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#FFD700";
+              e.currentTarget.style.color = "#ffffff";
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(255, 215, 0, 0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#ffffff";
+              e.currentTarget.style.color = "#FFD700";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            Карма
+          </a>
+          <a
+            href="kala.html"
+            style={{
+              minWidth: "120px",
+              height: "50px",
+              borderRadius: "12px",
+              border: "4px solid #FFD700",
+              background: "#ffffff",
+              color: "#FFD700",
+              fontSize: "1rem",
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textDecoration: "none",
+              padding: "8px 16px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#FFD700";
+              e.currentTarget.style.color = "#ffffff";
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(255, 215, 0, 0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#ffffff";
+              e.currentTarget.style.color = "#FFD700";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            Кала
+          </a>
+        </nav>
 
         {/* ── Right side: language + auth ── */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>

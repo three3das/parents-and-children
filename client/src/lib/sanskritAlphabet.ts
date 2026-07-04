@@ -6,356 +6,405 @@ export interface SanskritLetter {
   category: string[];
 }
 
+// Vowels - 14 letters (first row on screenshot)
 export const SANSKRIT_VOWELS: SanskritLetter[] = [
   {
     devanagari: 'अ',
     transliteration: 'a',
     pronunciation: 'Like "a" in "about"',
-    audioFile: 'a.mp3',
+    audioFile: '1 (a) .mp3',
     category: ['vowels', 'short']
   },
   {
     devanagari: 'आ',
     transliteration: 'ā',
     pronunciation: 'Like "a" in "father"',
-    audioFile: 'aa.mp3',
+    audioFile: '2 (aa) .mp3',
     category: ['vowels', 'long']
   },
   {
     devanagari: 'इ',
     transliteration: 'i',
     pronunciation: 'Like "i" in "pin"',
-    audioFile: 'i.mp3',
+    audioFile: '3 (i) .mp3',
     category: ['vowels', 'short']
   },
   {
     devanagari: 'ई',
     transliteration: 'ī',
     pronunciation: 'Like "ee" in "see"',
-    audioFile: 'ii.mp3',
+    audioFile: '4 (ii) .mp3',
     category: ['vowels', 'long']
   },
   {
     devanagari: 'उ',
     transliteration: 'u',
     pronunciation: 'Like "u" in "put" (not "up")',
-    audioFile: 'u.mp3',
+    audioFile: '5 (u) .mp3',
     category: ['vowels', 'short']
   },
   {
     devanagari: 'ऊ',
     transliteration: 'ū',
     pronunciation: 'Like "oo" in "food"',
-    audioFile: 'uu.mp3',
+    audioFile: '6 (uu) .mp3',
     category: ['vowels', 'long']
   },
   {
     devanagari: 'ऋ',
     transliteration: 'ṛ',
     pronunciation: 'Syllabic "r" - curl tongue back',
-    audioFile: 'ri.mp3',
+    audioFile: '7 (ri) .mp3',
     category: ['vowels', 'short', 'syllabic']
   },
   {
     devanagari: 'ॠ',
     transliteration: 'ṝ',
     pronunciation: 'Long syllabic "r"',
-    audioFile: 'rii.mp3',
+    audioFile: '8 (rii) .mp3',
     category: ['vowels', 'long', 'syllabic']
   },
   {
     devanagari: 'ऌ',
     transliteration: 'ḷ',
     pronunciation: 'Syllabic "l"',
-    audioFile: 'li.mp3',
+    audioFile: '9 (ḷ) .mp3',
     category: ['vowels', 'short', 'syllabic']
   },
   {
     devanagari: 'ए',
     transliteration: 'e',
     pronunciation: 'Like "ay" in "say"',
-    audioFile: 'e.mp3',
+    audioFile: '10 (e) .mp3',
     category: ['vowels', 'diphthong']
   },
   {
     devanagari: 'ऐ',
     transliteration: 'ai',
     pronunciation: 'Like "ai" in "aisle"',
-    audioFile: 'ai.mp3',
+    audioFile: '11 (ai) .mp3',
     category: ['vowels', 'diphthong']
   },
   {
     devanagari: 'ओ',
     transliteration: 'o',
     pronunciation: 'Like "o" in "go"',
-    audioFile: 'o.mp3',
+    audioFile: '12 (o) .mp3',
     category: ['vowels', 'diphthong']
   },
   {
     devanagari: 'औ',
     transliteration: 'au',
     pronunciation: 'Like "ow" in "cow"',
-    audioFile: 'au.mp3',
+    audioFile: '13 (au) .mp3',
     category: ['vowels', 'diphthong']
   }
 ];
 
-export const SANSKRIT_CONSONANTS: SanskritLetter[] = [
-  // Gutturals (Velar)
+// Gutturals (Velar) - 5 letters
+export const GUTTURALS: SanskritLetter[] = [
   {
     devanagari: 'क',
     transliteration: 'ka',
     pronunciation: 'Like "k" in "kite"',
-    audioFile: 'ka.mp3',
+    audioFile: '14 (ka) .mp3',
     category: ['consonants', 'gutturals', 'unvoiced', 'unaspirated']
   },
   {
     devanagari: 'ख',
     transliteration: 'kha',
     pronunciation: 'Like "kh" with aspiration',
-    audioFile: 'kha.mp3',
+    audioFile: '15 (kha) .mp3',
     category: ['consonants', 'gutturals', 'unvoiced', 'aspirated']
   },
   {
     devanagari: 'ग',
     transliteration: 'ga',
     pronunciation: 'Like "g" in "go"',
-    audioFile: 'ga.mp3',
+    audioFile: '16 (ga) .mp3',
     category: ['consonants', 'gutturals', 'voiced', 'unaspirated']
   },
   {
     devanagari: 'घ',
     transliteration: 'gha',
     pronunciation: 'Like "gh" with aspiration',
-    audioFile: 'gha.mp3',
+    audioFile: '17 (gha) .mp3',
     category: ['consonants', 'gutturals', 'voiced', 'aspirated']
   },
   {
     devanagari: 'ङ',
     transliteration: 'ṅa',
     pronunciation: 'Like "ng" in "sing"',
-    audioFile: 'nga.mp3',
+    audioFile: '18 (ṅa) .mp3',
     category: ['consonants', 'gutturals', 'nasal']
-  },
-  // Palatals
+  }
+];
+
+// Palatals - 5 letters
+export const PALATALS: SanskritLetter[] = [
   {
     devanagari: 'च',
     transliteration: 'ca',
     pronunciation: 'Like "ch" in "church"',
-    audioFile: 'ca.mp3',
+    audioFile: '19 (ca) .mp3',
     category: ['consonants', 'palatals', 'unvoiced', 'unaspirated']
   },
   {
     devanagari: 'छ',
     transliteration: 'cha',
     pronunciation: 'Like "chh" with aspiration',
-    audioFile: 'cha.mp3',
+    audioFile: '20 (cha) .mp3',
     category: ['consonants', 'palatals', 'unvoiced', 'aspirated']
   },
   {
     devanagari: 'ज',
     transliteration: 'ja',
     pronunciation: 'Like "j" in "jump"',
-    audioFile: 'ja.mp3',
+    audioFile: '21 (ja) .mp3',
     category: ['consonants', 'palatals', 'voiced', 'unaspirated']
   },
   {
     devanagari: 'झ',
     transliteration: 'jha',
     pronunciation: 'Like "jh" with aspiration',
-    audioFile: 'jha.mp3',
+    audioFile: '22 (jha) .mp3',
     category: ['consonants', 'palatals', 'voiced', 'aspirated']
   },
   {
     devanagari: 'ञ',
     transliteration: 'ña',
     pronunciation: 'Like "ny" in "canyon"',
-    audioFile: 'nya.mp3',
+    audioFile: '23 (ña) .mp3',
     category: ['consonants', 'palatals', 'nasal']
-  },
-  // Retroflexes (Cerebrals)
+  }
+];
+
+// Retroflexes (Cerebrals) - 5 letters
+export const RETROFLEXES: SanskritLetter[] = [
   {
     devanagari: 'ट',
     transliteration: 'ṭa',
     pronunciation: 'Retroflex "t" - curl tongue back',
-    audioFile: 'ta-retro.mp3',
+    audioFile: '24 (ta) .mp3',
     category: ['consonants', 'retroflexes', 'unvoiced', 'unaspirated']
   },
   {
     devanagari: 'ठ',
     transliteration: 'ṭha',
     pronunciation: 'Retroflex "th" with aspiration',
-    audioFile: 'tha-retro.mp3',
+    audioFile: '25 (tha) .mp3',
     category: ['consonants', 'retroflexes', 'unvoiced', 'aspirated']
   },
   {
     devanagari: 'ड',
     transliteration: 'ḍa',
     pronunciation: 'Retroflex "d"',
-    audioFile: 'da-retro.mp3',
+    audioFile: '26 (da) .mp3',
     category: ['consonants', 'retroflexes', 'voiced', 'unaspirated']
   },
   {
     devanagari: 'ढ',
     transliteration: 'ḍha',
     pronunciation: 'Retroflex "dh" with aspiration',
-    audioFile: 'dha-retro.mp3',
+    audioFile: '27 (dha) .mp3',
     category: ['consonants', 'retroflexes', 'voiced', 'aspirated']
   },
   {
     devanagari: 'ण',
     transliteration: 'ṇa',
     pronunciation: 'Retroflex "n"',
-    audioFile: 'na-retro.mp3',
+    audioFile: '28 (ṇa) .mp3',
     category: ['consonants', 'retroflexes', 'nasal']
-  },
-  // Dentals
+  }
+];
+
+// Dentals - 5 letters
+export const DENTALS: SanskritLetter[] = [
   {
     devanagari: 'त',
     transliteration: 'ta',
     pronunciation: 'Like "t" in "top" (dental)',
-    audioFile: 'ta.mp3',
+    audioFile: '29 (ta) .mp3',
     category: ['consonants', 'dentals', 'unvoiced', 'unaspirated']
   },
   {
     devanagari: 'थ',
     transliteration: 'tha',
     pronunciation: 'Like "th" with aspiration',
-    audioFile: 'tha.mp3',
+    audioFile: '30 (tha) .mp3',
     category: ['consonants', 'dentals', 'unvoiced', 'aspirated']
   },
   {
     devanagari: 'द',
     transliteration: 'da',
     pronunciation: 'Like "d" in "dog" (dental)',
-    audioFile: 'da.mp3',
+    audioFile: '31 (da) .mp3',
     category: ['consonants', 'dentals', 'voiced', 'unaspirated']
   },
   {
     devanagari: 'ध',
     transliteration: 'dha',
     pronunciation: 'Like "dh" with aspiration',
-    audioFile: 'dha.mp3',
+    audioFile: '32 (dha) .mp3',
     category: ['consonants', 'dentals', 'voiced', 'aspirated']
   },
   {
     devanagari: 'न',
     transliteration: 'na',
     pronunciation: 'Like "n" in "no" (dental)',
-    audioFile: 'na.mp3',
+    audioFile: '33 (na) .mp3',
     category: ['consonants', 'dentals', 'nasal']
-  },
-  // Labials
+  }
+];
+
+// Labials - 5 letters
+export const LABIALS: SanskritLetter[] = [
   {
     devanagari: 'प',
     transliteration: 'pa',
     pronunciation: 'Like "p" in "pot"',
-    audioFile: 'pa.mp3',
+    audioFile: '34 (pa) .mp3',
     category: ['consonants', 'labials', 'unvoiced', 'unaspirated']
   },
   {
     devanagari: 'फ',
     transliteration: 'pha',
     pronunciation: 'Like "ph" with aspiration',
-    audioFile: 'pha.mp3',
+    audioFile: '35 (pha) .mp3',
     category: ['consonants', 'labials', 'unvoiced', 'aspirated']
   },
   {
     devanagari: 'ब',
     transliteration: 'ba',
     pronunciation: 'Like "b" in "bat"',
-    audioFile: 'ba.mp3',
+    audioFile: '36 (ba) .mp3',
     category: ['consonants', 'labials', 'voiced', 'unaspirated']
   },
   {
     devanagari: 'भ',
     transliteration: 'bha',
     pronunciation: 'Like "bh" with aspiration',
-    audioFile: 'bha.mp3',
+    audioFile: '37 (bha) .mp3',
     category: ['consonants', 'labials', 'voiced', 'aspirated']
   },
   {
     devanagari: 'म',
     transliteration: 'ma',
     pronunciation: 'Like "m" in "mother"',
-    audioFile: 'ma.mp3',
+    audioFile: '38 (ma) .mp3',
     category: ['consonants', 'labials', 'nasal']
-  },
-  // Semivowels
+  }
+];
+
+// Semivowels - 4 letters
+export const SEMIVOWELS: SanskritLetter[] = [
   {
     devanagari: 'य',
     transliteration: 'ya',
     pronunciation: 'Like "y" in "yes"',
-    audioFile: 'ya.mp3',
+    audioFile: '39 (ya) .mp3',
     category: ['consonants', 'semivowels']
   },
   {
     devanagari: 'र',
     transliteration: 'ra',
     pronunciation: 'Like "r" in "run"',
-    audioFile: 'ra.mp3',
+    audioFile: '40 (ra) .mp3',
     category: ['consonants', 'semivowels']
   },
   {
     devanagari: 'ल',
     transliteration: 'la',
     pronunciation: 'Like "l" in "love"',
-    audioFile: 'la.mp3',
+    audioFile: '41 (la) .mp3',
     category: ['consonants', 'semivowels']
   },
   {
     devanagari: 'व',
     transliteration: 'va',
     pronunciation: 'Like "v" in "vine" or "w" in "wine"',
-    audioFile: 'va.mp3',
+    audioFile: '42 (va) .mp3',
     category: ['consonants', 'semivowels']
-  },
-  // Sibilants
+  }
+];
+
+// Sibilants - 3 letters
+export const SIBILANTS: SanskritLetter[] = [
   {
     devanagari: 'श',
     transliteration: 'śa',
     pronunciation: 'Like "sh" in "ship" (palatal)',
-    audioFile: 'sha-palatal.mp3',
+    audioFile: '43 (sa1) .mp3',
     category: ['consonants', 'sibilants']
   },
   {
     devanagari: 'ष',
     transliteration: 'ṣa',
     pronunciation: 'Like "sh" (retroflex)',
-    audioFile: 'sha-retro.mp3',
+    audioFile: '44 (sa2) .mp3',
     category: ['consonants', 'sibilants']
   },
   {
     devanagari: 'स',
     transliteration: 'sa',
     pronunciation: 'Like "s" in "sun"',
-    audioFile: 'sa.mp3',
+    audioFile: '45 (sa3) .mp3',
     category: ['consonants', 'sibilants']
-  },
-  // Aspirate
+  }
+];
+
+// Aspirate - 1 letter
+export const ASPIRATE: SanskritLetter[] = [
   {
     devanagari: 'ह',
     transliteration: 'ha',
     pronunciation: 'Like "h" in "house"',
-    audioFile: 'ha.mp3',
+    audioFile: '46 (ha) .mp3',
     category: ['consonants', 'aspirate']
   }
 ];
 
+// Combined consonants array for backward compatibility
+export const SANSKRIT_CONSONANTS: SanskritLetter[] = [
+  ...GUTTURALS,
+  ...PALATALS,
+  ...RETROFLEXES,
+  ...DENTALS,
+  ...LABIALS,
+  ...SEMIVOWELS,
+  ...SIBILANTS,
+  ...ASPIRATE
+];
+
+// Special characters - 4 letters (bottom row)
 export const SANSKRIT_SPECIAL: SanskritLetter[] = [
   {
     devanagari: 'अं',
-    transliteration: 'ṃ',
+    transliteration: 'aṁ',
     pronunciation: 'Anusvara - nasal sound',
-    audioFile: 'anusvara.mp3',
+    audioFile: '47 (am) .mp3',
     category: ['special']
   },
   {
     devanagari: 'अः',
-    transliteration: 'ḥ',
+    transliteration: 'aḥ',
     pronunciation: 'Visarga - aspiration',
-    audioFile: 'visarga.mp3',
+    audioFile: '48 (ah) .mp3',
     category: ['special']
+  },
+  {
+    devanagari: 'क्ष',
+    transliteration: 'kṣa',
+    pronunciation: 'Compound: ka + ṣa',
+    audioFile: '49 (ksa) .mp3',
+    category: ['special', 'compound']
+  },
+  {
+    devanagari: 'ज्ञ',
+    transliteration: 'jña',
+    pronunciation: 'Compound: ja + ña',
+    audioFile: '50 (jna) .mp3',
+    category: ['special', 'compound']
   }
 ];
 

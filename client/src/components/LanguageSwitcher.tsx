@@ -58,15 +58,25 @@ export function LanguageSwitcher() {
       <motion.button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 bg-white shadow-md hover:shadow-lg transition-all border border-gray-200"
-        style={{ borderRadius: "6px", height: "32px" }}
+        className="flex items-center gap-1 md:gap-2 px-3 py-2 transition-all"
+        style={{
+          borderRadius: "12px",
+          height: "50px",
+          minWidth: "170px",
+          background: "#ffffff",
+          border: "4px solid #FFD700",
+          color: "#FFD700",
+          fontWeight: 700,
+          fontSize: "1rem",
+        }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        <span className="text-xs md:text-sm font-medium">{LANGUAGE_FLAGS[language]}</span>
-        <span className="text-xs md:text-sm font-medium text-gray-700 hidden sm:inline">{LANGUAGE_NAMES[language]}</span>
+        <span className="text-sm md:text-base font-bold">{LANGUAGE_FLAGS[language]}</span>
+        <span className="text-sm md:text-base hidden sm:inline" style={{ color: "#FFD700", fontWeight: 700 }}>{LANGUAGE_NAMES[language]}</span>
         <motion.svg
-          className="w-3 h-3 md:w-4 md:h-4 text-gray-500"
+          className="w-4 h-4 ml-auto"
+          style={{ color: "#FFD700" }}
           animate={{ rotate: isOpen ? 180 : 0 }}
           fill="none"
           stroke="currentColor"
@@ -98,15 +108,19 @@ export function LanguageSwitcher() {
                   key={lang}
                   onClick={() => handleLanguageSelect(lang)}
                   className={`w-full px-4 py-3 flex items-center gap-3 transition-colors border-b border-gray-100 last:border-b-0 first:rounded-t-lg last:rounded-b-lg ${language === lang
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-primary/10'
+                    : 'hover:bg-gray-50'
                     }`}
+                  style={{
+                    color: "#FFD700",
+                  }}
                 >
                   <span className="text-sm font-medium">{LANGUAGE_FLAGS[lang]}</span>
-                  <span className="font-medium">{LANGUAGE_NAMES[lang]}</span>
+                  <span style={{ fontWeight: 700, fontSize: "1rem", color: "#FFD700" }}>{LANGUAGE_NAMES[lang]}</span>
                   {language === lang && (
                     <motion.svg
                       className="w-5 h-5 ml-auto"
+                      style={{ color: "#FFD700" }}
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       fill="currentColor"

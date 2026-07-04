@@ -1,4 +1,4 @@
-# KnowledgeChildren - Claude Development Guidelines
+# Knowledge Children - Claude Development Guidelines
 
 ## Database and Constants Synchronization Rules
 
@@ -25,7 +25,7 @@
 ### Production Deployment (Render)
 
 #### Deployment URL
-- **Production**: https://knowledge-for-children.onrender.com/
+- **Production**: https://knowledge-children.onrender.com/
 
 #### Deployment Process
 - Push to GitHub main branch
@@ -42,7 +42,7 @@
 - **Target Audience**: Children learning to read
 - **Text Usage**: Avoid text where possible - children cannot read yet
 - **Visual Communication**: Use emojis and visual elements for navigation
-- **Exceptions**: Keep essential text like "KnowledgeChildren" and "Настройки" (Settings)
+- **Exceptions**: Keep essential text like "Knowledge Children" and "Настройки" (Settings)
 
 ### Test User Credentials
 - **Email**: test@knowledgechildren.com

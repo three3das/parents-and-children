@@ -1,4 +1,4 @@
-# 💳 Крипто-подписки для KnowledgeChildren
+# 💳 Крипто-подписки для Knowledge Children
 ## Node.js + Express + PostgreSQL + NOWPayments (USDT TRC20)
 
 ---
@@ -6,7 +6,7 @@
 ## 📁 Структура файлов в проекте
 
 ```
-knowledge_for_children/
+Knowledge Children/
 ├── migrations/
 │   └── 001_subscriptions.sql     ← SQL для создания таблиц
 ├── server/
@@ -39,7 +39,7 @@ NOWPAYMENTS_API_KEY=your_api_key_here
 NOWPAYMENTS_IPN_SECRET=your_ipn_secret_here
 
 # URL вашего сайта (без слеша в конце)
-APP_URL=https://knowledge-for-children.onrender.com
+APP_URL=https://knowledge-children.onrender.com
 
 # PostgreSQL
 DATABASE_URL=postgresql://user:password@host:5432/dbname
@@ -85,7 +85,7 @@ require('./services/cron').startCronJobs();
 
 1. Войдите на https://nowpayments.io
 2. Перейдите: **Store Settings → IPN (Instant Payment Notification)**
-3. Укажите URL: `https://knowledge-for-children.onrender.com/api/payments/webhook`
+3. Укажите URL: `https://knowledge-children.onrender.com/api/payments/webhook`
 4. Скопируйте **IPN Secret** → вставьте в `.env` как `NOWPAYMENTS_IPN_SECRET`
 
 ---
