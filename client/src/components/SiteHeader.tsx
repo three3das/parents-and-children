@@ -173,7 +173,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            {language === "ru" ? "Повелитель" : language === "uk" ? "Володар" : "Ишвара"}
+            {language === "ru" ? "Верховний повелитель" : language === "uk" ? "Верховний володар" : "Ишвара"}
           </a>
           <a
             href="jiva.html"
