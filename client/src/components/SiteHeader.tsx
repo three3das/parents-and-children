@@ -10,6 +10,7 @@ import { CreateAccountModal } from "./CreateAccountModal";
 import { ProgressModal } from "./ProgressModal";
 import { P2PPaymentModal } from "./P2PPaymentModal";
 import { useAuth } from "@/lib/auth";
+import { useLanguage } from "@/lib/i18n";
 
 interface SiteHeaderProps {
   onBack?: () => void;
@@ -24,6 +25,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
   const [showP2PModal, setShowP2PModal] = useState(false);
 
   const sessionId = user ? String(user.id) : "";
+  const { language } = useLanguage();
 
   const handleSubscribeClick = async () => {
     if (!user) {
@@ -100,7 +102,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
         )}
 
         {/* ── Logo ── */}
-        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <img
             src="https://audioveda.ru/uploads/union/92/lechenie_dush_v_obschinah_vayshnavov.jpg"
             alt="Krishna"
@@ -123,7 +125,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
                 letterSpacing: "0.01em",
               }}
             >
-              Знание для детей
+              {language === "uk" ? "Знання для дітей" : "Знание для детей"}
             </div>
             <p
               style={{
@@ -133,13 +135,12 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
                 fontWeight: 700,
               }}
             >
-              Образовательный сайт
-            </p>
+              {language === "uk" ? "Освітній сайт" : "Образовательный сайт"}            </p>
           </div>
         </div>
 
         {/* ── Navigation buttons ── */}
-        <nav style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <nav style={{ display: "flex", gap: "6px", alignItems: "center" }}>
           <a
             href="ishvara.html"
             style={{
@@ -157,7 +158,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               alignItems: "center",
               justifyContent: "center",
               textDecoration: "none",
-              padding: "8px 16px",
+              padding: "8px 8px",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "#FFD700";
@@ -172,7 +173,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            Ишвара
+            {language === "ru" ? "Повелитель" : language === "uk" ? "Володар" : "Ишвара"}
           </a>
           <a
             href="jiva.html"
@@ -191,7 +192,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               alignItems: "center",
               justifyContent: "center",
               textDecoration: "none",
-              padding: "8px 16px",
+              padding: "8px 8px",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "#FFD700";
@@ -206,7 +207,9 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            Джива
+            {language === "ru" ? "Живое существо" : language === "uk" ? "Жива істота" : "Джива"}
+
+
           </a>
           <a
             href="prakriti.html"
@@ -225,7 +228,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               alignItems: "center",
               justifyContent: "center",
               textDecoration: "none",
-              padding: "8px 16px",
+              padding: "8px 8px",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "#FFD700";
@@ -240,7 +243,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            Пракрити
+            {language === "ru" ? "Материальная природа" : language === "uk" ? "Матеріальна природа" : "Пракрити"}
           </a>
           <a
             href="karma.html"
@@ -259,7 +262,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               alignItems: "center",
               justifyContent: "center",
               textDecoration: "none",
-              padding: "8px 16px",
+              padding: "8px 8px",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "#FFD700";
@@ -274,7 +277,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            Карма
+            {language === "ru" ? "Деятельность" : language === "uk" ? "Діяльність" : "Карма"}
           </a>
           <a
             href="kala.html"
@@ -293,7 +296,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               alignItems: "center",
               justifyContent: "center",
               textDecoration: "none",
-              padding: "8px 16px",
+              padding: "8px 8px",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "#FFD700";
@@ -308,12 +311,12 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
               e.currentTarget.style.boxShadow = "none";
             }}
           >
-            Кала
+            {language === "ru" ? "Всепоглощающее время" : language === "uk" ? "Всепоглинаючий час" : "Кала"}
           </a>
         </nav>
 
         {/* ── Right side: language + auth ── */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <LanguageSwitcher />
           <AuthDropdown
             onLoginClick={() => setShowLogin(true)}
