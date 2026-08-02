@@ -4,10 +4,11 @@ import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
+import XLSX from "xlsx";
 import paymentsRouter from "./routes/payments";
 
 // Load environment variables from .env file
-dotenv.config();
+dotenv.config({ override: true });
 
 const app = express();
 
@@ -27,6 +28,44 @@ if (fs.existsSync(publicPath)) {
   app.use("/images", express.static(path.join(publicPath, "images")));
   app.use("/audio", express.static(path.join(publicPath, "audio")));
 }
+
+// Serve static files from the /static directory (audio files structured by topic,
+// e.g. static/audio/ishvara/A.mp3)
+const staticPath = path.resolve(import.meta.dirname, "..", "static");
+if (fs.existsSync(staticPath)) {
+  app.use("/static", express.static(staticPath));
+}
+
+// ─── API: путь к аудио читается динамически из .xlsx-файла ───────────────────
+// Ячейка B2 в файле "sabda.xlsx" хранит веб-путь к аудио-файлу
+// (например, /static/audio/ishvara/A.mp3).
+app.get("/api/audio/ishvara", (req, res) => {
+  try {
+    const xlsxPath = path.join(
+      staticPath,
+      "audio",
+      "ishvara",
+      "sabda.xlsx"
+    );
+
+    if (!fs.existsSync(xlsxPath)) {
+      return res.status(404).json({ error: "xlsx file not found" });
+    }
+
+    const workbook = XLSX.readFile(xlsxPath);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const cellValue = String(sheet["B2"]?.v ?? "").trim();
+
+    if (!cellValue) {
+      return res.status(404).json({ error: "path not found in cell B2" });
+    }
+
+    res.json({ path: cellValue });
+  } catch (err) {
+    console.error("Error reading xlsx:", err);
+    res.status(500).json({ error: "failed to read xlsx file" });
+  }
+});
 
 // ─── Подключить роутер платежей ───────────────────────────────────────────────
 app.use("/api/payments", paymentsRouter);

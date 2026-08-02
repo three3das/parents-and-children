@@ -60,6 +60,27 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
     */
   };
 
+  const handleIshvaraClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const targetUrl = "ishvara.html";
+
+    fetch('/api/audio/ishvara')
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((data) => {
+        const audio = new Audio(data.path);
+        audio.play().catch((err) => console.error("Ошибка воспроизведения:", err));
+      })
+      .catch((err) => console.error("Ошибка получения пути к аудио:", err))
+      .finally(() => {
+        setTimeout(() => {
+          window.location.href = targetUrl;
+        }, 2000);
+      });
+  };
+
   return (
     <>
       <motion.header
@@ -103,9 +124,13 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
 
         {/* ── Logo ── */}
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          {/* Файл логотипа должен лежать здесь:
+              public/images/logo.png
+              И называться именно logo.png
+          */}
           <img
-            src="https://audioveda.ru/uploads/union/92/lechenie_dush_v_obschinah_vayshnavov.jpg"
-            alt="Krishna"
+            src="/images/logo.png"
+            alt="logo"
             style={{
               width: "96px",
               height: "96px",
@@ -125,7 +150,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
                 letterSpacing: "0.01em",
               }}
             >
-              {language === "uk" ? "Знання для дітей" : "Знание для детей"}
+              {language === "uk" ? "Знання для дітей" : "Совершенное знание"}
             </div>
             <p
               style={{
@@ -143,6 +168,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
         <nav style={{ display: "flex", gap: "6px", alignItems: "center" }}>
           <a
             href="ishvara.html"
+            onClick={handleIshvaraClick}
             style={{
               minWidth: "120px",
               height: "50px",
@@ -175,6 +201,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
           >
             {language === "ru" ? "Верховний повелитель" : language === "uk" ? "Верховний володар" : "Ишвара"}
           </a>
+
           <a
             href="jiva.html"
             style={{
@@ -208,9 +235,8 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
             }}
           >
             {language === "ru" ? "Живое существо" : language === "uk" ? "Жива істота" : "Джива"}
-
-
           </a>
+
           <a
             href="prakriti.html"
             style={{
@@ -245,6 +271,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
           >
             {language === "ru" ? "Материальная природа" : language === "uk" ? "Матеріальна природа" : "Пракрити"}
           </a>
+
           <a
             href="karma.html"
             style={{
@@ -279,6 +306,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
           >
             {language === "ru" ? "Деятельность" : language === "uk" ? "Діяльність" : "Карма"}
           </a>
+
           <a
             href="kala.html"
             style={{

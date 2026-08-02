@@ -3,7 +3,9 @@
     "allow": [
       "Bash(netstat:*)",
       "Bash(git revert:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "PowerShell(netstat -ano)",
+      "PowerShell(Stop-Process -Id 22252 -Force)"
     ]
   }
 }
