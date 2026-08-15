@@ -128,7 +128,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToCreateAccount }: LoginMo
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-4 right-4 text-[#FFD700] font-bold transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -138,17 +138,17 @@ export function LoginModal({ isOpen, onClose, onSwitchToCreateAccount }: LoginMo
             {showForgotPassword ? (
               <>
                 {/* Forgot Password Title */}
-                <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+                <h2 className="text-2xl font-bold text-[#FFD700] font-bold mb-2 text-center">
                   Відновлення пароля
                 </h2>
-                <p className="text-gray-600 text-center mb-6 text-sm">
+                <p className="text-[#FFD700] font-bold text-center mb-6 text-sm">
                   Введіть email, і ми надішлемо інструкції для скидання пароля
                 </p>
 
                 {resetEmailSent ? (
                   <div className="text-center py-4">
                     <div className="text-5xl mb-4">✉️</div>
-                    <p className="text-gray-700 mb-4">
+                    <p className="text-[#FFD700] font-bold mb-4">
                       Перевірте вашу пошту! Якщо акаунт з цим email існує, ми надіслали інструкції.
                     </p>
                     <button
@@ -161,7 +161,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToCreateAccount }: LoginMo
                 ) : (
                   <form onSubmit={handleForgotPassword} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm text-[#FFD700] font-bold mb-1">
                         {t.auth.email}
                       </label>
                       <input
@@ -185,7 +185,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToCreateAccount }: LoginMo
                     <button
                       type="button"
                       onClick={backToLogin}
-                      className="w-full text-gray-600 hover:text-gray-800 font-medium py-2"
+                      className="w-full text-[#FFD700] font-bold py-2"
                     >
                       ← Повернутися до входу
                     </button>
@@ -195,14 +195,14 @@ export function LoginModal({ isOpen, onClose, onSwitchToCreateAccount }: LoginMo
             ) : (
               <>
                 {/* Title */}
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                <h2 className="text-2xl font-bold text-[#FFD700] font-bold mb-6 text-center">
                   {t.auth.login}
                 </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-2">
                   {/* Email Input */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm text-[#FFD700] font-bold mb-1">
                       {t.auth.email}
                     </label>
                     <input
@@ -217,7 +217,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToCreateAccount }: LoginMo
 
                   {/* Password Input */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm text-[#FFD700] font-bold mb-1">
                       {t.auth.password}
                     </label>
                     <div className="relative">
@@ -231,7 +231,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToCreateAccount }: LoginMo
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#FFD700] font-bold"
                       >
                         {showPassword ? (
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,7 +269,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToCreateAccount }: LoginMo
                 </form>
 
                 {/* Switch to Create Account */}
-                <p className="text-center mt-4 text-gray-600">
+                <p className="text-center mt-4 text-[#FFD700] font-bold">
                   {t.auth.dontHaveAccount}{" "}
                   <button
                     onClick={onSwitchToCreateAccount}

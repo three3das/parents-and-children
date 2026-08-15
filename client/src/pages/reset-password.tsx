@@ -98,7 +98,7 @@ export default function ResetPassword() {
           </svg>
         )}
       </div>
-      <span className={`text-sm ${valid ? 'text-green-600' : 'text-gray-500'}`}>{text}</span>
+      <span className={`text-sm ${valid ? 'text-green-600' : 'text-[#FFD700] font-bold'}`}>{text}</span>
     </div>
   );
 
@@ -111,8 +111,8 @@ export default function ResetPassword() {
           animate={{ scale: 1, opacity: 1 }}
         >
           <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Невірне посилання</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-bold text-[#FFD700] font-bold mb-4">Невірне посилання</h1>
+          <p className="text-[#FFD700] font-bold mb-6">
             Посилання для скидання пароля недійсне або відсутнє.
           </p>
           <button
@@ -135,8 +135,8 @@ export default function ResetPassword() {
           animate={{ scale: 1, opacity: 1 }}
         >
           <div className="text-6xl mb-4">✅</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Пароль змінено!</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-bold text-[#FFD700] font-bold mb-4">Пароль змінено!</h1>
+          <p className="text-[#FFD700] font-bold mb-6">
             Ваш пароль успішно змінено. Тепер ви можете увійти з новим паролем.
           </p>
           <button
@@ -159,14 +159,14 @@ export default function ResetPassword() {
       >
         <div className="text-center mb-6">
           <div className="text-5xl mb-2">🔐</div>
-          <h1 className="text-2xl font-bold text-gray-800">Новий пароль</h1>
-          <p className="text-gray-600 text-sm mt-2">Введіть новий пароль для вашого акаунту</p>
+          <h1 className="text-2xl font-bold text-[#FFD700] font-bold">Новий пароль</h1>
+          <p className="text-[#FFD700] font-bold text-sm mt-2">Введіть новий пароль для вашого акаунту</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* New Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm text-[#FFD700] font-bold mb-1">
               Новий пароль
             </label>
             <div className="relative">
@@ -180,7 +180,7 @@ export default function ResetPassword() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#FFD700] font-bold"
               >
                 {showPassword ? (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +202,7 @@ export default function ResetPassword() {
                 animate={{ opacity: 1, height: "auto" }}
                 className="mt-2 p-3 bg-gray-50 rounded-lg space-y-1"
               >
-                <p className="text-sm font-medium text-gray-700 mb-2">
+                <p className="text-sm text-[#FFD700] font-bold mb-2">
                   Пароль повинен містити:
                 </p>
                 <ValidationCheck valid={passwordValidation.length} text="8 або більше символів" />
@@ -215,7 +215,7 @@ export default function ResetPassword() {
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm text-[#FFD700] font-bold mb-1">
               Підтвердіть пароль
             </label>
             <input
@@ -245,7 +245,7 @@ export default function ResetPassword() {
           </button>
         </form>
 
-        <p className="text-center mt-4 text-gray-600 text-sm">
+        <p className="text-center mt-4 text-[#FFD700] font-bold text-sm">
           <button
             onClick={() => setLocation('/')}
             className="text-blue-600 hover:text-blue-800 font-medium"

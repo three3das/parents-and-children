@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { SiteHeader } from "@/components/SiteHeader";
+import { SiteHeader } from "@/components/SiteHeaderFooter";
 
 const SECTIONS = [
   { emoji: "🌊", label: "Море" },

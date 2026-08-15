@@ -196,17 +196,13 @@ export function AlphabetTutor() {
         {/* Left side - Function controls */}
         <div className="w-40 space-y-2">
           <div>
-            <h4 className="text-[10px] font-semibold text-gray-600 mb-1">
+            <h4 className="text-[10px] text-[#FFD700] font-bold mb-1">
               {language === 'ru' ? 'Функции' : language === 'uk' ? 'Функції' : language === 'en' ? 'Functions' : 'Функции'}
             </h4>
             <div className="space-y-0.5">
               <button
                 onClick={() => setAudioEnabled(!audioEnabled)}
-                className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
-                  audioEnabled
-                    ? 'bg-green-400 text-gray-900 font-semibold'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${ audioEnabled ? 'bg-green-400 text-[#FFD700] font-bold ' : 'bg-gray-200 text-[#FFD700] font-bold hover:bg-gray-300' }`}
               >
                 🔊 {language === 'ru' ? 'Озвучивание' : language === 'uk' ? 'Озвучування' : language === 'en' ? 'Audio' : 'Озвучивание'}
               </button>
@@ -292,7 +288,7 @@ export function AlphabetTutor() {
               <>
                 {/* Vowels section with title */}
                 <div className="mb-2">
-                  <h3 className="text-xs font-semibold text-gray-700 mb-1">{alphabetData.vowelsTitle}</h3>
+                  <h3 className="text-xs text-[#FFD700] font-bold mb-1">{alphabetData.vowelsTitle}</h3>
                   <div className="flex gap-0.5 justify-center flex-wrap">
                     {alphabetData.vowels.map((letter, index) => (
                       <LetterCard
@@ -315,7 +311,7 @@ export function AlphabetTutor() {
 
                 {/* Consonants section with title */}
                 <div className="mb-2">
-                  <h3 className="text-xs font-semibold text-gray-700 mb-1">{alphabetData.consonantsTitle}</h3>
+                  <h3 className="text-xs text-[#FFD700] font-bold mb-1">{alphabetData.consonantsTitle}</h3>
                   {alphabetData.useGroups ? (
                     <div className="space-y-0.5">
                       {alphabetData.consonantGroups!.map((group, groupIndex) => (
@@ -369,7 +365,7 @@ export function AlphabetTutor() {
                 {/* Special characters section with title */}
                 {alphabetData.special.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-gray-700 mb-1">{alphabetData.specialTitle}</h3>
+                    <h3 className="text-xs text-[#FFD700] font-bold mb-1">{alphabetData.specialTitle}</h3>
                     <div className="flex gap-0.5 justify-center flex-wrap">
                       {alphabetData.special.map((letter, index) => (
                         <LetterCard
@@ -402,17 +398,13 @@ export function AlphabetTutor() {
               {/* Sanskrit categories - grouped */}
               {categories.vowelCategories && categories.vowelCategories.length > 0 && (
                 <div>
-                  <h4 className="text-[10px] font-semibold text-gray-600 mb-1">Vowel Types</h4>
+                  <h4 className="text-[10px] text-[#FFD700] font-bold mb-1">Vowel Types</h4>
                   <div className="space-y-0.5">
                     {categories.vowelCategories.map((category) => (
                       <button
                         key={category.id}
                         onClick={() => handleCategoryClick(category.id)}
-                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
-                          activeCategory === category.id
-                            ? 'bg-yellow-400 text-gray-900 font-semibold'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
+                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${ activeCategory === category.id ? 'bg-yellow-400 text-[#FFD700] font-bold ' : 'bg-gray-200 text-[#FFD700] font-bold hover:bg-gray-300' }`}
                       >
                         {category.label}
                       </button>
@@ -423,17 +415,13 @@ export function AlphabetTutor() {
 
               {categories.consonantCategories && categories.consonantCategories.length > 0 && (
                 <div>
-                  <h4 className="text-[10px] font-semibold text-gray-600 mb-1">Consonant Groups</h4>
+                  <h4 className="text-[10px] text-[#FFD700] font-bold mb-1">Consonant Groups</h4>
                   <div className="space-y-0.5">
                     {categories.consonantCategories.map((category) => (
                       <button
                         key={category.id}
                         onClick={() => handleCategoryClick(category.id)}
-                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
-                          activeCategory === category.id
-                            ? 'bg-yellow-400 text-gray-900 font-semibold'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
+                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${ activeCategory === category.id ? 'bg-yellow-400 text-[#FFD700] font-bold ' : 'bg-gray-200 text-[#FFD700] font-bold hover:bg-gray-300' }`}
                       >
                         {category.label}
                       </button>
@@ -444,17 +432,13 @@ export function AlphabetTutor() {
 
               {categories.characteristicCategories && categories.characteristicCategories.length > 0 && (
                 <div>
-                  <h4 className="text-[10px] font-semibold text-gray-600 mb-1">Characteristics</h4>
+                  <h4 className="text-[10px] text-[#FFD700] font-bold mb-1">Characteristics</h4>
                   <div className="space-y-0.5">
                     {categories.characteristicCategories.map((category) => (
                       <button
                         key={category.id}
                         onClick={() => handleCategoryClick(category.id)}
-                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
-                          activeCategory === category.id
-                            ? 'bg-yellow-400 text-gray-900 font-semibold'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
+                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${ activeCategory === category.id ? 'bg-yellow-400 text-[#FFD700] font-bold ' : 'bg-gray-200 text-[#FFD700] font-bold hover:bg-gray-300' }`}
                       >
                         {category.label}
                       </button>
@@ -468,7 +452,7 @@ export function AlphabetTutor() {
               {/* Other languages - simple list */}
               {categories.simpleCategories && categories.simpleCategories.length > 0 && (
                 <div>
-                  <h4 className="text-[10px] font-semibold text-gray-600 mb-1">
+                  <h4 className="text-[10px] text-[#FFD700] font-bold mb-1">
                     {language === 'ru' ? 'Категории' : language === 'uk' ? 'Категорії' : 'Categories'}
                   </h4>
                   <div className="space-y-0.5">
@@ -476,11 +460,7 @@ export function AlphabetTutor() {
                       <button
                         key={category.id}
                         onClick={() => handleCategoryClick(category.id)}
-                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
-                          activeCategory === category.id
-                            ? 'bg-yellow-400 text-gray-900 font-semibold'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
+                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${ activeCategory === category.id ? 'bg-yellow-400 text-[#FFD700] font-bold ' : 'bg-gray-200 text-[#FFD700] font-bold hover:bg-gray-300' }`}
                       >
                         {category.label}
                       </button>
@@ -539,15 +519,15 @@ function LetterCard({
       }`}
     >
       {number && (
-        <div className="absolute top-0 right-0 text-[8px] text-gray-500 px-0.5">
+        <div className="absolute top-0 right-0 text-[8px] text-[#FFD700] font-bold px-0.5">
           {number}
         </div>
       )}
-      <div className="text-xl font-semibold text-gray-900">
+      <div className="text-xl text-[#FFD700] font-bold">
         {display.main}
       </div>
       {!isHovered && 'devanagari' in letter && (
-        <div className="text-[9px] text-gray-600 leading-none">{display.detail}</div>
+        <div className="text-[9px] text-[#FFD700] font-bold leading-none">{display.detail}</div>
       )}
 
       {showTooltip && isHovered && (

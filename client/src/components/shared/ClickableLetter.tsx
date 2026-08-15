@@ -30,10 +30,10 @@ export function ClickableLetter({
 
   const themeClasses = {
     blue: used 
-      ? 'bg-gray-300 border-gray-400 text-gray-500 cursor-not-allowed'
+      ? 'bg-gray-300 border-gray-400 text-[#FFD700] font-bold cursor-not-allowed'
       : 'bg-blue-500 border-blue-600 text-white hover:bg-blue-600 cursor-pointer',
     gray: used 
-      ? 'bg-gray-300 border-gray-400 text-gray-500 cursor-not-allowed'
+      ? 'bg-gray-300 border-gray-400 text-[#FFD700] font-bold cursor-not-allowed'
       : 'bg-gray-500 border-gray-600 text-white hover:bg-gray-600 cursor-pointer'
   };
 

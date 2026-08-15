@@ -18,11 +18,11 @@ export function WordDisplay({ word }: WordDisplayProps) {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: index * 0.1 }}
         >
-          <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-2xl sm:text-3xl font-bold rounded-xl border-4 border-gray-300 bg-white text-gray-800 shadow-lg">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-2xl sm:text-3xl font-bold rounded-xl border-4 border-gray-300 bg-white text-[#FFD700] font-bold shadow-lg">
             {letter}
           </div>
           <button
-            className="h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+            className="h-6 flex items-center justify-center text-[#FFD700] font-bold transition-colors"
             onClick={() => playLetterSound(letter)}
             type="button"
           >

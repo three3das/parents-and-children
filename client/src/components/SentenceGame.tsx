@@ -228,7 +228,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                 <>
                     <div className="w-full max-w-2xl mb-2">
                         <Progress value={progress} className="h-2" />
-                        <p className="text-center text-sm text-gray-600 mt-2">
+                        <p className="text-center text-sm text-[#FFD700] font-bold mt-2">
                             {t.question} {currentActivityIndex + 1} {t.of} {totalQuestions}
                         </p>
                     </div>
@@ -257,7 +257,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                                 })}
                             </GameImageGrid>
                         ) : (
-                            <div className="text-center text-gray-500">
+                            <div className="text-center text-[#FFD700] font-bold">
                                 {t.loadingImages}
                             </div>
                         )}
@@ -283,7 +283,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                                         </div>
                                     ));
                                 })() || (
-                                        <span className="text-gray-500">{t.syllablesNotSpecified}</span>
+                                        <span className="text-[#FFD700] font-bold">{t.syllablesNotSpecified}</span>
                                     )}
                             </div>
                         </Card>

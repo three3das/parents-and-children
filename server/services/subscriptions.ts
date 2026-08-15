@@ -14,7 +14,7 @@ export async function getActiveSubscription(userId: string | number) {
     sql`SELECT * FROM subscriptions
         WHERE user_id = ${String(userId)}
           AND status = 'active'
-        ORDER BY created_at DESC
+        ORDER BY started_at DESC
         LIMIT 1`
   );
   return result.rows[0] || null;

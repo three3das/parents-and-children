@@ -67,7 +67,7 @@ export function GamePictureDisplay({
         )}
       </motion.div>
       <motion.button
-        className={`text-gray-400 transition-all ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:text-gray-600 hover:scale-110'}`}
+        className={`text-[#FFD700] font-bold transition-all ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-110'}`}
         whileHover={!disabled ? { scale: 1.1 } : {}}
         whileTap={!disabled ? { scale: 0.95 } : {}}
         onClick={handleSpeakerClick}

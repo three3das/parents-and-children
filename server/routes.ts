@@ -8,7 +8,7 @@ import bcrypt from "bcrypt";
 import { sendPasswordResetEmail } from "./email";
 import { getActiveSubscription } from "./services/subscriptions";
 import paymentsRouterModule from "./routes/payments";
-import p2pPaymentsRouterModule from "./routes/p2p-payments";
+import p2pPaymentsRouterModule, { createPendingPayment } from "./routes/p2p-payments";
 const paymentsRouter = (paymentsRouterModule as any).default || paymentsRouterModule;
 const p2pPaymentsRouter = (p2pPaymentsRouterModule as any).default || p2pPaymentsRouterModule;
  
@@ -71,6 +71,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
  
       // Remove password from response
       const { password, ...userWithoutPassword } = user;
+
+      // Сразу создаём заготовку заявки на оплату (метод оплаты ещё не
+      // выбран — участник выберет его позже на странице /payments).
+      // Это же действие отправляет уведомление администратору на почту
+      // (см. createPendingPayment → sendPaymentNotificationEmail).
+      // Ошибка здесь не должна ломать саму регистрацию — только логируем.
+      try {
+        await createPendingPayment(user.id, user.email, 1);
+      } catch (pendingErr) {
+        console.error("Error creating pending payment on register:", pendingErr);
+      }
  
       // Новый пользователь — подписки нет
       res.status(201).json({ user: { ...userWithoutPassword, hasSubscription: false } });
@@ -140,13 +151,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
  
   // Google OAuth login/register
+  
   app.post("/api/auth/google", async (req, res) => {
     try {
       const googleSchema = z.object({
-        credential: z.string()
+        credential: z.string(),
+        name: z.string().min(1, "Имя обязательно").optional()
       });
- 
-      const { credential } = googleSchema.parse(req.body);
+
+      const { credential, name } = googleSchema.parse(req.body);
  
       const parts = credential.split('.');
       if (parts.length !== 3) {
@@ -163,16 +176,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let user = await storage.getUserByEmail(email);
  
       if (!user) {
+        if (!name || !name.trim()) {
+          return res.status(400).json({ message: "Введите имя перед регистрацией через Google" });
+        }
         const randomPassword = await bcrypt.hash(googleId + Date.now(), 10);
         user = await storage.createUser({
           email,
-          firstName: given_name || 'User',
-          lastName: family_name || '',
+          firstName: name.trim(),
+          lastName: '',
           password: randomPassword,
           newsletter: false
         });
+
+        // Тот же самый шаг, что и при обычной регистрации: создаём
+        // заготовку заявки на оплату и уведомляем администратора.
+        try {
+          await createPendingPayment(user.id, user.email, 1);
+        } catch (pendingErr) {
+          console.error("Error creating pending payment on Google register:", pendingErr);
+        }
       }
- 
+
       const { password: _, ...userWithoutPassword } = user;
  
       // Проверяем наличие активной подписки

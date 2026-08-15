@@ -102,7 +102,7 @@ export default function AdminPanel() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">Загрузка...</p>
+        <p className="text-[#FFD700] font-bold">Загрузка...</p>
       </div>
     );
   }
@@ -116,10 +116,10 @@ export default function AdminPanel() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-xl shadow-lg p-6 mb-6"
         >
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl font-bold text-[#FFD700] font-bold mb-2">
             📊 Админ-панель подписок
           </h1>
-          <p className="text-gray-600">Управление P2P платежами</p>
+          <p className="text-[#FFD700] font-bold">Управление P2P платежами</p>
         </motion.div>
 
         {/* Stats */}
@@ -155,12 +155,12 @@ export default function AdminPanel() {
           transition={{ delay: 0.2 }}
           className="bg-white rounded-xl shadow-lg p-6"
         >
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
+          <h2 className="text-xl font-bold text-[#FFD700] font-bold mb-4">
             Ожидают активации ({payments.length})
           </h2>
 
           {payments.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
+            <p className="text-[#FFD700] font-bold text-center py-8">
               Нет ожидающих платежей
             </p>
           ) : (
@@ -175,13 +175,13 @@ export default function AdminPanel() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-800">
+                      <p className="text-[#FFD700] font-bold">
                         {payment.user_email}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-[#FFD700] font-bold">
                         Сумма: {payment.amount} грн
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-[#FFD700] font-bold">
                         Создано: {new Date(payment.created_at).toLocaleString("ru-RU")}
                       </p>
                     </div>
@@ -190,11 +190,7 @@ export default function AdminPanel() {
                       <button
                         onClick={() => handleActivate(payment.id)}
                         disabled={!stats?.canActivate}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                          stats?.canActivate
-                            ? "bg-green-500 hover:bg-green-600 text-white"
-                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        }`}
+                        className={`px-4 py-2 rounded-lg transition-colors ${ stats?.canActivate ? "bg-green-500 hover:bg-green-600 text-white" : "bg-gray-300 text-[#FFD700] font-bold cursor-not-allowed" }`}
                       >
                         ✓ Активировать
                       </button>

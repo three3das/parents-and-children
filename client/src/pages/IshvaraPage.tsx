@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useLanguage, LANGUAGE_FLAGS } from "@/lib/i18n";
+import { useAuth, getWelcomeName } from "@/lib/auth";
 
 type Category = {
   key: string;
@@ -22,11 +23,15 @@ const headerNav = [
   { key: "plays", label: "Четвертое имя участника" },
 ];
 
+// Базовые подписи для нижней навигации. Подпись последнего пункта
+// ("your-page") подменяется динамически в рендере в зависимости от
+// того, вошёл пользователь или нет — см. footerNavWithAuthLabel ниже.
+
 const footerNav = [
-  { key: "site-page", label: "Страница сайта" },
-  { key: "all-data", label: "Доступ ко всем данным сайта" },
-  { key: "languages", label: "Меню доступных языков" },
+  { key: "all-data", label: "Начальная страница сайта" },
   { key: "your-page", label: "Ваша страница" },
+  { key: "site-page", label: "Все страницы сайта" },
+  { key: "languages", label: "Меню доступных языков" },
 ];
 
 // Список языков для колеса языкового меню — 12 секторов, по часовой
@@ -304,6 +309,11 @@ export default function IshvaraPage() {
   const { language, setLanguage } = useLanguage();
   const [, setLocation] = useLocation();
 
+  // Статус входа — используется, чтобы подписать кнопку "Ваша страница"
+  // именем пользователя вместо статичного текста, и решить, куда вести
+  // по клику: на /login (если не вошёл) или на выход (если уже вошёл).
+  const { user, isAuthenticated, logout } = useAuth();
+
   // Санскрит — язык по умолчанию. Если хук useLanguage() ещё не
   // выставил ни один из известных 12 языков (например, при самом
   // первом заходе на сайт, когда в хранилище ничего не сохранено),
@@ -342,6 +352,20 @@ export default function IshvaraPage() {
       setView("languages");
     } else if (key === "site-page") {
       setView("dictionary");
+    } else if (key === "all-data") {
+      // Единая точка входа к платному доступу:
+      // не вошёл — сначала форма входа/регистрации;
+      // вошёл, но ещё не оплатил — колесо способов оплаты.
+      // (Полная блокировка остальных страниц сайта для неоплативших —
+      // отдельный шаг, ещё предстоит сделать компонент-«шлагбаум» в App.tsx.)
+      if (!isAuthenticated) {
+        setLocation("/login");
+      } else {
+        setLocation("/payments");
+      }
+    } else if (key === "your-page") {
+      // Пока без действия — сюда позже добавится другое меню
+      // (содержание уточним отдельно).
     }
   };
 
@@ -435,20 +459,33 @@ export default function IshvaraPage() {
 
       <footer className="flex-shrink-0 w-full px-6 py-2 border-t border-yellow-200">
         <nav className="flex w-full gap-[0.5cm]">
-          {footerNav.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => handleFooterClick(item.key)}
-              className="flex-1 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
-              style={{
-                color: "#FFD700",
-                borderColor:
-                  activeFooterNav === item.key ? "#FFD700" : "#FFE066",
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
+          {footerNav.map((item) => {
+            // Подпись кнопки "Доступ ко всем данным сайта" подменяется
+            // динамически: приветствие с именем пользователя, если он
+            // вошёл (и, значит, уже прошёл этап входа — дальше его
+            // встретит колесо оплаты), иначе — приглашение войти.
+            const label =
+              item.key === "all-data"
+                ? isAuthenticated
+                  ? `Добро пожаловать, ${getWelcomeName(user)}!`
+                  : "Начальная страница сайта"
+                : item.label;
+
+            return (
+              <button
+                key={item.key}
+                onClick={() => handleFooterClick(item.key)}
+                className="flex-1 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
+                style={{
+                  color: "#FFD700",
+                  borderColor:
+                    activeFooterNav === item.key ? "#FFD700" : "#FFE066",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </nav>
       </footer>
     </div>

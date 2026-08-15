@@ -25,6 +25,8 @@ import IshvaraPage from "@/pages/IshvaraPage";
 import SvarupaBhagavanaPage from "@/pages/SvarupaBhagavanaPage";
 import GamePage from "@/pages/game";
 import { CATEGORIES } from "@/lib/categories";
+import PaymentsPage from "@/pages/PaymentsPage";
+
 
 export default function App() {
   useEffect(() => {
@@ -53,6 +55,7 @@ export default function App() {
               <Route path="/elements" component={ElementsPage} />
               <Route path="/punctuation" component={PunctuationPage} />
               <Route path="/ishvara" component={IshvaraPage} />
+              <Route path="/payments" component={PaymentsPage} />
               <Route path="/svarupa-bhagavana" component={SvarupaBhagavanaPage} />
               {CATEGORIES.filter((cat) => cat.id !== "reading").map((cat) => (
                 <Route key={cat.id} path={cat.path}>

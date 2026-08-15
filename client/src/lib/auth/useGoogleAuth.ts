@@ -1,57 +1,89 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthContext';
 
-// Google Client ID - should be set in environment variable
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '441359935029-your-client-id.apps.googleusercontent.com';
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          initialize: (config: any) => void;
+          renderButton: (element: HTMLElement, config: any) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
 
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  '441359935029-your-client-id.apps.googleusercontent.com';
+
+export type GoogleButtonText =
+  | 'signin_with'
+  | 'signup_with'
+  | 'continue_with';
 
 export function useGoogleAuth() {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGoogleResponse = useCallback(async (response: { credential: string }) => {
-    setIsLoading(true);
-    setError(null);
+  const extraDataRef = useRef<Record<string, any>>({});
 
-    try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ credential: response.credential }),
-      });
+  const setExtraData = useCallback((data: Record<string, any>) => {
+    extraDataRef.current = data;
+  }, []);
 
-      const data = await res.json();
+  const handleGoogleResponse = useCallback(
+    async (response: { credential: string }) => {
+      setIsLoading(true);
+      setError(null);
 
-      if (res.ok) {
-        login(data.user);
-        return { success: true, user: data.user };
-      } else {
-        setError(data.message || 'Failed to authenticate with Google');
-        return { success: false, error: data.message };
+      try {
+        const res = await fetch('/api/auth/google', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            credential: response.credential,
+            ...extraDataRef.current,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          login(data.user);
+          return { success: true, user: data.user };
+        } else {
+          setError(data.message || 'Failed to authenticate with Google');
+          return { success: false, error: data.message };
+        }
+      } catch (err) {
+        const errorMessage = 'Failed to connect to server';
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      const errorMessage = 'Failed to connect to server';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [login]);
+    },
+    [login]
+  );
 
   const initializeGoogle = useCallback(() => {
     if (window.google?.accounts?.id) {
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
       });
     }
   }, [handleGoogleResponse]);
 
   useEffect(() => {
-    // Initialize Google Sign-In when the script loads
     const checkGoogleLoaded = setInterval(() => {
       if (window.google) {
         initializeGoogle();
@@ -59,23 +91,28 @@ export function useGoogleAuth() {
       }
     }, 100);
 
-    // Clean up
     return () => clearInterval(checkGoogleLoaded);
   }, [initializeGoogle]);
 
-  const renderGoogleButton = useCallback((elementId: string) => {
-    const element = document.getElementById(elementId);
-    if (element && window.google?.accounts?.id) {
+  const renderGoogleButton = useCallback(
+    (elementId: string, text: GoogleButtonText = 'continue_with') => {
+      const element = document.getElementById(elementId);
+      if (!element || !window.google?.accounts?.id) return;
+
+      element.innerHTML = '';
+
       window.google.accounts.id.renderButton(element, {
         theme: 'outline',
         size: 'large',
         type: 'standard',
-        text: 'continue_with',
+        text,
         shape: 'rectangular',
         width: '100%',
+        locale: 'ru',
       });
-    }
-  }, []);
+    },
+    []
+  );
 
   const promptGoogleSignIn = useCallback(() => {
     if (window.google?.accounts?.id) {
@@ -90,5 +127,6 @@ export function useGoogleAuth() {
     promptGoogleSignIn,
     handleGoogleResponse,
     initializeGoogle,
+    setExtraData,
   };
 }

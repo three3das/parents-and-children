@@ -199,7 +199,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                 <>
                     <div className="w-full max-w-2xl mb-2">
                         <Progress value={progress} className="h-2" />
-                        <p className="text-center text-sm text-gray-600 mt-2">
+                        <p className="text-center text-sm text-[#FFD700] font-bold mt-2">
                             {t.question} {currentWordIndex + 1} {t.of} {totalQuestions}
                         </p>
                     </div>
@@ -233,7 +233,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
 
                         {/* Prefix */}
                         <div className="bg-white rounded-lg border-2 border-gray-300 px-4 py-6 flex items-center justify-center">
-                            <span className="text-2xl font-bold text-gray-800">
+                            <span className="text-2xl font-bold text-[#FFD700] font-bold">
                                 {getPrefix(currentWord)}
                             </span>
                         </div>
@@ -247,14 +247,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                                     whileTap={{ scale: !showResult ? 0.95 : 1 }}
                                     onClick={() => handleEndingSelect(option)}
                                     disabled={disabled || showResult}
-                                    className={`px-4 py-2 rounded-lg border-2 font-bold text-xl transition-all min-w-[80px] ${showResult && selectedEnding === option
-                                        ? isCorrect && option === currentWord.suffix
-                                            ? 'bg-white text-gray-800 border-green-500'
-                                            : 'bg-white text-gray-800 border-red-500'
-                                        : showResult && option === currentWord.suffix
-                                            ? 'bg-white text-gray-800 border-green-500'
-                                            : 'bg-white text-gray-800 border-gray-300 hover:border-blue-400 hover:bg-gray-50'
-                                        }`}
+                                    className={`px-4 py-2 rounded-lg border-2 font-bold text-xl transition-all min-w-[80px] ${showResult && selectedEnding === option ? isCorrect && option === currentWord.suffix ? 'bg-white text-[#FFD700] font-bold border-green-500' : 'bg-white text-[#FFD700] font-bold border-red-500' : showResult && option === currentWord.suffix ? 'bg-white text-[#FFD700] font-bold border-green-500' : 'bg-white text-[#FFD700] font-bold border-gray-300 hover:border-blue-400 hover:bg-gray-50' }`}
                                 >
                                     {option}
                                 </motion.button>
@@ -266,7 +259,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-center p-3 rounded-lg bg-white border-2 border-green-500 text-gray-800 mb-4"
+                            className="text-center p-3 rounded-lg bg-white border-2 border-green-500 text-[#FFD700] font-bold mb-4"
                         >
                             <p className="font-bold">
                                 {t.correctAnswer} {currentWord.word}

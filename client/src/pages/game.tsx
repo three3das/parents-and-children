@@ -570,7 +570,7 @@ export default function Game() {
             {distractorsLoading ? (
               <div className="text-center py-8">
                 <div className="text-2xl"> </div>
-                <p className="text-sm text-gray-500">...</p>
+                <p className="text-sm text-[#FFD700] font-bold">...</p>
               </div>
             ) : (
               <PictureGrid
@@ -609,7 +609,7 @@ export default function Game() {
           spellLettersLoading ? (
             <div className="text-center py-8">
               <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.preparingLetters}</p>
+              <p className="text-sm text-[#FFD700] font-bold">{t.preparingLetters}</p>
             </div>
           ) : spellLettersData ? (
             <SpellWordGame
@@ -640,7 +640,7 @@ export default function Game() {
           distractorsLoading ? (
             <div className="text-center py-8">
               <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.loadingOptions}</p>
+              <p className="text-sm text-[#FFD700] font-bold">{t.loadingOptions}</p>
             </div>
           ) : (
             <AudioPictureGame
@@ -657,7 +657,7 @@ export default function Game() {
           materialWorldLoading || sentenceDistractorsLoading ? (
             <div className="text-center py-8">
               <div className="text-2xl">⏳</div>
-              <p className="text-sm text-gray-500">{t.loadingOptions}</p>
+              <p className="text-sm text-[#FFD700] font-bold">{t.loadingOptions}</p>
             </div>
           ) : currentSentence ? (
             <AudioSentenceGame
@@ -670,7 +670,7 @@ export default function Game() {
           ) : (
             <div className="text-center py-8">
               <div className="text-2xl">📭</div>
-              <p className="text-sm text-gray-500">{t.loading}</p>
+              <p className="text-sm text-[#FFD700] font-bold">{t.loading}</p>
             </div>
           )
         )}

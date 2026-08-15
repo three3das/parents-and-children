@@ -96,7 +96,7 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
           </svg>
         )}
       </div>
-      <span className={`text-xs ${valid ? 'text-green-600' : 'text-gray-500'}`}>{text}</span>
+      <span className={`text-xs ${valid ? 'text-green-600' : 'text-[#FFD700] font-bold'}`}>{text}</span>
     </div>
   );
 
@@ -121,7 +121,7 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-3 right-3 text-[#FFD700] font-bold transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -129,14 +129,14 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
             </button>
 
             {/* Title */}
-            <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
+            <h2 className="text-xl font-bold text-[#FFD700] font-bold mb-4 text-center">
               {t.auth.createAccount}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-2">
               {/* Email Input */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                <label className="block text-xs text-[#FFD700] font-bold mb-0.5">
                   {t.auth.email}
                 </label>
                 <input
@@ -151,7 +151,7 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
 
               {/* First Name Input */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                <label className="block text-xs text-[#FFD700] font-bold mb-0.5">
                   {t.auth.firstName}
                 </label>
                 <input
@@ -165,7 +165,7 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
 
               {/* Last Name Input */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                <label className="block text-xs text-[#FFD700] font-bold mb-0.5">
                   {t.auth.lastName}
                 </label>
                 <input
@@ -179,7 +179,7 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
 
               {/* Password Input */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                <label className="block text-xs text-[#FFD700] font-bold mb-0.5">
                   {t.auth.password}
                 </label>
                 <div className="relative">
@@ -193,7 +193,7 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#FFD700] font-bold"
                   >
                     {showPassword ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,7 +215,7 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
                     animate={{ opacity: 1, height: "auto" }}
                     className="mt-1 p-2 bg-gray-50 rounded-lg space-y-0.5"
                   >
-                    <p className="text-xs font-medium text-gray-700 mb-1">
+                    <p className="text-xs text-[#FFD700] font-bold mb-1">
                       {t.auth.passwordRequirements.title}
                     </p>
                     <ValidationCheck valid={passwordValidation.length} text={t.auth.passwordRequirements.length} />
@@ -235,13 +235,13 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
                   onChange={(e) => setNewsletter(e.target.checked)}
                   className="mt-0.5 w-3.5 h-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="newsletter" className="text-xs text-gray-600">
+                <label htmlFor="newsletter" className="text-xs text-[#FFD700] font-bold">
                   {t.auth.newsletter}
                 </label>
               </div>
 
               {/* Terms Text */}
-              <p className="text-[10px] text-gray-500 text-center mt-1">
+              <p className="text-[10px] text-[#FFD700] font-bold text-center mt-1">
                 {t.auth.termsText}{" "}
                 <a href="#" className="text-blue-600 hover:underline">{t.auth.termsLink}</a>{" "}
                 &{" "}
@@ -259,7 +259,7 @@ export function CreateAccountModal({ isOpen, onClose, onSwitchToLogin }: CreateA
             </form>
 
             {/* Switch to Login */}
-            <p className="text-center mt-3 text-xs text-gray-600">
+            <p className="text-center mt-3 text-xs text-[#FFD700] font-bold">
               {t.auth.alreadyHaveAccount}{" "}
               <button
                 onClick={onSwitchToLogin}

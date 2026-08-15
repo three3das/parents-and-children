@@ -112,8 +112,8 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressCli
               <>
                 {/* User info */}
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="font-medium text-gray-800">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+                  <p className="text-[#FFD700] font-bold">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-sm text-[#FFD700] font-bold truncate">{user?.email}</p>
                 </div>
                 {/* Subscribe button */}
                 <button
@@ -127,7 +127,7 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressCli
                 {onProgressClick && (
                   <button
                     onClick={handleProgressClick}
-                    className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100 flex items-center"
+                    className="w-full px-4 py-3 text-left text-[#FFD700] font-bold hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center"
                   >
                     <span className="mr-2">📊</span>
                     {t.progress?.title || 'Прогресс'}
@@ -137,7 +137,7 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressCli
                 {onSettingsClick && (
                   <button
                     onClick={handleSettingsClick}
-                    className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100 flex items-center"
+                    className="w-full px-4 py-3 text-left text-[#FFD700] font-bold hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center"
                   >
                     <span className="mr-2">⚙️</span>
                     {t.settings}
@@ -163,13 +163,13 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressCli
                 </button>
                 <button
                   onClick={handleLoginClick}
-                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
+                  className="w-full px-4 py-3 text-left text-[#FFD700] font-bold hover:bg-gray-50 transition-colors border-b border-gray-100"
                 >
                   {t.auth.login}
                 </button>
                 <button
                   onClick={handleCreateAccountClick}
-                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
+                  className="w-full px-4 py-3 text-left text-[#FFD700] font-bold hover:bg-gray-50 transition-colors border-b border-gray-100"
                 >
                   {t.auth.createAccount}
                 </button>
@@ -177,7 +177,7 @@ export function AuthDropdown({ onLoginClick, onCreateAccountClick, onProgressCli
                 {onSettingsClick && (
                   <button
                     onClick={handleSettingsClick}
-                    className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors font-medium flex items-center"
+                    className="w-full px-4 py-3 text-left text-[#FFD700] font-bold hover:bg-gray-50 transition-colors flex items-center"
                   >
                     <span className="mr-2">⚙️</span>
                     {t.settings}

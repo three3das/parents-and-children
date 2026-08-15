@@ -66,7 +66,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
               className="md:hidden flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex-shrink-0"
             >
               <svg
-                className="w-4 h-4 text-gray-700"
+                className="w-4 h-4 text-[#FFD700] font-bold"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

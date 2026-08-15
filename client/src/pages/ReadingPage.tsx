@@ -4,7 +4,7 @@
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { CATEGORIES } from "@/lib/categories";
-import { SiteHeader } from "@/components/SiteHeader";
+import { SiteHeader } from "@/components/SiteHeaderFooter";
 import { useLanguage, type Language } from "@/lib/i18n";
 
 interface KfcWord {

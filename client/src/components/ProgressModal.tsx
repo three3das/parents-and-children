@@ -128,12 +128,12 @@ export function ProgressModal({ isOpen, onClose, sessionId }: ProgressModalProps
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-[#FFD700] font-bold flex items-center gap-2">
               📊 {t.progress?.title || 'Прогресс'}
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl"
+              className="text-[#FFD700] font-bold text-2xl"
             >
               ✕
             </button>
@@ -143,7 +143,7 @@ export function ProgressModal({ isOpen, onClose, sessionId }: ProgressModalProps
           <div className="p-4 bg-gray-50 border-b">
             <div className="flex flex-wrap items-center gap-4 justify-center">
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-600">
+                <label className="text-sm text-[#FFD700] font-bold">
                   {t.progress?.fromDate || 'С какого дня'}:
                 </label>
                 <input
@@ -154,7 +154,7 @@ export function ProgressModal({ isOpen, onClose, sessionId }: ProgressModalProps
                 />
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-600">
+                <label className="text-sm text-[#FFD700] font-bold">
                   {t.progress?.toDate || 'По какой день'}:
                 </label>
                 <input
@@ -261,7 +261,7 @@ export function ProgressModal({ isOpen, onClose, sessionId }: ProgressModalProps
                 )}
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+              <div className="flex flex-col items-center justify-center h-64 text-[#FFD700] font-bold">
                 <div className="text-4xl mb-4">📊</div>
                 <p>{t.progress?.noData || 'Нет данных за выбранный период'}</p>
               </div>

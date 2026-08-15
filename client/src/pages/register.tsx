@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useGoogleAuth } from "@/lib/auth/useGoogleAuth";
 
 export default function RegisterPage() {
   const [, navigate] = useLocation();
   const { register } = useAuth();
+  const { renderGoogleButton, setExtraData, error: googleError, isLoading: googleLoading } = useGoogleAuth();
+
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -12,9 +16,22 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    setExtraData({ name });
+  }, [name, setExtraData]);
+
+  useEffect(() => {
+    renderGoogleButton("google-signup-button", "signup_with");
+  }, [renderGoogleButton]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!name.trim()) {
+      setError("Введите имя");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -31,7 +48,9 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({
           email,
-          password
+          password,
+          firstName: name.trim(),
+          lastName: ""
         }),
       });
 
@@ -85,7 +104,7 @@ export default function RegisterPage() {
             Create Account
           </h1>
 
-          {error && (
+          {(error || googleError) && (
             <div
               style={{
                 background: "#FEE2E2",
@@ -97,9 +116,56 @@ export default function RegisterPage() {
                 fontSize: "0.875rem",
               }}
             >
-              {error}
+              {error || googleError}
             </div>
           )}
+
+          <div style={{ marginBottom: "1rem" }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: "0.875rem",
+                fontWeight: "500",
+                color: "#374151",
+                marginBottom: "0.25rem",
+              }}
+            >
+              Имя
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                fontSize: "1rem",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              placeholder="Ваше имя"
+              required
+            />
+          </div>
+
+          <div id="google-signup-button" style={{ marginBottom: "1rem" }} />
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              margin: "1rem 0",
+              color: "#9ca3af",
+              fontSize: "0.75rem",
+            }}
+          >
+            <div style={{ flex: 1, height: "1px", background: "#e5e7eb" }} />
+            или
+            <div style={{ flex: 1, height: "1px", background: "#e5e7eb" }} />
+          </div>
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div>
@@ -211,7 +277,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || googleLoading}
               style={{
                 background: "linear-gradient(135deg, #FF5252, #E00000)",
                 color: "#fff",

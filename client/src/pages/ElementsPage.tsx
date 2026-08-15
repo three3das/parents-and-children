@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useLanguage } from "@/lib/i18n";
-import { SiteHeader } from "@/components/SiteHeader";
+import { SiteHeader } from "@/components/SiteHeaderFooter";
 
 const ELEMENTS: { ru: string; uk: string; en: string; bg: string }[] = [
   { ru: "Воздух", uk: "Повітря",  en: "Air",    bg: "linear-gradient(135deg,#B3E5FC,#81D4FA)" },

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { CATEGORIES } from "@/lib/categories";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader, SiteFooter } from "@/components/SiteHeaderFooter";
 import { useLanguage } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 

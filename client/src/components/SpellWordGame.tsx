@@ -146,7 +146,7 @@ export function SpellWordGame({ word, availableLetters, onWordComplete, onIncorr
           ) : (
             <div className="text-6xl text-red-500">
               <div className="text-8xl mb-2">❌</div>
-              <p className="text-3xl font-bold text-gray-800 mt-2">{word.word}</p>
+              <p className="text-3xl font-bold text-[#FFD700] font-bold mt-2">{word.word}</p>
             </div>
           )}
         </motion.div>

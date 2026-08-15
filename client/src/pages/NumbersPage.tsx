@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useLanguage } from "@/lib/i18n";
-import { SiteHeader } from "@/components/SiteHeader";
+import { SiteHeader } from "@/components/SiteHeaderFooter";
 
 // ── Number names per language (for speech synthesis fallback) ─────────────────
 

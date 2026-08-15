@@ -3,7 +3,7 @@
 
 import { useLocation } from "wouter";
 import type { Category } from "@/lib/categories";
-import { SiteHeader } from "./SiteHeader";
+import { SiteHeader } from "./SiteHeaderFooter";
 
 interface Props {
   category: Category;

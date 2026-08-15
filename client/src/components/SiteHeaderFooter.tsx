@@ -1,3 +1,13 @@
+// ─── SiteHeaderFooter.tsx ──────────────────────────────────────────────────
+// Объединённый файл: полные SiteHeader/SiteFooter (логотип, авторизация,
+// инфо-карточки — используются на большинстве страниц) и упрощённые
+// WheelHeader/WheelFooter + WheelPageShell для страниц-«колёс»
+// (PaymentsPage, IshvaraPage и т.п.).
+
+import { type ReactNode } from "react";
+import type { NavItem } from "@/lib/siteNav";
+
+// ═══ SiteHeader — полный хедер (логотип, языки, авторизация) ═══
 // ─── SiteHeader — shared header for all pages ────────────────────────────────
 // Logo · LanguageSwitcher · AuthDropdown (with modals)
 
@@ -383,5 +393,210 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
         }}
       />
     </>
+  );
+}
+
+// ═══ SiteFooter — информационный футер (используется на home.tsx) ═══
+// ─── SiteFooter — shared footer for all pages ────────────────────────────────
+
+export function SiteFooter() {
+  return (
+    <footer
+      style={{
+        width: "100%",
+        padding: "22px 24px",
+        textAlign: "center",
+        fontSize: "0.95rem",
+        background: "#ffffff",
+        borderTop: "1px solid rgba(240, 240, 240, 0.9)",
+      }}
+    >
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gap: "20px",
+          marginBottom: "40px",
+        }}
+        className="cards-grid"
+      >
+        <article
+          style={{
+            padding: "26px",
+            borderRadius: "24px",
+            background: "white",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 12px 30px rgba(15, 23, 42, 0.04)",
+          }}
+        >
+          <h3
+            style={{
+              marginTop: 0,
+              marginBottom: "14px",
+              fontSize: "1.15rem",
+              color: "#2D2D2D",
+            }}
+          >
+            Мобильная версия
+          </h3>
+          <p style={{ margin: 0, color: "#555", lineHeight: 1.6 }}>
+            Интерфейс адаптируется для смартфонов, планшетов и экранов с любой
+            шириной.
+          </p>
+        </article>
+
+        <article
+          style={{
+            padding: "26px",
+            borderRadius: "24px",
+            background: "white",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 12px 30px rgba(15, 23, 42, 0.04)",
+          }}
+        >
+          <h3
+            style={{
+              marginTop: 0,
+              marginBottom: "14px",
+              fontSize: "1.15rem",
+              color: "#2D2D2D",
+            }}
+          >
+            Компьютерная версия
+          </h3>
+          <p style={{ margin: 0, color: "#555", lineHeight: 1.6 }}>
+            Широкие блоки контента, удобная навигация и понятный дизайн на
+            больших экранах.
+          </p>
+        </article>
+
+        <article
+          style={{
+            padding: "26px",
+            borderRadius: "24px",
+            background: "white",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 12px 30px rgba(15, 23, 42, 0.04)",
+          }}
+        >
+          <h3
+            style={{
+              marginTop: 0,
+              marginBottom: "14px",
+              fontSize: "1.15rem",
+              color: "#2D2D2D",
+            }}
+          >
+            Языковое меню
+          </h3>
+          <p style={{ margin: 0, color: "#555", lineHeight: 1.6 }}>
+            Список языков в алфавитном порядке с особым первым местом для
+            санскрита.
+          </p>
+        </article>
+      </section>
+
+      {/* Добавим медиа-запросы через style тег */}
+      <style>{`
+        @media (max-width: 860px) {
+          .cards-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+    </footer>
+  );
+}
+
+// ═══ WheelHeader / WheelFooter / WheelPageShell — для страниц-колёс ═══
+const GOLD_ACTIVE = "#FFD700";
+const GOLD_INACTIVE = "#FFE066";
+
+// Верхняя навигационная панель — общий вид для всех колёс-страниц сайта.
+export function WheelHeader({
+  items,
+  activeKey,
+  onSelect,
+}: {
+  items: NavItem[];
+  activeKey: string;
+  onSelect: (key: string) => void;
+}) {
+  return (
+    <header className="flex-shrink-0 w-full px-6 py-2 border-b border-yellow-200">
+      <nav className="flex w-full gap-[0.5cm]">
+        {items.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => onSelect(item.key)}
+            className="flex-1 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
+            style={{
+              color: GOLD_ACTIVE,
+              borderColor: activeKey === item.key ? GOLD_ACTIVE : GOLD_INACTIVE,
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+    </header>
+  );
+}
+
+// Нижняя навигационная панель — тот же вид, что и у SiteHeader, но
+// снизу и с бордером сверху вместо снизу.
+export function WheelFooter({
+  items,
+  activeKey,
+  onSelect,
+}: {
+  items: NavItem[];
+  activeKey: string;
+  onSelect: (key: string) => void;
+}) {
+  return (
+    <footer className="flex-shrink-0 w-full px-6 py-2 border-t border-yellow-200">
+      <nav className="flex w-full gap-[0.5cm]">
+        {items.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => onSelect(item.key)}
+            className="flex-1 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
+            style={{
+              color: GOLD_ACTIVE,
+              borderColor: activeKey === item.key ? GOLD_ACTIVE : GOLD_INACTIVE,
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+    </footer>
+  );
+}
+
+// Общий каркас страницы-колеса: хедер сверху, футер снизу, а между
+// ними — <main> ровно с теми же классами (flex-1 min-h-0 ...), что
+// были у каждой страницы раньше, чтобы вёрстка не поехала.
+export function WheelPageShell({
+  header,
+  footer,
+  children,
+}: {
+  header: ReactNode;
+  footer: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className="h-screen w-screen flex flex-col bg-white overflow-hidden"
+      style={{ fontFamily: "ui-sans-serif, system-ui, sans-serif" }}
+    >
+      {header}
+      <main className="flex-1 min-h-0 flex flex-col items-center gap-2 py-2 overflow-hidden">
+        {children}
+      </main>
+      {footer}
+    </div>
   );
 }

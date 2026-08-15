@@ -36,7 +36,7 @@ export function GameTitle({ gameType }: GameTitleProps) {
       <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-2">
         {getGameTitle(gameType)}
       </h1>
-      <p className="text-lg text-gray-600">
+      <p className="text-lg text-[#FFD700] font-bold">
         {t.gameInstructions || 'Complete the task below'}
       </p>
     </motion.div>

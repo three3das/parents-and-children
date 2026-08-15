@@ -52,8 +52,8 @@ export function HelpButton({ gameType }: HelpButtonProps) {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-4xl mb-4">💡</div>
-              <h3 className="text-xl font-bold mb-4 text-gray-800">{t.howToPlay}</h3>
-              <p className="text-gray-700 leading-relaxed mb-6">
+              <h3 className="text-xl font-bold mb-4 text-[#FFD700] font-bold">{t.howToPlay}</h3>
+              <p className="text-[#FFD700] font-bold leading-relaxed mb-6">
                 {getInstructions()}
               </p>
               <motion.button

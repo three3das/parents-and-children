@@ -124,6 +124,11 @@ app.use((req, res, next) => {
   const { startCronJobs } = await import("./services/cron");
   startCronJobs();
 
+  // ─── Запустить Telegram-бота (уведомления администратору о регистрации
+  // и о нажатии "Оплачено", с кнопками Разрешить/Отменить) ──────────────────
+  const { startTelegramBot } = await import("./telegram");
+  startTelegramBot();
+
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5001 if not specified.
   // this serves both the API and the client.

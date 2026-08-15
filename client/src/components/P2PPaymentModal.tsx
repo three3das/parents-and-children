@@ -41,13 +41,13 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
+              className="absolute top-4 right-4 text-[#FFD700] font-bold text-2xl"
             >
               ×
             </button>
 
             {/* Title */}
-            <h2 className="text-lg font-bold text-gray-800 mb-2">
+            <h2 className="text-lg font-bold text-[#FFD700] font-bold mb-2">
               💳 Оплата подписки
             </h2>
 
@@ -60,7 +60,7 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
             {/* Card details */}
             <div className="space-y-2 mb-3">
               <div>
-                <p className="text-xs text-gray-600 mb-1">Номер карты ПриватБанка:</p>
+                <p className="text-xs text-[#FFD700] font-bold mb-1">Номер карты ПриватБанка:</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 bg-gray-100 px-2 py-1 rounded-lg font-mono text-base">
                     {cardNumber}
@@ -75,7 +75,7 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
               </div>
 
               <div>
-                <p className="text-xs text-gray-600 mb-1">Получатель:</p>
+                <p className="text-xs text-[#FFD700] font-bold mb-1">Получатель:</p>
                 <p className="bg-gray-100 px-2 py-1 rounded-lg text-sm">{recipient}</p>
               </div>
             </div>
@@ -94,7 +94,7 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
 
             {/* Contact email */}
             <div className="mb-3">
-              <p className="text-xs text-gray-600 mb-1">Email для подтверждения оплаты:</p>
+              <p className="text-xs text-[#FFD700] font-bold mb-1">Email для подтверждения оплаты:</p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-gray-100 px-2 py-1 rounded-lg text-xs break-all">
                   {contactEmail}
@@ -111,7 +111,7 @@ export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalP
             {/* Close button */}
             <button
               onClick={onClose}
-              className="w-full mt-2 text-gray-600 hover:text-gray-800 py-1 text-xs"
+              className="w-full mt-2 text-[#FFD700] font-bold py-1 text-xs"
             >
               Закрыть
             </button>
