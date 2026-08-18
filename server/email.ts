@@ -383,22 +383,44 @@ export async function sendUserRegistrationConfirmationEmail(
   return sendEmail({ to: userEmail, subject, text, html, from: config.fromEmailNoreply });
 }
 
-// Человекочитаемые названия способов оплаты для писем — те же ключи,
-// что приходят из PAYMENT_METHODS в PaymentsPage.tsx. Неизвестный
-// или отсутствующий ключ просто выводится как есть, чтобы не терять
-// информацию, если появится новый метод, а список забудут обновить.
-function formatPaymentMethod(method?: string | null): string {
-  const labels: Record<string, string> = {
-    privatbank_card: "карта Приватбанка",
-    usdt_trc20: "USDT (сеть TRC20)",
-  };
-  if (!method) return "не указан";
-  return labels[method] || method;
+// Реквизиты способов оплаты для писем администратору — те же данные,
+// что заданы в PAYMENT_METHODS в PaymentsPage.tsx (карта/кошелёк
+// статичны и одинаковы для всех пользователей, поэтому просто
+// продублированы здесь). ⚠️ Если номер карты или адрес кошелька
+// поменяется на сайте — не забыть поправить и здесь, единого
+// источника данных между фронтендом и бэкендом сейчас нет.
+type PaymentMethodDetails = {
+  label: string;
+  card?: string;
+  cardFieldLabel?: string; // по умолчанию "Реквизит"
+  holder?: string;
+};
+
+const PAYMENT_METHOD_DETAILS: Record<string, PaymentMethodDetails> = {
+  privatbank_card: {
+    label: "карта Приватбанка",
+    card: "5168 7451 2747 0224",
+    cardFieldLabel: "Номер карты",
+    holder: "Уризко Александр Леонидович",
+  },
+  usdt_trc20: {
+    label: "USDT (сеть TRC20)",
+    card: "TNVoTnr2VyX4mSDrRjgPqp2Tcw6QiQe3dZ",
+    cardFieldLabel: "Адрес кошелька (TRC20)",
+  },
+};
+
+// Неизвестный или отсутствующий ключ просто выводится как есть (без
+// реквизита), чтобы не терять информацию, если появится новый метод,
+// а справочник выше забудут обновить.
+function getPaymentMethodDetails(method?: string | null): PaymentMethodDetails {
+  if (!method) return { label: "не указан" };
+  return PAYMENT_METHOD_DETAILS[method] || { label: method };
 }
 
 // Golden theme применена по максимуму: фон, рамки, подписи, подвал —
-// но сами данные (email, сумма, способ оплаты, ID) оставлены тёмными
-// для читаемости на светлом золотом фоне.
+// но сами данные (email, сумма, способ оплаты, реквизит, ID) оставлены
+// тёмными для читаемости на светлом золотом фоне.
 //
 // ⚠️ method обязателен: раньше эта функция вообще не знала способ
 // оплаты и текст письма всегда жёстко указывал "карту Приватбанка",
@@ -412,7 +434,8 @@ export async function sendPaymentNotificationEmail(
 ): Promise<boolean> {
   const config = getConfig();
   const adminEmail = process.env.ADMIN_EMAIL || config.fromEmail;
-  const methodLabel = formatPaymentMethod(method);
+  const details = getPaymentMethodDetails(method);
+  const cardFieldLabel = details.cardFieldLabel ?? "Реквизит";
 
   const subject = `Новая заявка на оплату — ${amount} грн`;
 
@@ -421,10 +444,12 @@ export async function sendPaymentNotificationEmail(
 
 Пользователь: ${userEmail}
 Сумма: ${amount} грн
-Способ оплаты: ${methodLabel}
+Способ оплаты: ${details.label}${
+    details.card ? `\n${cardFieldLabel}: ${details.card}` : ""
+  }${details.holder ? `\nПолучатель: ${details.holder}` : ""}
 ID заявки: ${paymentId}
 
-Проверьте поступление (${methodLabel}) и подтвердите/отклоните заявку в админ-панели.
+Проверьте поступление (${details.label}) и подтвердите/отклоните заявку в админ-панели.
   `.trim();
 
   const html = `
@@ -500,11 +525,21 @@ ID заявки: ${paymentId}
     <div class="details">
       <p><span class="label">Пользователь:</span> <span class="value">${userEmail}</span></p>
       <p><span class="label">Сумма:</span> <span class="value">${amount} грн</span></p>
-      <p><span class="label">Способ оплаты:</span> <span class="value">${methodLabel}</span></p>
+      <p><span class="label">Способ оплаты:</span> <span class="value">${details.label}</span></p>
+      ${
+        details.card
+          ? `<p><span class="label">${cardFieldLabel}:</span> <span class="value">${details.card}</span></p>`
+          : ""
+      }
+      ${
+        details.holder
+          ? `<p><span class="label">Получатель:</span> <span class="value">${details.holder}</span></p>`
+          : ""
+      }
       <p><span class="label">ID заявки:</span> <span class="value">${paymentId}</span></p>
     </div>
 
-    <p class="note">Проверьте поступление (${methodLabel}) и подтвердите/отклоните заявку в админ-панели.</p>
+    <p class="note">Проверьте поступление (${details.label}) и подтвердите/отклоните заявку в админ-панели.</p>
 
     <div class="footer">
       <p>Автоматическое уведомление системы платежей</p>
