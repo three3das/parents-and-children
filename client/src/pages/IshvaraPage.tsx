@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useLanguage, LANGUAGE_FLAGS } from "@/lib/i18n";
 import { useAuth, getWelcomeName } from "@/lib/auth";
+import { headerNav, footerNav } from "@/lib/siteNav";
 
 type Category = {
   key: string;
@@ -16,23 +17,11 @@ const categories: Category[] = [
   { key: "kala", label: "Творчество" },
 ];
 
-const headerNav = [
-  { key: "name", label: "Первое имя участника" },
-  { key: "form", label: "Второе имя участника" },
-  { key: "qualities", label: "Третье имя участника" },
-  { key: "plays", label: "Четвертое имя участника" },
-];
-
-// Базовые подписи для нижней навигации. Подпись последнего пункта
-// ("your-page") подменяется динамически в рендере в зависимости от
-// того, вошёл пользователь или нет — см. footerNavWithAuthLabel ниже.
-
-const footerNav = [
-  { key: "all-data", label: "Начальная страница сайта" },
-  { key: "your-page", label: "Ваша страница" },
-  { key: "site-page", label: "Все страницы сайта" },
-  { key: "languages", label: "Меню доступных языков" },
-];
+// headerNav и footerNav теперь берутся из общего файла "@/lib/siteNav" —
+// раньше здесь были свои локальные копии этих массивов, из-за чего
+// порядок и подписи футера расходились с PaymentsPage.tsx (тот уже
+// импортировал footerNav из siteNav.ts). Теперь обе страницы используют
+// один и тот же источник — расхождение исключено.
 
 // Список языков для колеса языкового меню — 12 секторов, по часовой
 // стрелке, начиная с 12 часов, в заданном порядке.
