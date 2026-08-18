@@ -197,10 +197,17 @@ export async function activatePayment(
         DO UPDATE SET count = monthly_activations.count + 1`
   );
 
-  // Письмо пользователю о подтверждении заявки — не блокирует основной поток.
-  sendPaymentApprovedEmail(payment.user_email).catch((err) =>
-    console.error("[P2P] Failed to send approval email:", err)
-  );
+  // Письмо пользователю о подтверждении заявки. Раньше отправлялось
+  // "в фоне" (fire-and-forget, без await) — если сервер в этот момент
+  // перезапускался (например, из-за деплоя новой версии), письмо
+  // могло не долететь без единой строки в логах. Теперь дожидаемся
+  // отправки явно; ошибка отправки не мешает считать активацию
+  // успешной — подписка уже создана в базе выше.
+  try {
+    await sendPaymentApprovedEmail(payment.user_email);
+  } catch (err) {
+    console.error("[P2P] Failed to send approval email:", err);
+  }
 
   return { success: true };
 }
@@ -228,10 +235,13 @@ export async function rejectPayment(
         WHERE id = ${paymentId}`
   );
 
-  // Письмо пользователю — не блокирует основной поток.
-  sendPaymentRejectedEmail(payment.user_email).catch((err) =>
-    console.error("[P2P] Failed to send rejection email:", err)
-  );
+  // Письмо пользователю — тоже дожидаемся отправки явно (см. комментарий
+  // в activatePayment выше про риск с деплоем при fire-and-forget).
+  try {
+    await sendPaymentRejectedEmail(payment.user_email);
+  } catch (err) {
+    console.error("[P2P] Failed to send rejection email:", err);
+  }
 
   return { success: true };
 }
