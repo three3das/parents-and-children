@@ -6,6 +6,8 @@ import {
   sendPaymentNotificationEmail,
   sendPaymentRejectedEmail,
   sendPaymentApprovedEmail,
+  sendRegistrationNotificationEmail,
+  sendUserRegistrationConfirmationEmail,
 } from "../email";
 import {
   sendRegistrationNotification,
@@ -25,10 +27,12 @@ const router = Router();
 //
 // Уведомления различаются по тому, что именно произошло:
 //   - Новая запись создана БЕЗ метода (обычная регистрация)
-//     → в Telegram уходит простое информационное сообщение (без кнопок).
+//     → администратору уходит письмо "Новая регистрация" + Telegram
+//       (без кнопок), пользователю — письмо-подтверждение регистрации.
 //   - Новая запись создана СРАЗУ с методом, ИЛИ у существующей записи
 //     метод только что появился/изменился (реальное нажатие "Оплачено")
-//     → в Telegram уходит сообщение с кнопками Разрешить/Отменить.
+//     → администратору уходит письмо "Новая заявка на оплату" + Telegram
+//       с кнопками Разрешить/Отменить.
 //
 // Возвращает { created: true } если запись создана, { created: false, reason }
 // если уже есть активная подписка или уже есть неотработанный pending-платёж
@@ -66,12 +70,20 @@ export async function createPendingPayment(
       );
 
       // Метод только что появился/поменялся на существующей заявке —
-      // это и есть реальное нажатие "Оплачено". Шлём уведомление с
-      // кнопками (email уже уходил на этапе регистрации, повторно не дублируем).
+      // это и есть реальное нажатие "Оплачено". При регистрации админ
+      // получил только уведомление о регистрации (без суммы и ID
+      // заявки), поэтому здесь шлём полноценное письмо о заявке на
+      // оплату + Telegram с кнопками.
+      const claimAmount = Number(pendingRow.amount) || amount;
+
+      sendPaymentNotificationEmail(userEmail, claimAmount, String(pendingRow.id)).catch(
+        (err) => console.error("[P2P] Failed to send email notification:", err)
+      );
+
       sendPaymentClaimNotification(
         String(pendingRow.id),
         userEmail,
-        Number(pendingRow.amount) || amount,
+        claimAmount,
         method
       ).catch((err) =>
         console.error("[P2P] Failed to send Telegram claim notification:", err)
@@ -89,22 +101,30 @@ export async function createPendingPayment(
 
   const paymentId = insertResult.rows[0]?.id;
 
-  // Email-уведомление администратору — не блокирует основной поток.
-  sendPaymentNotificationEmail(userEmail, amount, String(paymentId)).catch((err) =>
-    console.error("[P2P] Failed to send email notification:", err)
-  );
-
-  // Telegram-уведомление — тип зависит от того, был ли уже известен
-  // способ оплаты в момент создания записи.
+  // Уведомления — тип зависит от того, был ли уже известен способ
+  // оплаты в момент создания записи.
   if (method) {
     // Редкий случай: метод известен уже при первом создании записи
     // (например, если /request вызван напрямую, минуя обычный сценарий
-    // "сначала регистрация, потом выбор способа оплаты").
+    // "сначала регистрация, потом выбор способа оплаты"). Это реальная
+    // заявка на оплату — уведомляем админа письмом и Telegram с кнопками.
+    sendPaymentNotificationEmail(userEmail, amount, String(paymentId)).catch((err) =>
+      console.error("[P2P] Failed to send email notification:", err)
+    );
     sendPaymentClaimNotification(String(paymentId), userEmail, amount, method).catch(
       (err) => console.error("[P2P] Failed to send Telegram claim notification:", err)
     );
   } else {
     // Обычный случай — это вызов из регистрации, способ ещё не выбран.
+    // Админу — уведомление о новой регистрации (email + Telegram без
+    // кнопок), пользователю — подтверждение, что его регистрация
+    // зафиксирована. Все три вызова не блокируют основной поток.
+    sendRegistrationNotificationEmail(userEmail).catch((err) =>
+      console.error("[P2P] Failed to send registration email to admin:", err)
+    );
+    sendUserRegistrationConfirmationEmail(userEmail).catch((err) =>
+      console.error("[P2P] Failed to send registration confirmation email to user:", err)
+    );
     sendRegistrationNotification(userEmail).catch((err) =>
       console.error("[P2P] Failed to send Telegram registration notification:", err)
     );

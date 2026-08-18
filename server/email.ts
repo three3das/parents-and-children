@@ -181,6 +181,208 @@ ${resetUrl}
   return sendEmail({ to: email, subject, text, html, from: config.fromEmailNoreply });
 }
 
+// Золотая тема — письмо администратору о новой регистрации (БЕЗ
+// упоминания оплаты — на этом этапе способ оплаты ещё не выбран).
+// Отдельная функция от sendPaymentNotificationEmail: их нельзя
+// путать, иначе админ не поймёт, на что реагировать (регистрация
+// сама по себе не требует никаких действий, в отличие от заявки на
+// оплату).
+export async function sendRegistrationNotificationEmail(
+  userEmail: string
+): Promise<boolean> {
+  const config = getConfig();
+  const adminEmail = process.env.ADMIN_EMAIL || config.fromEmail;
+
+  const subject = 'Новая регистрация на сайте';
+
+  const text = `
+Новая регистрация на сайте!
+
+Пользователь: ${userEmail}
+
+Оплата ещё не выбрана — уведомление придёт отдельно, когда пользователь нажмёт "Оплачено".
+  `.trim();
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #7a5c00;
+      background: #FFF8E1;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #FFF8E1;
+      border: 3px solid #FFD700;
+      border-radius: 12px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #FFD700;
+    }
+    .header h1 {
+      color: #FFD700;
+      margin: 0;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.08);
+    }
+    .details {
+      background: #FFF3C4;
+      border: 1px solid #FFD700;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .details p {
+      margin: 6px 0;
+    }
+    .details .label {
+      color: #B8860B;
+      font-weight: bold;
+    }
+    .details .value {
+      color: #333;
+    }
+    .note {
+      color: #B8860B;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px solid #FFD700;
+      font-size: 12px;
+      color: #B8860B;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>👤 Новая регистрация</h1>
+    </div>
+
+    <div class="details">
+      <p><span class="label">Пользователь:</span> <span class="value">${userEmail}</span></p>
+    </div>
+
+    <p class="note">Оплата ещё не выбрана — уведомление придёт отдельно, когда пользователь нажмёт «Оплачено».</p>
+
+    <div class="footer">
+      <p>Автоматическое уведомление системы регистрации</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  // Как и у sendPaymentNotificationEmail — уходит только вам
+  // (ADMIN_EMAIL), поэтому адрес отправителя менять не нужно.
+  return sendEmail({ to: adminEmail, subject, text, html });
+}
+
+// Золотая тема — письмо пользователю о том, что регистрация принята.
+// Отправляется сразу при регистрации, ещё до выбора способа оплаты.
+export async function sendUserRegistrationConfirmationEmail(
+  userEmail: string
+): Promise<boolean> {
+  const config = getConfig();
+
+  const subject = 'Регистрация подтверждена';
+
+  const text = `
+Здравствуйте!
+
+Ваша регистрация на сайте parents-and-children успешно зафиксирована.
+
+Дальнейший шаг — оплата доступа. Как только оплата будет подтверждена,
+вы получите отдельное письмо с активацией.
+  `.trim();
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #7a5c00;
+      background: #FFF8E1;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #FFF8E1;
+      border: 3px solid #FFD700;
+      border-radius: 12px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #FFD700;
+    }
+    .header h1 {
+      color: #FFD700;
+      margin: 0;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.08);
+    }
+    p { color: #333; }
+    .note {
+      color: #B8860B;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px solid #FFD700;
+      font-size: 12px;
+      color: #B8860B;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Регистрация подтверждена</h1>
+    </div>
+
+    <p>Здравствуйте!</p>
+
+    <p>Ваша регистрация на сайте <strong>parents-and-children</strong> успешно зафиксирована.</p>
+
+    <p class="note">Дальнейший шаг — оплата доступа. Как только оплата будет подтверждена, вы получите отдельное письмо с активацией.</p>
+
+    <div class="footer">
+      <p>Автоматическое уведомление системы регистрации</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  // Пользовательское письмо — идёт с noreply-адреса, как сброс пароля
+  // и остальные письма пользователям, а не с payments@.
+  return sendEmail({ to: userEmail, subject, text, html, from: config.fromEmailNoreply });
+}
+
 // Золотая тема применена по максимуму: фон, рамки, подписи, подвал —
 // но сами данные (email, сумма, ID) оставлены тёмными для читаемости
 // на светлом золотом фоне.
