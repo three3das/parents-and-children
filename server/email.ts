@@ -383,16 +383,36 @@ export async function sendUserRegistrationConfirmationEmail(
   return sendEmail({ to: userEmail, subject, text, html, from: config.fromEmailNoreply });
 }
 
-// Золотая тема применена по максимуму: фон, рамки, подписи, подвал —
-// но сами данные (email, сумма, ID) оставлены тёмными для читаемости
-// на светлом золотом фоне.
+// Человекочитаемые названия способов оплаты для писем — те же ключи,
+// что приходят из PAYMENT_METHODS в PaymentsPage.tsx. Неизвестный
+// или отсутствующий ключ просто выводится как есть, чтобы не терять
+// информацию, если появится новый метод, а список забудут обновить.
+function formatPaymentMethod(method?: string | null): string {
+  const labels: Record<string, string> = {
+    privatbank_card: "карта Приватбанка",
+    usdt_trc20: "USDT (сеть TRC20)",
+  };
+  if (!method) return "не указан";
+  return labels[method] || method;
+}
+
+// Golden theme применена по максимуму: фон, рамки, подписи, подвал —
+// но сами данные (email, сумма, способ оплаты, ID) оставлены тёмными
+// для читаемости на светлом золотом фоне.
+//
+// ⚠️ method обязателен: раньше эта функция вообще не знала способ
+// оплаты и текст письма всегда жёстко указывал "карту Приватбанка",
+// даже если пользователь на самом деле выбрал оплату криптовалютой —
+// это вводило администратора в заблуждение при проверке поступления.
 export async function sendPaymentNotificationEmail(
   userEmail: string,
   amount: number,
-  paymentId: string
+  paymentId: string,
+  method?: string | null
 ): Promise<boolean> {
   const config = getConfig();
   const adminEmail = process.env.ADMIN_EMAIL || config.fromEmail;
+  const methodLabel = formatPaymentMethod(method);
 
   const subject = `Новая заявка на оплату — ${amount} грн`;
 
@@ -401,9 +421,10 @@ export async function sendPaymentNotificationEmail(
 
 Пользователь: ${userEmail}
 Сумма: ${amount} грн
+Способ оплаты: ${methodLabel}
 ID заявки: ${paymentId}
 
-Проверьте поступление на карту Приватбанка и подтвердите/отклоните заявку в админ-панели.
+Проверьте поступление (${methodLabel}) и подтвердите/отклоните заявку в админ-панели.
   `.trim();
 
   const html = `
@@ -479,10 +500,11 @@ ID заявки: ${paymentId}
     <div class="details">
       <p><span class="label">Пользователь:</span> <span class="value">${userEmail}</span></p>
       <p><span class="label">Сумма:</span> <span class="value">${amount} грн</span></p>
+      <p><span class="label">Способ оплаты:</span> <span class="value">${methodLabel}</span></p>
       <p><span class="label">ID заявки:</span> <span class="value">${paymentId}</span></p>
     </div>
 
-    <p class="note">Проверьте поступление на карту Приватбанка и подтвердите/отклоните заявку в админ-панели.</p>
+    <p class="note">Проверьте поступление (${methodLabel}) и подтвердите/отклоните заявку в админ-панели.</p>
 
     <div class="footer">
       <p>Автоматическое уведомление системы платежей</p>

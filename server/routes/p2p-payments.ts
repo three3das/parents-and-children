@@ -76,8 +76,13 @@ export async function createPendingPayment(
       // оплату + Telegram с кнопками.
       const claimAmount = Number(pendingRow.amount) || amount;
 
-      sendPaymentNotificationEmail(userEmail, claimAmount, String(pendingRow.id)).catch(
-        (err) => console.error("[P2P] Failed to send email notification:", err)
+      sendPaymentNotificationEmail(
+        userEmail,
+        claimAmount,
+        String(pendingRow.id),
+        method
+      ).catch((err) =>
+        console.error("[P2P] Failed to send email notification:", err)
       );
 
       sendPaymentClaimNotification(
@@ -108,7 +113,7 @@ export async function createPendingPayment(
     // (например, если /request вызван напрямую, минуя обычный сценарий
     // "сначала регистрация, потом выбор способа оплаты"). Это реальная
     // заявка на оплату — уведомляем админа письмом и Telegram с кнопками.
-    sendPaymentNotificationEmail(userEmail, amount, String(paymentId)).catch((err) =>
+    sendPaymentNotificationEmail(userEmail, amount, String(paymentId), method).catch((err) =>
       console.error("[P2P] Failed to send email notification:", err)
     );
     sendPaymentClaimNotification(String(paymentId), userEmail, amount, method).catch(
