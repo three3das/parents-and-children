@@ -2,7 +2,11 @@
 import { Router, Request, Response } from "express";
 import { db } from "../db";
 import { sql } from "drizzle-orm";
-import { sendPaymentNotificationEmail, sendPaymentRejectedEmail } from "../email";
+import {
+  sendPaymentNotificationEmail,
+  sendPaymentRejectedEmail,
+  sendPaymentApprovedEmail,
+} from "../email";
 import {
   sendRegistrationNotification,
   sendPaymentClaimNotification,
@@ -166,6 +170,11 @@ export async function activatePayment(
         VALUES (${year}, ${month}, 1)
         ON CONFLICT (year, month)
         DO UPDATE SET count = monthly_activations.count + 1`
+  );
+
+  // Письмо пользователю о подтверждении заявки — не блокирует основной поток.
+  sendPaymentApprovedEmail(payment.user_email).catch((err) =>
+    console.error("[P2P] Failed to send approval email:", err)
   );
 
   return { success: true };

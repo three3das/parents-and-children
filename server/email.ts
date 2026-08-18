@@ -55,6 +55,9 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   }
 }
 
+// Золотая тема (единая для всех писем проекта): светлый золотой фон,
+// золотая рамка контейнера, золотые разделители над/под заголовком и
+// подвалом. Кнопка тоже золотая, с тёмным текстом для контраста.
 export async function sendPasswordResetEmail(email: string, resetToken: string, firstName: string): Promise<boolean> {
   const config = getConfig();
   const resetUrl = `${config.appUrl}/reset-password?token=${resetToken}`;
@@ -83,12 +86,61 @@ ${resetUrl}
 <head>
   <meta charset="utf-8">
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { text-align: center; margin-bottom: 30px; }
-    .header h1 { color: #6366f1; margin: 0; }
-    .button { display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
-    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #7a5c00;
+      background: #FFF8E1;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #FFF8E1;
+      border: 3px solid #FFD700;
+      border-radius: 12px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #FFD700;
+    }
+    .header h1 {
+      color: #FFD700;
+      margin: 0;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.08);
+    }
+    p { color: #333; }
+    .button {
+      display: inline-block;
+      background: #FFD700;
+      color: #7a5c00;
+      padding: 12px 30px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .link-fallback {
+      word-break: break-all;
+      font-size: 14px;
+      color: #B8860B;
+    }
+    .note {
+      color: #B8860B;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px solid #FFD700;
+      font-size: 12px;
+      color: #B8860B;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -108,9 +160,9 @@ ${resetUrl}
     </p>
 
     <p>Або скопіюйте це посилання у браузер:</p>
-    <p style="word-break: break-all; font-size: 14px; color: #666;">${resetUrl}</p>
+    <p class="link-fallback">${resetUrl}</p>
 
-    <p><strong>Це посилання дійсне протягом 1 години.</strong></p>
+    <p class="note">Це посилання дійсне протягом 1 години.</p>
 
     <p>Якщо ви не запитували скидання пароля, просто ігноруйте цей лист.</p>
 
@@ -129,6 +181,9 @@ ${resetUrl}
   return sendEmail({ to: email, subject, text, html, from: config.fromEmailNoreply });
 }
 
+// Золотая тема применена по максимуму: фон, рамки, подписи, подвал —
+// но сами данные (email, сумма, ID) оставлены тёмными для читаемости
+// на светлом золотом фоне.
 export async function sendPaymentNotificationEmail(
   userEmail: string,
   amount: number,
@@ -155,13 +210,62 @@ ID заявки: ${paymentId}
 <head>
   <meta charset="utf-8">
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { text-align: center; margin-bottom: 20px; }
-    .header h1 { color: #FFD700; margin: 0; }
-    .details { background: #f9fafb; border-radius: 8px; padding: 16px; margin: 16px 0; }
-    .details p { margin: 4px 0; }
-    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #7a5c00;
+      background: #FFF8E1;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #FFF8E1;
+      border: 3px solid #FFD700;
+      border-radius: 12px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #FFD700;
+    }
+    .header h1 {
+      color: #FFD700;
+      margin: 0;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.08);
+    }
+    .details {
+      background: #FFF3C4;
+      border: 1px solid #FFD700;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .details p {
+      margin: 6px 0;
+    }
+    .details .label {
+      color: #B8860B;
+      font-weight: bold;
+    }
+    .details .value {
+      color: #333;
+    }
+    .note {
+      color: #B8860B;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px solid #FFD700;
+      font-size: 12px;
+      color: #B8860B;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -171,12 +275,12 @@ ID заявки: ${paymentId}
     </div>
 
     <div class="details">
-      <p><strong>Пользователь:</strong> ${userEmail}</p>
-      <p><strong>Сумма:</strong> ${amount} грн</p>
-      <p><strong>ID заявки:</strong> ${paymentId}</p>
+      <p><span class="label">Пользователь:</span> <span class="value">${userEmail}</span></p>
+      <p><span class="label">Сумма:</span> <span class="value">${amount} грн</span></p>
+      <p><span class="label">ID заявки:</span> <span class="value">${paymentId}</span></p>
     </div>
 
-    <p>Проверьте поступление на карту Приватбанка и подтвердите/отклоните заявку в админ-панели.</p>
+    <p class="note">Проверьте поступление на карту Приватбанка и подтвердите/отклоните заявку в админ-панели.</p>
 
     <div class="footer">
       <p>Автоматическое уведомление системы платежей</p>
@@ -191,6 +295,9 @@ ID заявки: ${paymentId}
   return sendEmail({ to: adminEmail, subject, text, html });
 }
 
+// Та же золотая тема — заголовок остаётся с ⚠️ для ясности сути
+// письма, но цветовая палитра унифицирована с остальными двумя
+// письмами (вместо прежнего красного оформления).
 export async function sendPaymentRejectedEmail(userEmail: string): Promise<boolean> {
   const config = getConfig();
 
@@ -212,11 +319,46 @@ export async function sendPaymentRejectedEmail(userEmail: string): Promise<boole
 <head>
   <meta charset="utf-8">
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { text-align: center; margin-bottom: 20px; }
-    .header h1 { color: #d14343; margin: 0; }
-    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #7a5c00;
+      background: #FFF8E1;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #FFF8E1;
+      border: 3px solid #FFD700;
+      border-radius: 12px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #FFD700;
+    }
+    .header h1 {
+      color: #FFD700;
+      margin: 0;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.08);
+    }
+    p { color: #333; }
+    .note {
+      color: #B8860B;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px solid #FFD700;
+      font-size: 12px;
+      color: #B8860B;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -227,7 +369,7 @@ export async function sendPaymentRejectedEmail(userEmail: string): Promise<boole
 
     <p>Здравствуйте!</p>
 
-    <p>Доступ ко всем данным сайта отменён в связи с отсутствием
+    <p class="note">Доступ ко всем данным сайта отменён в связи с отсутствием
     поступления денежного перевода и активации функции доступа.</p>
 
     <p>Если вы уже оплатили и считаете, что это ошибка — свяжитесь с
@@ -244,5 +386,91 @@ export async function sendPaymentRejectedEmail(userEmail: string): Promise<boole
   // Используем fromEmailNoreply — это письмо пользователю, а не
   // уведомление администратору, так что логично идёт с того же
   // адреса, что и сброс пароля, а не с payments@.
+  return sendEmail({ to: userEmail, subject, text, html, from: config.fromEmailNoreply });
+}
+
+// Та же золотая тема — письмо пользователю о том, что заявка на
+// оплату подтверждена администратором и доступ уже открыт. Текст —
+// ровно как согласовано (без добавления суммы/ID, максимально
+// коротко и празднично).
+export async function sendPaymentApprovedEmail(userEmail: string): Promise<boolean> {
+  const config = getConfig();
+
+  const subject = "Заявка принята — доступ активирован!";
+
+  const text = `
+Поздравляем! Ваша заявка Принята!
+
+Доступ ко всем данным сайта parents-and-children уже выполнен!
+  `.trim();
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #7a5c00;
+      background: #FFF8E1;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #FFF8E1;
+      border: 3px solid #FFD700;
+      border-radius: 12px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #FFD700;
+    }
+    .header h1 {
+      color: #FFD700;
+      margin: 0;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.08);
+    }
+    p { color: #333; }
+    .note {
+      color: #B8860B;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px solid #FFD700;
+      font-size: 12px;
+      color: #B8860B;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Заявка принята!</h1>
+    </div>
+
+    <p class="note">Поздравляем! Ваша заявка Принята!</p>
+
+    <p>Доступ ко всем данным сайта parents-and-children уже выполнен!</p>
+
+    <div class="footer">
+      <p>Автоматическое уведомление системы платежей</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  // Используем fromEmailNoreply — это письмо пользователю, а не
+  // уведомление администратору.
   return sendEmail({ to: userEmail, subject, text, html, from: config.fromEmailNoreply });
 }
