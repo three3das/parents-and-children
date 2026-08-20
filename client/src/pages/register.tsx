@@ -178,6 +178,7 @@ export default function RegisterPage() {
                 fontSize: "1rem",
                 outline: "none",
                 transition: "border-color 0.2s",
+                color: COLOR_100,
               }}
               placeholder="Ваше имя"
               required
@@ -227,6 +228,7 @@ export default function RegisterPage() {
                   fontSize: "1rem",
                   outline: "none",
                   transition: "border-color 0.2s",
+                  color: COLOR_100,
                 }}
                 placeholder="email@example.com"
                 required
@@ -259,6 +261,7 @@ export default function RegisterPage() {
                     fontSize: "1rem",
                     outline: "none",
                     transition: "border-color 0.2s",
+                    color: COLOR_100,
                   }}
                   required
                 />
@@ -306,6 +309,7 @@ export default function RegisterPage() {
                   fontSize: "1rem",
                   outline: "none",
                   transition: "border-color 0.2s",
+                  color: COLOR_100,
                 }}
                 required
               />
