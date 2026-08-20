@@ -3,6 +3,25 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useGoogleAuth } from "@/lib/auth/useGoogleAuth";
 
+// --- Та же золотая палитра, что и в IshvaraPage.tsx (колесо сайта) ---
+// GOLD/WHITE/mix() — идентичная формула, просто вычислена здесь один
+// раз в константы, а не через функцию (страница не рисует секторов
+// колеса, нужны только 4 конкретных оттенка).
+const GOLD = { r: 255, g: 215, b: 0 };
+const WHITE = { r: 255, g: 255, b: 255 };
+
+function mix(goldPct: number) {
+  const r = Math.round(GOLD.r * goldPct + WHITE.r * (1 - goldPct));
+  const g = Math.round(GOLD.g * goldPct + WHITE.g * (1 - goldPct));
+  const b = Math.round(GOLD.b * goldPct + WHITE.b * (1 - goldPct));
+  return `rgb(${r},${g},${b})`;
+}
+
+const COLOR_0 = mix(0); // чистый белый — фон карточки формы
+const COLOR_33 = mix(0.33);
+const COLOR_67 = mix(0.67);
+const COLOR_100 = mix(1.0); // чистое золото #FFD700 — акцентный цвет сайта
+
 export default function RegisterPage() {
   const [, navigate] = useLocation();
   const { register } = useAuth();
@@ -75,7 +94,9 @@ export default function RegisterPage() {
       <div
         style={{
           flex: 1,
-          background: "linear-gradient(160deg, #FFE49A 0%, #FFCA5A 60%, #FFB830 100%)",
+          // Тот же градиент 33% → 67% → 100% золота, что и у секторов
+          // колеса на главной странице сайта (IshvaraPage.tsx).
+          background: `linear-gradient(160deg, ${COLOR_33} 0%, ${COLOR_67} 60%, ${COLOR_100} 100%)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -84,19 +105,21 @@ export default function RegisterPage() {
       >
         <div
           style={{
-            background: "#fff",
+            // 0% золота — чистый белый, как фон карточек/кнопок сайта.
+            background: COLOR_0,
             borderRadius: "20px",
             padding: "2.5rem",
             maxWidth: "440px",
             width: "100%",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+            border: `3px solid ${COLOR_100}`,
+            boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
           }}
         >
           <h1
             style={{
               fontSize: "2rem",
               fontWeight: 800,
-              color: "#2D2D2D",
+              color: COLOR_100,
               marginBottom: "1.5rem",
               textAlign: "center",
             }}
@@ -125,8 +148,8 @@ export default function RegisterPage() {
               style={{
                 display: "block",
                 fontSize: "0.875rem",
-                fontWeight: "500",
-                color: "#374151",
+                fontWeight: "700",
+                color: COLOR_100,
                 marginBottom: "0.25rem",
               }}
             >
@@ -139,7 +162,7 @@ export default function RegisterPage() {
               style={{
                 width: "100%",
                 padding: "0.75rem",
-                border: "1px solid #d1d5db",
+                border: `1px solid ${COLOR_67}`,
                 borderRadius: "8px",
                 fontSize: "1rem",
                 outline: "none",
@@ -158,13 +181,13 @@ export default function RegisterPage() {
               alignItems: "center",
               gap: "0.75rem",
               margin: "1rem 0",
-              color: "#9ca3af",
+              color: COLOR_67,
               fontSize: "0.75rem",
             }}
           >
-            <div style={{ flex: 1, height: "1px", background: "#e5e7eb" }} />
+            <div style={{ flex: 1, height: "1px", background: COLOR_33 }} />
             или
-            <div style={{ flex: 1, height: "1px", background: "#e5e7eb" }} />
+            <div style={{ flex: 1, height: "1px", background: COLOR_33 }} />
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -173,8 +196,8 @@ export default function RegisterPage() {
                 style={{
                   display: "block",
                   fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#374151",
+                  fontWeight: "700",
+                  color: COLOR_100,
                   marginBottom: "0.25rem",
                 }}
               >
@@ -187,7 +210,7 @@ export default function RegisterPage() {
                 style={{
                   width: "100%",
                   padding: "0.75rem",
-                  border: "1px solid #d1d5db",
+                  border: `1px solid ${COLOR_67}`,
                   borderRadius: "8px",
                   fontSize: "1rem",
                   outline: "none",
@@ -203,8 +226,8 @@ export default function RegisterPage() {
                 style={{
                   display: "block",
                   fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#374151",
+                  fontWeight: "700",
+                  color: COLOR_100,
                   marginBottom: "0.25rem",
                 }}
               >
@@ -219,7 +242,7 @@ export default function RegisterPage() {
                     width: "100%",
                     padding: "0.75rem",
                     paddingRight: "3rem",
-                    border: "1px solid #d1d5db",
+                    border: `1px solid ${COLOR_67}`,
                     borderRadius: "8px",
                     fontSize: "1rem",
                     outline: "none",
@@ -237,7 +260,8 @@ export default function RegisterPage() {
                     transform: "translateY(-50%)",
                     background: "none",
                     border: "none",
-                    color: "#6b7280",
+                    color: COLOR_100,
+                    fontWeight: 700,
                     cursor: "pointer",
                   }}
                 >
@@ -251,8 +275,8 @@ export default function RegisterPage() {
                 style={{
                   display: "block",
                   fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#374151",
+                  fontWeight: "700",
+                  color: COLOR_100,
                   marginBottom: "0.25rem",
                 }}
               >
@@ -265,7 +289,7 @@ export default function RegisterPage() {
                 style={{
                   width: "100%",
                   padding: "0.75rem",
-                  border: "1px solid #d1d5db",
+                  border: `1px solid ${COLOR_67}`,
                   borderRadius: "8px",
                   fontSize: "1rem",
                   outline: "none",
@@ -279,7 +303,7 @@ export default function RegisterPage() {
               type="submit"
               disabled={isLoading || googleLoading}
               style={{
-                background: "linear-gradient(135deg, #FF5252, #E00000)",
+                background: COLOR_100,
                 color: "#fff",
                 border: "none",
                 borderRadius: "12px",
@@ -287,7 +311,7 @@ export default function RegisterPage() {
                 fontSize: "1rem",
                 fontWeight: 700,
                 cursor: isLoading ? "not-allowed" : "pointer",
-                boxShadow: "0 4px 14px rgba(220,0,0,0.35)",
+                boxShadow: `0 4px 14px rgba(255,215,0,0.5)`,
                 transition: "opacity 0.2s",
                 opacity: isLoading ? 0.7 : 1,
               }}
@@ -297,15 +321,15 @@ export default function RegisterPage() {
           </form>
 
           <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-            <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+            <p style={{ color: COLOR_67, fontSize: "0.875rem" }}>
               Already have an account?{" "}
               <button
                 onClick={() => navigate("/login")}
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#E00000",
-                  fontWeight: "600",
+                  color: COLOR_100,
+                  fontWeight: "700",
                   cursor: "pointer",
                   textDecoration: "underline",
                 }}
