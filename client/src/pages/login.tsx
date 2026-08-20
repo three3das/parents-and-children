@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 
@@ -14,7 +14,7 @@ function mix(goldPct: number) {
 }
 
 const COLOR_0 = mix(0); // чистый белый — фон карточки формы
-const COLOR_33 = mix(0.33);
+const COLOR_33 = mix(0.33); // самый светлый золотой — используется для placeholder
 const COLOR_67 = mix(0.67);
 const COLOR_100 = mix(1.0); // чистое золото #FFD700
 
@@ -63,6 +63,15 @@ export default function LoginPage() {
 
   return (
     <div style={{ minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Цвет placeholder-текста нельзя задать через inline style —
+          браузеры игнорируют style на псевдоэлементе ::placeholder,
+          поэтому здесь отдельный <style>-блок с CSS-классом. */}
+      <style>{`
+        .site-email-input::placeholder {
+          color: ${COLOR_33};
+          opacity: 1;
+        }
+      `}</style>
       <div
         style={{
           flex: 1,
@@ -131,6 +140,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="site-email-input"
                 style={{
                   width: "100%",
                   padding: "0.75rem",

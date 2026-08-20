@@ -81,21 +81,21 @@ type PaymentMethod = {
 const PAYMENT_METHODS: (PaymentMethod | null)[] = [
   {
     methodKey: "privatbank_card",
-    labelLines: ["Перевод", "банковский", "«ПриватБанк»", "в гривне"],
+    labelLines: ["Банковский", "перевод", "в гривне", "«ПриватБанк»"],
     title: "Оплата на карту Приватбанка",
     card: "5168 7451 2747 0224",
     holder: "Уризко Александр Леонидович",
-    note: "Переведите 1 гривну на карту выше. После перевода нажмите «Я оплатил» — мы проверим поступление и откроем доступ.",
+    note: "Переведите 1 гривну на карту выше. После перевода нажмите «Оплачено» — мы проверим поступление и откроем доступ.",
   },
   null, // сектор 2 — зарезервирован
   null, // сектор 3 — зарезервирован
   {
     methodKey: "usdt_trc20",
-    labelLines: ["Перевод", "криптовалютный", "«TRON/TRC20»", "в долларах"],
+    labelLines: ["Криптовалютный", "перевод", "в долларах", "«TRON/TRC20»"],
     title: "Оплата криптовалютой USDT (сеть TRON / TRC20)",
     card: "TNVoTnr2VyX4mSDrRjgPqp2Tcw6QiQe3dZ",
     cardFieldLabel: "Адрес кошелька (TRC20)",
-    note: "Переведите 1 гривну на адрес выше. После перевода нажмите «Я оплатил» — мы проверим поступление и откроем доступ.",
+    note: "Переведите 1 гривну на адрес выше. После перевода нажмите «Оплачено» — мы проверим поступление и откроем доступ.",
   },
   null, // сектор 5 — зарезервирован
   null, // сектор 6 — зарезервирован
@@ -322,6 +322,12 @@ export default function PaymentsPage() {
   const [activeNav, setActiveNav] = useState<string>(headerNav[0].key);
   const [activeFooterNav, setActiveFooterNav] = useState<string>("all-data");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  // Собственное окно-уведомление в стиле сайта (золотой текст) —
+  // заменяет системный alert(), который браузер стилизовать не даёт.
+  const [infoModal, setInfoModal] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
 
   const [, navigate] = useLocation();
 
@@ -345,7 +351,10 @@ export default function PaymentsPage() {
     if (!method) return;
 
     if (!user) {
-      alert("Сначала войдите в аккаунт, чтобы подтвердить оплату.");
+      setInfoModal({
+        title: "Вход не выполнен",
+        message: "Сначала войдите в аккаунт, чтобы подтвердить оплату.",
+      });
       return;
     }
 
@@ -362,15 +371,23 @@ export default function PaymentsPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Не удалось отправить заявку. Попробуйте ещё раз.");
+        setInfoModal({
+          title: "Ошибка",
+          message: data.error || "Не удалось отправить заявку. Попробуйте ещё раз.",
+        });
         return;
       }
-      alert(
-        "Заявка отправлена. Как только поступление подтвердится администратором, доступ ко всем страницам сайта откроется автоматически."
-      );
+      setInfoModal({
+        title: "Заявка отправлена",
+        message:
+          "Как только поступление подтвердится администратором, доступ ко всем страницам сайта откроется автоматически.",
+      });
       setSelected(null);
     } catch {
-      alert("Ошибка сети. Проверьте подключение и попробуйте снова.");
+      setInfoModal({
+        title: "Ошибка сети",
+        message: "Проверьте подключение и попробуйте снова.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -499,6 +516,39 @@ export default function PaymentsPage() {
                 style={{ backgroundColor: "#FFD700" }}
               >
                 Выйти
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Собственное окно-уведомление (замена системного alert()) —
+          тот же стиль, что и окно выхода из аккаунта выше: золотая
+          рамка, белый фон, золотой текст. Системный alert() браузер
+          не даёт стилизовать вообще никак, поэтому рисуем своё. */}
+      {infoModal && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-[9998]"
+            onClick={() => setInfoModal(null)}
+          />
+          <div
+            className="fixed top-1/2 left-1/2 w-[90%] max-w-sm bg-white rounded-2xl border-2 border-yellow-400 shadow-2xl z-[9999] p-6 flex flex-col gap-4"
+            style={{ transform: "translate(-50%, -50%)" }}
+          >
+            <h2 className="text-lg font-bold" style={{ color: "#FFD700" }}>
+              {infoModal.title}
+            </h2>
+            <p className="text-sm" style={{ color: "#FFD700" }}>
+              {infoModal.message}
+            </p>
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setInfoModal(null)}
+                className="px-5 py-2 rounded-full font-bold text-sm text-white"
+                style={{ backgroundColor: "#FFD700" }}
+              >
+                OK
               </button>
             </div>
           </div>

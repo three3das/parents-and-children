@@ -18,7 +18,7 @@ function mix(goldPct: number) {
 }
 
 const COLOR_0 = mix(0); // чистый белый — фон карточки формы
-const COLOR_33 = mix(0.33);
+const COLOR_33 = mix(0.33); // самый светлый золотой — используется для placeholder
 const COLOR_67 = mix(0.67);
 const COLOR_100 = mix(1.0); // чистое золото #FFD700 — акцентный цвет сайта
 
@@ -91,6 +91,16 @@ export default function RegisterPage() {
 
   return (
     <div style={{ minHeight: "100vh", width: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Цвет placeholder-текста нельзя задать через inline style —
+          браузеры игнорируют style на псевдоэлементе ::placeholder,
+          поэтому здесь отдельный <style>-блок с CSS-классом (тот же
+          класс/цвет, что и на LoginPage.tsx — для консистентности). */}
+      <style>{`
+        .site-email-input::placeholder {
+          color: ${COLOR_33};
+          opacity: 1;
+        }
+      `}</style>
       <div
         style={{
           flex: 1,
@@ -159,6 +169,7 @@ export default function RegisterPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="site-email-input"
               style={{
                 width: "100%",
                 padding: "0.75rem",
@@ -207,6 +218,7 @@ export default function RegisterPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="site-email-input"
                 style={{
                   width: "100%",
                   padding: "0.75rem",

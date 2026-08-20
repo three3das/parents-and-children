@@ -10,6 +10,11 @@
 //
 // Работает через long polling (не требует публичного HTTPS-адреса —
 // удобно для локальной разработки и небольших проектов).
+//
+// Ключевые значения (email, сумма, способ оплаты, ID заявки) выделены
+// жирным через HTML-разметку Telegram (parse_mode: "HTML"). Просто
+// цвет текста Telegram не поддерживает ни для одного бота — это
+// ограничение самой платформы, а не нашего кода.
 
 import TelegramBot from "node-telegram-bot-api";
 import { activatePayment, rejectPayment } from "./routes/p2p-payments";
@@ -21,6 +26,16 @@ function getConfig() {
     token: process.env.TELEGRAM_BOT_TOKEN,
     adminChatId: process.env.TELEGRAM_ADMIN_CHAT_ID,
   };
+}
+
+// Экранируем спецсимволы HTML в значениях, которые подставляем в
+// текст сообщения (email и т.п.) — чтобы случайные "<", ">" или "&"
+// в данных не сломали разметку и не потерялись при отображении.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 // Вызывается один раз при старте сервера (см. server/index.ts).
@@ -49,6 +64,12 @@ export function startTelegramBot() {
     // у InaccessibleMessage (старое/удалённое сообщение) поля "text" нет
     // вообще. Достаём текст безопасно один раз, через проверку "in",
     // и дальше используем эту переменную вместо query.message.text.
+    //
+    // ⚠️ Важно: message.text от Telegram приходит уже БЕЗ HTML-тегов
+    // (форматирование хранится отдельно, в message.entities), поэтому
+    // после редактирования жирное форматирование полей сохранить не
+    // получится — жирным остаётся только строка с итогом, которую
+    // дописываем сами.
     const originalText =
       "text" in query.message ? query.message.text ?? "" : "";
 
@@ -61,8 +82,8 @@ export function startTelegramBot() {
 
         if (result.success) {
           await bot.editMessageText(
-            `${originalText}\n\n✅ РАЗРЕШЕНО администратором.`,
-            { chat_id: chatId, message_id: messageId }
+            `${originalText}\n\n<b>✅ РАЗРЕШЕНО администратором.</b>`,
+            { chat_id: chatId, message_id: messageId, parse_mode: "HTML" }
           );
         } else {
           await bot.answerCallbackQuery(query.id, {
@@ -75,8 +96,8 @@ export function startTelegramBot() {
 
         if (result.success) {
           await bot.editMessageText(
-            `${originalText}\n\n❌ ОТМЕНЕНО администратором.`,
-            { chat_id: chatId, message_id: messageId }
+            `${originalText}\n\n<b>❌ ОТМЕНЕНО администратором.</b>`,
+            { chat_id: chatId, message_id: messageId, parse_mode: "HTML" }
           );
         } else {
           await bot.answerCallbackQuery(query.id, {
@@ -106,10 +127,13 @@ export async function sendRegistrationNotification(
   const { adminChatId } = getConfig();
   if (!bot || !adminChatId) return;
 
-  const text = `👤 Новая регистрация на сайте\n\nEmail: ${userEmail}\n\nОжидаем оплату — уведомление придёт, когда пользователь нажмёт "Оплачено".`;
+  const text =
+    `👤 Новая регистрация на сайте\n\n` +
+    `Email: <b>${escapeHtml(userEmail)}</b>\n\n` +
+    `Ожидаем оплату — уведомление придёт, когда пользователь нажмёт "Оплачено".`;
 
   try {
-    await bot.sendMessage(adminChatId, text);
+    await bot.sendMessage(adminChatId, text, { parse_mode: "HTML" });
   } catch (err) {
     console.error("[Telegram] Failed to send registration notification:", err);
   }
@@ -127,14 +151,15 @@ export async function sendPaymentClaimNotification(
 
   const text =
     `💰 Пользователь нажал "Оплачено"\n\n` +
-    `Email: ${userEmail}\n` +
-    `Сумма: ${amount} грн\n` +
-    `Способ оплаты: ${method || "не указан"}\n` +
-    `ID заявки: ${paymentId}\n\n` +
+    `Email: <b>${escapeHtml(userEmail)}</b>\n` +
+    `Сумма: <b>${amount} грн</b>\n` +
+    `Способ оплаты: <b>${escapeHtml(method || "не указан")}</b>\n` +
+    `ID заявки: <b>${escapeHtml(paymentId)}</b>\n\n` +
     `Проверьте поступление денег и подтвердите/отклоните заявку.`;
 
   try {
     await bot.sendMessage(adminChatId, text, {
+      parse_mode: "HTML",
       reply_markup: {
         inline_keyboard: [
           [
