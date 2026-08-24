@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, uuid, numeric, primaryKey, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -73,6 +73,59 @@ export const userAnswers = pgTable("user_answers", {
   gameType: varchar("game_type").notNull(),
 });
 
+// ─────────────────────────────────────────────────────────────────
+// Таблицы системы P2P-платежей (server/routes/p2p-payments.ts).
+// Раньше существовали только в реальной базе (созданы вручную через
+// Supabase Table Editor), но не были описаны здесь — из-за этого
+// `drizzle-kit push` считал их "лишними" и предлагал удалить при
+// каждой миграции. Структура ниже взята из актуальной базы данных,
+// 1:1 с уже существующими таблицами (см. Supabase Table Editor).
+// ─────────────────────────────────────────────────────────────────
+
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  status: text("status").notNull(),
+  plan: text("plan"),
+  startedAt: timestamp("started_at", { withTimezone: true }).default(sql`now()`),
+});
+
+export const pendingPayments = pgTable("pending_payments", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  amount: numeric("amount").notNull(),
+  currency: text("currency").default("UAH"),
+  status: text("status").notNull().default("pending"),
+  // ⚠️ provider / providerPaymentId / metadata: судя по всему,
+  // задел на будущее для интеграции со сторонним платёжным провайдером
+  // (например NOWPayments, см. server/index.ts) — сейчас всегда NULL,
+  // так как активная логика (p2p-payments.ts) их не заполняет.
+  provider: text("provider"),
+  providerPaymentId: text("provider_payment_id"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).default(sql`now()`),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
+  // ⚠️ Тип в реальной базе — text, не varchar (важно для drizzle-kit push,
+  // иначе он считает это изменением типа и требует пересоздания колонки).
+  userEmail: text("user_email").notNull(),
+  activatedAt: timestamp("activated_at", { withTimezone: true }),
+  activatedBy: text("activated_by"),
+  notes: text("notes"),
+  method: text("method"),
+});
+
+export const monthlyActivations = pgTable(
+  "monthly_activations",
+  {
+    year: integer("year").notNull(),
+    month: integer("month").notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.year, table.month] }),
+  })
+);
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -97,6 +150,18 @@ export const insertUserAnswerSchema = createInsertSchema(userAnswers).omit({
   id: true,
   answeredAt: true,
 });
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  startedAt: true,
+});
+export const insertPendingPaymentSchema = createInsertSchema(pendingPayments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  activatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertWord = z.infer<typeof insertWordSchema>;
 export type Word = typeof words.$inferSelect;
@@ -111,6 +176,11 @@ export type UserAnswer = typeof userAnswers.$inferSelect;
 export type WordTranslation = typeof wordTranslations.$inferSelect;
 export type InsertMaterialWorld = z.infer<typeof insertMaterialWorldSchema>;
 export type MaterialWorld = typeof materialWorld.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertPendingPayment = z.infer<typeof insertPendingPaymentSchema>;
+export type PendingPayment = typeof pendingPayments.$inferSelect;
+export type MonthlyActivation = typeof monthlyActivations.$inferSelect;
 // Game types
 export type GameType = 'alphabet-placeholder' | 'picture-match' | 'spell-word' | 'syllables' | 'sentence-game' | 'audio-picture' | 'audio-sentence';
 // Letter audio mapping for Russian alphabet

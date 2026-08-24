@@ -28,17 +28,17 @@ const categories: Category[] = [
 // Санскрит стоит первым и является языком по умолчанию (см. DEFAULT_LANGUAGE ниже).
 const languageOptions = [
   { code: "sa", label: "Санскрит" },
-  { code: "hi", label: "Хинди" },
-  { code: "bn", label: "Бенгальский" },
-  { code: "en", label: "Английский" },
-  { code: "ru", label: "Русский" },
-  { code: "uk", label: "Украинский" },
-  { code: "de", label: "Немецкий" },
-  { code: "fr", label: "Французский" },
-  { code: "es", label: "Испанский" },
-  { code: "zh", label: "Китайский" },
-  { code: "ar", label: "Арабский" },
-  { code: "ur", label: "Урду" },
+  { code: "hi", label: "Английский" },
+  { code: "bn", label: "Арабский" },
+  { code: "en", label: "Испанский" },
+  { code: "ru", label: "Китайский" },
+  { code: "uk", label: "Португальский" },
+  { code: "de", label: "Русский" },
+  { code: "fr", label: "Украинский" },
+  { code: "es", label: "Урду" },
+  { code: "zh", label: "Французский" },
+  { code: "ar", label: "Хинди" },
+  { code: "ur", label: "Японский" },
 ];
 
 // Язык по умолчанию — Санскрит. Именно он должен быть активен изначально,

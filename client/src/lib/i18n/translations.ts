@@ -17,6 +17,10 @@ export const translations: Record<Language, Translations> = {
     loadingOptions: 'Загружаем варианты...',
     loading: 'Загрузка...',
 
+    // Empty / error states
+    noDataAvailable: 'Нет данных для этой игры',
+    loadingError: 'Ошибка загрузки данных',
+
     // Game completion
     congratulations: 'Поздравляем!',
     completedAllWords: 'Ты прошёл все слова!',
@@ -176,6 +180,10 @@ export const translations: Record<Language, Translations> = {
     loadingImages: 'Loading images...',
     loadingOptions: 'Loading options...',
     loading: 'Loading...',
+
+    // Empty / error states
+    noDataAvailable: 'No data available for this game',
+    loadingError: 'Error loading data',
 
     // Game completion
     congratulations: 'Congratulations!',
@@ -337,6 +345,10 @@ export const translations: Record<Language, Translations> = {
     loadingOptions: 'Завантажуємо варіанти...',
     loading: 'Завантаження...',
 
+    // Empty / error states
+    noDataAvailable: 'Немає даних для цієї гри',
+    loadingError: 'Помилка завантаження даних',
+
     // Game completion
     congratulations: 'Вітаємо!',
     completedAllWords: 'Ти пройшов усі слова!',
@@ -496,6 +508,10 @@ export const translations: Record<Language, Translations> = {
     loadingImages: 'चित्राणि लोड्यन्ते... (Citrāṇi loḍyante...)',
     loadingOptions: 'विकल्पाः लोड्यन्ते... (Vikalpāḥ loḍyante...)',
     loading: 'लोडिंग... (Loḍiṅg...)',
+
+    // Empty / error states
+    noDataAvailable: 'अस्याः क्रीडायाः कृते दत्तांशः नास्ति (Asyāḥ krīḍāyāḥ kṛte dattāṃśaḥ nāsti)',
+    loadingError: 'दत्तांश-लोडने त्रुटिः (Dattāṃśa-loḍane truṭiḥ)',
 
     // Game completion
     congratulations: 'अभिनन्दनम्! (Abhinandanam!)',

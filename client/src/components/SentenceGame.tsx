@@ -21,12 +21,15 @@ interface SentenceGameProps {
     disabled?: boolean;
 }
 
-type GameState = 'playing' | 'completed';
+// NOTE: added 'loading', 'empty' and 'error' so the UI can never get stuck
+// showing "Loading..." forever. Previously this component started in
+// 'playing' immediately, even before any data had arrived.
+type GameState = 'loading' | 'playing' | 'completed' | 'empty' | 'error';
 
 export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
     const { t } = useLanguage();
     const { playTryAgain } = useAudio();
-    const [gameState, setGameState] = useState<GameState>('playing');
+    const [gameState, setGameState] = useState<GameState>('loading');
     const [activities, setActivities] = useState<MaterialWorldActivity[]>([]);
     const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
     const [imageOptions, setImageOptions] = useState<MaterialWorldActivity[]>([]);
@@ -39,17 +42,27 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
 
     useEffect(() => {
         loadMaterialWorldActivities();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if (gameState === 'playing' && activities.length > 0 && currentActivityIndex >= 0 && currentActivityIndex < activities.length) {
             generateImageOptions();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gameState, activities, currentActivityIndex]);
 
     const loadMaterialWorldActivities = async () => {
+        setGameState('loading');
         try {
             const response = await fetch('/api/material-world');
+
+            if (!response.ok) {
+                console.error('Error loading material world activities: HTTP', response.status);
+                setGameState('error');
+                return;
+            }
+
             const data = await response.json();
 
             const validActivities = data.filter((activity: MaterialWorldActivity) => {
@@ -60,7 +73,12 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
             });
 
             if (validActivities.length === 0) {
-                setGameState('playing');
+                // Data loaded fine, but nothing usable for this game mode.
+                // Show an explicit empty state instead of looping forever.
+                console.warn('SentenceGame: no activities with event + syllables + image were found.');
+                setActivities([]);
+                setTotalQuestions(0);
+                setGameState('empty');
                 return;
             }
 
@@ -73,6 +91,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
             // generateImageOptions will be called by useEffect when activities state updates
         } catch (error) {
             console.error('Error loading material world activities:', error);
+            setGameState('error');
         }
     };
 
@@ -164,7 +183,7 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
     };
 
     const handleRestart = () => {
-        setGameState('playing');
+        setGameState('loading');
         setActivities([]);
         setCurrentActivityIndex(0);
         setCorrectAnswers(0);
@@ -179,6 +198,42 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
 
     return (
         <div className="flex flex-col items-center px-8 pt-2 pb-8">
+            {/* Loading state (only shown briefly while the fetch is in flight) */}
+            {gameState === 'loading' && (
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="text-4xl mb-4">⏳</div>
+                        <p className="text-xl">{t.loading}</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Empty state: request succeeded but there is no usable data */}
+            {gameState === 'empty' && (
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="text-4xl mb-4">📭</div>
+                        <p className="text-xl mb-4">{t.noDataAvailable}</p>
+                        <Button onClick={handleRestart} className="bg-primary hover:bg-purple-700 text-white px-6 py-2">
+                            {t.playAgain}
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* Error state: the request itself failed */}
+            {gameState === 'error' && (
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="text-4xl mb-4">⚠️</div>
+                        <p className="text-xl mb-4">{t.loadingError}</p>
+                        <Button onClick={handleRestart} className="bg-primary hover:bg-purple-700 text-white px-6 py-2">
+                            {t.playAgain}
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {gameState === 'completed' && (() => {
                 const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
@@ -215,6 +270,12 @@ export function SentenceGame({ onAnswer, disabled }: SentenceGameProps) {
                 );
             })()}
 
+            {/*
+              This branch previously could be reached forever when gameState
+              was 'playing' but activities was empty (e.g. no material-world
+              entries with event + syllables + image). That case is now
+              caught earlier and routed to the 'empty' state above.
+            */}
             {!currentActivity && gameState === 'playing' && (
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">

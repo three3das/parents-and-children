@@ -19,7 +19,9 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
     const { t } = useLanguage();
 
     // Game state
-    const [gameState, setGameState] = useState<'loading' | 'playing' | 'completed'>('loading');
+    // NOTE: added 'empty' and 'error' states so the UI never gets stuck on
+    // "loading" forever when the API returns no usable data.
+    const [gameState, setGameState] = useState<'loading' | 'playing' | 'completed' | 'empty' | 'error'>('loading');
     const [words, setWords] = useState<WordWithSuffix[]>([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [correctAnswers, setCorrectAnswers] = useState(0);
@@ -33,18 +35,34 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
 
     // Load words from API
     const loadWords = useCallback(async () => {
+        setGameState('loading');
         try {
             const response = await fetch('/api/words');
             if (response.ok) {
                 const wordsData: WordWithSuffix[] = await response.json();
                 // Filter only words with suffix defined
-                const wordsWithSuffix = wordsData.filter(w => w.suffix);
+                const wordsWithSuffix = wordsData.filter(w => w.suffix && w.suffix.trim() !== '');
+
+                if (wordsWithSuffix.length === 0) {
+                    // Data loaded fine, but nothing usable for this game mode.
+                    // Show an explicit empty state instead of looping forever.
+                    console.warn('SyllablesGame: no words with a "suffix" field were found.');
+                    setWords([]);
+                    setGameState('empty');
+                    return;
+                }
+
                 const shuffled = [...wordsWithSuffix].sort(() => Math.random() - 0.5);
                 setWords(shuffled);
+                setCurrentWordIndex(0);
                 setGameState('playing');
+            } else {
+                console.error('Error loading words: HTTP', response.status);
+                setGameState('error');
             }
         } catch (error) {
             console.error('Error loading words:', error);
+            setGameState('error');
         }
     }, []);
 
@@ -93,6 +111,7 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
             setShowResult(false);
             setIsCorrect(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gameState, words, currentWordIndex]);
 
     const currentWord = words[currentWordIndex];
@@ -150,6 +169,42 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
 
     return (
         <div className="flex flex-col items-center px-8 pt-2 pb-8">
+            {/* Loading state (only shown briefly while the fetch is in flight) */}
+            {gameState === 'loading' && (
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="text-4xl mb-4">⏳</div>
+                        <p className="text-xl">{t.loading}</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Empty state: request succeeded but there is no usable data */}
+            {gameState === 'empty' && (
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="text-4xl mb-4">📭</div>
+                        <p className="text-xl mb-4">{t.noDataAvailable}</p>
+                        <Button onClick={handleRestart} className="bg-primary hover:bg-purple-700 text-white px-6 py-2">
+                            {t.playAgain}
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* Error state: the request itself failed */}
+            {gameState === 'error' && (
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="text-4xl mb-4">⚠️</div>
+                        <p className="text-xl mb-4">{t.loadingError}</p>
+                        <Button onClick={handleRestart} className="bg-primary hover:bg-purple-700 text-white px-6 py-2">
+                            {t.playAgain}
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {gameState === 'completed' && (() => {
                 const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
@@ -186,6 +241,13 @@ export function SyllablesGame({ onAnswer, disabled }: SyllablesGameProps) {
                 );
             })()}
 
+            {/*
+              This branch previously could be reached forever when gameState
+              was 'playing' but words was empty (e.g. no "suffix" field in the
+              DB). That case is now caught earlier and routed to the 'empty'
+              state above, so this is now only a very short-lived guard for
+              the render right after currentWordIndex changes.
+            */}
             {!currentWord && gameState === 'playing' && (
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">

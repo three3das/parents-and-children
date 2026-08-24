@@ -23,7 +23,7 @@ export function AudioSentenceGame({
   selectedItem
 }: AudioSentenceGameProps) {
   const { playCustomAudio, playTryAgain } = useAudio();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   // Get the correct audio path based on selected language
   const getAudioPath = useCallback(() => {
@@ -81,6 +81,8 @@ export function AudioSentenceGame({
         } catch (error) {
           console.warn('Speech synthesis not available:', error);
         }
+      } else {
+        console.warn('AudioSentenceGame: no audio file and no text to speak for this sentence.');
       }
     }
   }, [getAudioPath, getSentenceText, playCustomAudio, language]);
@@ -104,8 +106,37 @@ export function AudioSentenceGame({
     onSelect(item, isCorrect);
   }, [disabled, selectedItem, sentence?.id, playTryAgain, onSelect]);
 
+  // -----------------------------------------------------------------------
+  // IMPORTANT: this component does not fetch its own data — it only renders
+  // whatever `sentence` / `distractors` props it is given by its parent.
+  //
+  // Previously, when `sentence` was missing or `shuffledOptions` was empty,
+  // this component silently rendered `null`. If the *parent* component was
+  // meanwhile showing a "Loading..." placeholder while waiting for this
+  // component to render something, the screen would appear stuck on
+  // "Loading..." forever, even though the real problem was that the parent
+  // never received valid `sentence`/`distractors` data in the first place
+  // (e.g. no material-world entries matched, or the parent's own fetch
+  // never resolved / errored silently).
+  //
+  // Rendering an explicit message here (instead of null) makes that failure
+  // visible immediately, and makes it obvious that the fix belongs in the
+  // parent component that supplies `sentence` and `distractors` — check
+  // its data-loading logic (the equivalent of loadMaterialWorldActivities()
+  // in SentenceGame.tsx) for the same "fetched OK but filtered down to
+  // zero items" issue.
+  // -----------------------------------------------------------------------
   if (!sentence || shuffledOptions.length === 0) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-[300px]">
+        <div className="text-center">
+          <div className="text-4xl mb-4">📭</div>
+          <p className="text-xl">
+            {t.noDataAvailable}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

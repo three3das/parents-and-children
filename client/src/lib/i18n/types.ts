@@ -16,6 +16,11 @@ export interface Translations {
   loadingOptions: string;
   loading: string;
 
+  // Empty / error states (shown when a game's API request succeeds but
+  // returns no usable data, or when the request itself fails)
+  noDataAvailable: string;
+  loadingError: string;
+
   // Game completion
   congratulations: string;
   completedAllWords: string;
