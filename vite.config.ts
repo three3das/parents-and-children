@@ -24,6 +24,12 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+  // Tell Vite to look for the .env file in the project root (where the
+  // backend's .env already lives) instead of inside client/. Without this,
+  // Vite defaults to looking for .env next to `root` (i.e. inside client/),
+  // which is why VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY were not being
+  // picked up even though they were present in the root .env file.
+  envDir: path.resolve(import.meta.dirname),
   publicDir: path.resolve(import.meta.dirname, "public"),
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),

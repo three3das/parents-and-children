@@ -4,19 +4,6 @@ import { useLanguage, LANGUAGE_FLAGS } from "@/lib/i18n";
 import { useAuth, getWelcomeName } from "@/lib/auth";
 import { headerNav, footerNav } from "@/lib/siteNav";
 
-type Category = {
-  key: string;
-  label: string;
-};
-
-const categories: Category[] = [
-  { key: "ishvara", label: "Астрология" },
-  { key: "jiva", label: "Здоровье" },
-  { key: "prakriti", label: "Игры" },
-  { key: "karma", label: "Природа Материального мира" },
-  { key: "kala", label: "Творчество" },
-];
-
 // headerNav и footerNav теперь берутся из общего файла "@/lib/siteNav" —
 // раньше здесь были свои локальные копии этих массивов, из-за чего
 // порядок и подписи футера расходились с PaymentsPage.tsx (тот уже
@@ -44,6 +31,26 @@ const languageOptions = [
 // Язык по умолчанию — Санскрит. Именно он должен быть активен изначально,
 // пока пользователь не выберет другой язык в колесе.
 const DEFAULT_LANGUAGE = "sa";
+
+// Список систем письменности для второго колеса, которое открывается
+// ПОСЛЕ выбора языка (см. "languagesStage" ниже) — 12 секторов, те же
+// позиции/цвета, что и у колеса языков. Это отдельный от языка выбор:
+// он не меняет язык интерфейса, только "закрывает круг" и возвращает
+// на главное колесо сайта.
+const scriptOptions = [
+  { code: "devanagari", label: "Деванагари" },
+  { code: "cyrillic", label: "Кириллица" },
+  { code: "latin", label: "Латиница" },
+  { code: "arabic", label: "Арабское письмо" },
+  { code: "chinese", label: "Китайские иероглифы" },
+  { code: "japanese", label: "Японское письмо" },
+  { code: "korean", label: "Корейский хангыль" },
+  { code: "bengali", label: "Бенгальское письмо" },
+  { code: "tamil", label: "Тамильское письмо" },
+  { code: "greek", label: "Греческое письмо" },
+  { code: "hebrew", label: "Еврейское письмо" },
+  { code: "georgian", label: "Грузинское письмо" },
+];
 
 // --- Яркие золотые цвета ---
 const GOLD = { r: 255, g: 215, b: 0 };
@@ -122,11 +129,64 @@ const DICTIONARY_LABELS: string[][] = Array.from(
       : []
 );
 
-// --- Колесо категории "Игры" ---
+// --- Категории в самом колесе, которое и так открывается первым ---
+//
+// Раньше 5 категорий были кнопками в отдельной панели над колесом,
+// а колесо ниже показывало отдельное содержимое (MAIN_WHEEL_LABELS).
+// Теперь это ОДНО и то же колесо: та же переменная view === "main",
+// никакого нового экрана/состояния не добавлено — просто в первых
+// секторах (по часовой стрелке от 12 часов) теперь разделы сайта,
+// а клик по активному сектору работает так же, как раньше клик по
+// кнопке (открывает раздел).
+//
+// Порядок и статус секторов:
+//   1. Игры — единственный по-настоящему рабочий раздел на данный
+//      момент: подсвечен золотым (активен), клик открывает колесо
+//      с 7 играми (см. GAME_WHEEL_LABELS ниже).
+//   2. Аюр-веда — заглушка (раздел ещё не реализован).
+//   3. Джйотиш — заглушка.
+//   4–7. Астрология, Здоровье, Природа Материального мира,
+//      Творчество — прежние 4 категории из старой панели кнопок,
+//      тоже пока заглушки.
+// Сектора 8–12 остаются пустыми белыми — без подписи и без функции.
+//
+// Длинные подписи ("Природа Материального мира") разбиты на строки
+// по 2 слова, чтобы влезать в сектор, как и у остальных колёс сайта.
+function splitLabelIntoLines(label: string): string[] {
+  const words = label.split(" ");
+  const lines: string[] = [];
+  for (let i = 0; i < words.length; i += 2) {
+    lines.push(words.slice(i, i + 2).join(" "));
+  }
+  return lines;
+}
+
+const CATEGORY_ITEMS: string[] = [
+  "Игры",
+  "Аюр-веда",
+  "Джйотиш",
+  "Астрология",
+  "Здоровье",
+  "Природа Материального мира",
+  "Творчество",
+];
+
+// Только первый сектор ("Игры") сейчас кликабелен — остальные
+// перечисленные выше показаны как заглушки (подпись видна, но клик
+// по ним ничего не делает), а сектора 8–12 не заполнены вовсе.
+const CATEGORY_CLICKABLE_INDICES = [0];
+
+const CATEGORY_WHEEL_LABELS: string[][] = Array.from(
+  { length: SECTOR_COUNT },
+  (_, i) => (i < CATEGORY_ITEMS.length ? splitLabelIntoLines(CATEGORY_ITEMS[i]) : [])
+);
+
+// --- Колесо игр ---
 //
 // Все 7 игр, найденные в GameMenu.tsx (тип GameType из "@shared/schema"),
 // в том же порядке, что и в массиве gameTypes. Заполнены только первые
 // 7 секторов (по часовой стрелке от 12 часов) — оставшиеся 5 пустые.
+// Открывается по клику на активный сектор "Игры" колеса категорий.
 type GameType =
   | "alphabet-placeholder"
   | "picture-match"
@@ -156,11 +216,19 @@ function Wheel12({
   centerLabel,
   onSectorClick,
   activeIndex,
+  clickableIndices,
 }: {
   labels: string[][];
   centerLabel: string;
   onSectorClick?: (index: number) => void;
   activeIndex?: number;
+  // Необязательный список индексов, которые можно кликать. Если не
+  // задан — кликабелен любой сектор с подписью (прежнее поведение,
+  // используется колёсами языков/письменности/словаря/игр, где все
+  // заполненные сектора действуют одинаково). Колесо категорий
+  // передаёт сюда [0] — рабочий раздел один ("Игры"), остальные
+  // подписанные сектора — заглушки без реакции на клик.
+  clickableIndices?: number[];
 }) {
   return (
     <div className="relative aspect-square h-full max-h-full max-w-full">
@@ -187,7 +255,12 @@ function Wheel12({
             (360 / SECTOR_COUNT) * i + 360 / SECTOR_COUNT / 2;
           const bx = CX + BADGE_RADIUS * Math.sin(toRad(midAngle));
           const by = CY - BADGE_RADIUS * Math.cos(toRad(midAngle));
-          const clickable = Boolean(onSectorClick);
+          // Сектор кликабелен, если для него задан обработчик, у него
+          // есть подпись, и (если передан clickableIndices) его индекс
+          // входит в этот список.
+          const hasLabel = (labels[i] || []).length > 0;
+          const allowedByList = !clickableIndices || clickableIndices.includes(i);
+          const clickable = Boolean(onSectorClick) && hasLabel && allowedByList;
           const isActive = i === activeIndex;
           return (
             <circle
@@ -210,7 +283,9 @@ function Wheel12({
           const bx = CX + BADGE_RADIUS * Math.sin(toRad(midAngle));
           const by = CY - BADGE_RADIUS * Math.cos(toRad(midAngle));
           const lines = labels[i] || [];
-          const clickable = Boolean(onSectorClick);
+          const hasLabel = lines.length > 0;
+          const allowedByList = !clickableIndices || clickableIndices.includes(i);
+          const clickable = Boolean(onSectorClick) && hasLabel && allowedByList;
           const isActive = i === activeIndex;
 
           const firstDy =
@@ -288,8 +363,27 @@ function LanguagesWheelView({
   );
 }
 
+// Колесо выбора системы письменности — открывается ПОСЛЕ того, как
+// пользователь уже выбрал язык в LanguagesWheelView (см. состояние
+// "languagesStage" в IshvaraPage). Выбор здесь не меняет язык
+// интерфейса — только замыкает круг и возвращает на главное колесо.
+function ScriptsWheelView({
+  onSelectScript,
+}: {
+  onSelectScript: (code: string) => void;
+}) {
+  const labels = scriptOptions.map((s) => [s.label]);
+
+  return (
+    <Wheel12
+      labels={labels}
+      centerLabel="Письменность"
+      onSectorClick={(index) => onSelectScript(scriptOptions[index].code)}
+    />
+  );
+}
+
 export default function IshvaraPage() {
-  const [active, setActive] = useState<Category>(categories[0]);
   const [activeNav, setActiveNav] = useState<string>(headerNav[0].key);
   const [activeFooterNav, setActiveFooterNav] = useState<string>(
     footerNav[0].key
@@ -315,30 +409,51 @@ export default function IshvaraPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // "main" — исходное колесо, число (0–11) — вложенное колесо сектора,
-  // "languages" — страница выбора языка,
+  // "main" — стартовое колесо (сектор 1 "Игры" активен и кликабелен,
+  // сектора 2–7 — заглушки разделов, 8–12 — пустые),
+  // "games" — колесо с 7 играми, открывается по клику на "Игры",
+  // число (0–11) — вложенное колесо сектора (пока не используется),
+  // "languages" — колесо выбора языка,
+  // "scripts" — колесо выбора системы письменности (второй шаг),
   // "dictionary" — страница "Словарь используемых на сайте слов".
   const [view, setView] = useState<
-    "main" | number | "languages" | "dictionary"
+    "main" | "games" | number | "languages" | "scripts" | "dictionary"
   >("main");
 
-  const isGamesCategory = active.key === "prakriti";
+  // Кнопка "Меню доступных языков" в футере переключается между двумя
+  // состояниями по кругу: сначала предлагает выбрать язык, а после
+  // выбора языка сама меняет подпись на "Меню доступных систем
+  // письменностей" — следующий клик откроет уже колесо письменности.
+  // После выбора письменности стадия возвращается к "language",
+  // замыкая полный круг (12 языков → 12 письменностей → снова 12 языков).
+  const [languagesStage, setLanguagesStage] = useState<"language" | "script">(
+    "language"
+  );
 
-  const handleMainSectorClick = (index: number) => {
-    if (isGamesCategory) {
-      const game = GAMES[index];
-      if (game) {
-        setLocation(`/game?type=${game.type}`);
-      }
-      return;
+  // Клик по колесу категорий: сейчас работает только сектор 0
+  // ("Игры") — открывает колесо с играми. Остальные подписанные
+  // сектора (заглушки) физически некликабельны — см. clickableIndices
+  // у Wheel12 в разметке ниже, — так что сюда их индексы никогда не
+  // попадут, но проверка на index === 0 оставлена для ясности и на
+  // случай будущего расширения списка кликабельных секторов.
+  const handleSelectCategory = (index: number) => {
+    if (index === 0) {
+      setView("games");
     }
-    setView(index);
+  };
+
+  // Клик по сектору колеса игр — переход на страницу конкретной игры.
+  const handleGameSectorClick = (index: number) => {
+    const game = GAMES[index];
+    if (game) {
+      setLocation(`/game?game=${game.type}`);
+    }
   };
 
   const handleFooterClick = (key: string) => {
     setActiveFooterNav(key);
     if (key === "languages") {
-      setView("languages");
+      setView(languagesStage === "language" ? "languages" : "scripts");
     } else if (key === "site-page") {
       setView("dictionary");
     } else if (key === "all-data") {
@@ -361,6 +476,18 @@ export default function IshvaraPage() {
   const handleSelectLanguage = (code: string) => {
     setLanguage(code as any);
     setView("main");
+    // Круг не завершён — следующий клик по кнопке в футере должен
+    // предложить уже выбор системы письменности, а не снова язык.
+    setLanguagesStage("script");
+  };
+
+  const handleSelectScript = (_code: string) => {
+    // Выбор письменности не хранится отдельно (пока не требуется) —
+    // он только замыкает круг: возвращаем на главное колесо сайта и
+    // сбрасываем стадию, чтобы следующий клик по кнопке в футере снова
+    // начинал с выбора языка.
+    setView("main");
+    setLanguagesStage("language");
   };
 
   return (
@@ -387,8 +514,8 @@ export default function IshvaraPage() {
       </header>
 
       <main className="flex-1 min-h-0 flex flex-col items-center gap-2 py-2 overflow-hidden">
-        <div className="flex-shrink-0 relative w-full flex justify-center items-center">
-          {view !== "main" && (
+        {view !== "main" && (
+          <div className="flex-shrink-0 relative w-full flex justify-center items-center">
             <button
               onClick={() => setView("main")}
               className="absolute left-6 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
@@ -396,33 +523,25 @@ export default function IshvaraPage() {
             >
               ← Назад
             </button>
-          )}
-          <div className="flex flex-wrap justify-center gap-3">
-            {categories.map((cat) => (
-              <button
-                key={cat.key}
-                onClick={() => {
-                  setActive(cat);
-                  setView("main");
-                }}
-                className="px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
-                style={{
-                  color: "#FFD700",
-                  borderColor: active.key === cat.key ? "#FFD700" : "#FFE066",
-                }}
-              >
-                {cat.label}
-              </button>
-            ))}
           </div>
-        </div>
+        )}
 
         <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
           {view === "main" && (
             <Wheel12
-              labels={isGamesCategory ? GAME_WHEEL_LABELS : MAIN_WHEEL_LABELS}
-              centerLabel={active.label}
-              onSectorClick={handleMainSectorClick}
+              labels={CATEGORY_WHEEL_LABELS}
+              centerLabel="Игры"
+              activeIndex={0}
+              clickableIndices={CATEGORY_CLICKABLE_INDICES}
+              onSectorClick={handleSelectCategory}
+            />
+          )}
+
+          {view === "games" && (
+            <Wheel12
+              labels={GAME_WHEEL_LABELS}
+              centerLabel="Игры"
+              onSectorClick={handleGameSectorClick}
             />
           )}
 
@@ -440,8 +559,12 @@ export default function IshvaraPage() {
             />
           )}
 
+          {view === "scripts" && (
+            <ScriptsWheelView onSelectScript={handleSelectScript} />
+          )}
+
           {view === "dictionary" && (
-            <Wheel12 labels={DICTIONARY_LABELS} centerLabel={active.label} />
+            <Wheel12 labels={DICTIONARY_LABELS} centerLabel="Словарь" />
           )}
         </div>
       </main>
@@ -453,11 +576,20 @@ export default function IshvaraPage() {
             // динамически: приветствие с именем пользователя, если он
             // вошёл (и, значит, уже прошёл этап входа — дальше его
             // встретит колесо оплаты), иначе — приглашение войти.
+            //
+            // Подпись кнопки "Меню доступных языков" тоже подменяется
+            // динамически, в зависимости от того, на каком шаге круга
+            // "язык → письменность → снова язык" сейчас находится
+            // пользователь — см. languagesStage выше.
             const label =
               item.key === "all-data"
                 ? isAuthenticated
                   ? `Добро пожаловать, ${getWelcomeName(user)}!`
                   : "Начальная страница сайта"
+                : item.key === "languages"
+                ? languagesStage === "language"
+                  ? "Меню доступных языков"
+                  : "Меню доступных систем письменностей"
                 : item.label;
 
             return (

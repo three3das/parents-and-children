@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Word, type GameType, type MaterialWorld } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -64,9 +64,15 @@ export default function Game() {
   const { t, language } = useLanguage();
 
   // Switch to alphabet when language changes
-  useEffect(() => {
-    setGameType('alphabet-placeholder');
-  }, [language]);
+
+  const isFirstRender = useRef(true);
+useEffect(() => {
+  if (isFirstRender.current) {
+    isFirstRender.current = false;
+    return;
+  }
+  setGameType('alphabet-placeholder');
+}, [language]);
 
   // Extended Word type with optional translation
   type WordWithTranslation = Word & { translatedWord?: string };
