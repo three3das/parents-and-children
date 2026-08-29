@@ -4,10 +4,14 @@ import { SiteHeader } from "@/components/SiteHeaderFooter";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase"; // Убедитесь, что путь к вашему клиенту supabase совпадает
 
+// ⚠️ Поля соответствуют реальной структуре таблицы public.letter_anchor
+// (id, language_id, grapheme, letter_type, sort_order, created_at).
+// Колонки "transliteration" в таблице нет — раньше она была в интерфейсе
+// и в подсказке кнопки, но такого столбца не существует, поэтому подсказка
+// никогда не показывалась. Убрано вместе с полем.
 interface LetterItem {
   id: string;
   grapheme: string;
-  transliteration: string | null;
   letter_type: string | null;
   sort_order: number | null;
 }
@@ -15,7 +19,7 @@ interface LetterItem {
 export default function AlphabetPage() {
   const [, navigate] = useLocation();
   const { language } = useLanguage();
-  
+
   const [letters, setLetters] = useState<LetterItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -36,10 +40,14 @@ export default function AlphabetPage() {
           const systemId = systems[0].id;
 
           // 2. Загружаем все буквы для этой системы письменности, отсортированные по sort_order
+          //    ⚠️ Таблица называется "letter_anchor", а внешний ключ на язык —
+          //    "language_id" (раньше здесь были "letter_items" / "writing_system_id" —
+          //    таких имён в базе нет, из-за чего запрос падал с ошибкой для ЛЮБОГО
+          //    языка, включая уже заполненные английский/испанский).
           const { data: items, error: itemsError } = await supabase
-            .from('letter_items')
+            .from('letter_anchor')
             .select('*')
-            .eq('writing_system_id', systemId)
+            .eq('language_id', systemId)
             .order('sort_order', { ascending: true });
 
           if (itemsError) throw itemsError;
@@ -60,11 +68,30 @@ export default function AlphabetPage() {
     fetchLetters();
   }, [language]);
 
-  // Функция озвучки буквы
+  // Озвучка буквы: раньше язык озвучки был жёстко задан как "всегда
+  // ru-RU, кроме санскрита" — то есть даже при выбранном Хинди или
+  // Французском буква озвучивалась по-русски. Теперь у каждого из 12
+  // языков — свой голосовой локаль (насколько это поддерживает
+  // Web Speech API в браузере пользователя).
+  const SPEECH_LOCALE: Record<string, string> = {
+    sa: 'hi-IN', // отдельного голоса для санскрита в браузерах обычно нет
+    en: 'en-US',
+    ar: 'ar-SA',
+    bn: 'bn-IN',
+    id: 'id-ID',
+    es: 'es-ES',
+    pt: 'pt-PT',
+    ru: 'ru-RU',
+    uk: 'uk-UA',
+    ur: 'ur-PK',
+    fr: 'fr-FR',
+    hi: 'hi-IN',
+  };
+
   function playLetter(grapheme: string) {
     try {
       const u = new SpeechSynthesisUtterance(grapheme);
-      u.lang = language === 'sa' ? 'hi-IN' : 'ru-RU';
+      u.lang = SPEECH_LOCALE[language] ?? 'ru-RU';
       u.rate = 0.7;
       speechSynthesis.speak(u);
     } catch (e) {
@@ -108,7 +135,6 @@ export default function AlphabetPage() {
               <button
                 key={item.id}
                 onClick={() => playLetter(item.grapheme)}
-                title={item.transliteration ? `Транслитерация: ${item.transliteration}` : undefined}
                 style={{
                   background: "rgba(255,255,255,0.15)",
                   border: "2px solid rgba(255,255,255,0.35)",

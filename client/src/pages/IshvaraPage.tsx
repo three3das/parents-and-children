@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useLanguage, LANGUAGE_FLAGS } from "@/lib/i18n";
 import { useAuth, getWelcomeName } from "@/lib/auth";
@@ -13,30 +13,39 @@ import { headerNav, footerNav } from "@/lib/siteNav";
 // Список языков для колеса языкового меню — 12 секторов, по часовой
 // стрелке, начиная с 12 часов, в заданном порядке.
 // Санскрит стоит первым и является языком по умолчанию (см. DEFAULT_LANGUAGE ниже).
+//
+// ⚠️ Раньше коды были перепутаны с подписями (например, code: "hi" стоял
+// напротив label: "Английский") — похоже, подписи в какой-то момент
+// отсортировали по алфавиту, а коды остались в старом порядке. Из-за
+// этого клик по сектору "Английский" на самом деле выставлял язык "hi",
+// а два сектора вообще ссылались на коды ("de", "zh"), которых нет ни
+// в таблице public.letter_writing_systems, ни в типе Language. Порядок
+// подписей (по часовой стрелке) не менялся — только коды приведены в
+// соответствие с public.letter_writing_systems.sort_order в Supabase.
 const languageOptions = [
   { code: "sa", label: "Санскрит" },
-  { code: "hi", label: "Английский" },
-  { code: "bn", label: "Арабский" },
-  { code: "en", label: "Испанский" },
-  { code: "ru", label: "Китайский" },
-  { code: "uk", label: "Португальский" },
-  { code: "de", label: "Русский" },
-  { code: "fr", label: "Украинский" },
-  { code: "es", label: "Урду" },
-  { code: "zh", label: "Французский" },
-  { code: "ar", label: "Хинди" },
-  { code: "ur", label: "Японский" },
+  { code: "en", label: "Английский" },
+  { code: "ar", label: "Арабский" },
+  { code: "bn", label: "Бенгальский" },
+  { code: "id", label: "Индонезийский" },
+  { code: "es", label: "Испанский" },
+  { code: "pt", label: "Португальский" },
+  { code: "ru", label: "Русский" },
+  { code: "uk", label: "Украинский" },
+  { code: "ur", label: "Урду" },
+  { code: "fr", label: "Французский" },
+  { code: "hi", label: "Хинди" },
 ];
 
 // Язык по умолчанию — Санскрит. Именно он должен быть активен изначально,
 // пока пользователь не выберет другой язык в колесе.
 const DEFAULT_LANGUAGE = "sa";
 
-// Список систем письменности для второго колеса, которое открывается
-// ПОСЛЕ выбора языка (см. "languagesStage" ниже) — 12 секторов, те же
-// позиции/цвета, что и у колеса языков. Это отдельный от языка выбор:
-// он не меняет язык интерфейса, только "закрывает круг" и возвращает
-// на главное колесо сайта.
+// Список систем письменности для второго колеса. Теперь оба колеса
+// (языки и системы письменности) — два РАВНОПРАВНЫХ раздела, которые
+// выбираются напрямую из выпадающего меню кнопки "Меню" в футере (см.
+// isMenuOpen/handleSelectMenuOption ниже), а не идут друг за другом по
+// кругу, как раньше. Порядок и состав секторов не менялся.
 const scriptOptions = [
   { code: "devanagari", label: "Деванагари" },
   { code: "cyrillic", label: "Кириллица" },
@@ -363,10 +372,10 @@ function LanguagesWheelView({
   );
 }
 
-// Колесо выбора системы письменности — открывается ПОСЛЕ того, как
-// пользователь уже выбрал язык в LanguagesWheelView (см. состояние
-// "languagesStage" в IshvaraPage). Выбор здесь не меняет язык
-// интерфейса — только замыкает круг и возвращает на главное колесо.
+// Колесо выбора системы письменности — открывается напрямую из пункта
+// "Системы письменности" выпадающего меню кнопки "Меню" (см.
+// handleSelectMenuOption в IshvaraPage). Выбор здесь не меняет язык
+// интерфейса — только закрывает колесо и возвращает на главное.
 function ScriptsWheelView({
   onSelectScript,
 }: {
@@ -414,21 +423,31 @@ export default function IshvaraPage() {
   // "games" — колесо с 7 играми, открывается по клику на "Игры",
   // число (0–11) — вложенное колесо сектора (пока не используется),
   // "languages" — колесо выбора языка,
-  // "scripts" — колесо выбора системы письменности (второй шаг),
+  // "scripts" — колесо выбора системы письменности,
   // "dictionary" — страница "Словарь используемых на сайте слов".
   const [view, setView] = useState<
     "main" | "games" | number | "languages" | "scripts" | "dictionary"
   >("main");
 
-  // Кнопка "Меню доступных языков" в футере переключается между двумя
-  // состояниями по кругу: сначала предлагает выбрать язык, а после
-  // выбора языка сама меняет подпись на "Меню доступных систем
-  // письменностей" — следующий клик откроет уже колесо письменности.
-  // После выбора письменности стадия возвращается к "language",
-  // замыкая полный круг (12 языков → 12 письменностей → снова 12 языков).
-  const [languagesStage, setLanguagesStage] = useState<"language" | "script">(
-    "language"
-  );
+  // Кнопка "Меню" в футере (бывшая "Меню доступных языков") больше не
+  // переключает состояние по кругу — вместо этого она открывает
+  // выпадающий список с двумя разделами: "Языки" и "Системы
+  // письменности". Пользователь сам выбирает, какое из двух колёс
+  // открыть, каждый раз заново — без запоминания "стадии".
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Закрываем выпадающее меню при клике снаружи него.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
 
   // Клик по колесу категорий: сейчас работает только сектор 0
   // ("Игры") — открывает колесо с играми. Остальные подписанные
@@ -453,10 +472,14 @@ export default function IshvaraPage() {
   const handleFooterClick = (key: string) => {
     setActiveFooterNav(key);
     if (key === "languages") {
-      setView(languagesStage === "language" ? "languages" : "scripts");
+      // Открываем/закрываем выпадающий список вместо прямого перехода
+      // на одно из колёс.
+      setIsMenuOpen((open) => !open);
     } else if (key === "site-page") {
+      setIsMenuOpen(false);
       setView("dictionary");
     } else if (key === "all-data") {
+      setIsMenuOpen(false);
       // Единая точка входа к платному доступу:
       // не вошёл — сначала форма входа/регистрации;
       // вошёл, но ещё не оплатил — колесо способов оплаты.
@@ -468,26 +491,27 @@ export default function IshvaraPage() {
         setLocation("/payments");
       }
     } else if (key === "your-page") {
+      setIsMenuOpen(false);
       // Пока без действия — сюда позже добавится другое меню
       // (содержание уточним отдельно).
     }
   };
 
+  // Выбор раздела в выпадающем меню кнопки "Меню".
+  const handleSelectMenuOption = (option: "languages" | "scripts") => {
+    setIsMenuOpen(false);
+    setView(option);
+  };
+
   const handleSelectLanguage = (code: string) => {
     setLanguage(code as any);
     setView("main");
-    // Круг не завершён — следующий клик по кнопке в футере должен
-    // предложить уже выбор системы письменности, а не снова язык.
-    setLanguagesStage("script");
   };
 
   const handleSelectScript = (_code: string) => {
     // Выбор письменности не хранится отдельно (пока не требуется) —
-    // он только замыкает круг: возвращаем на главное колесо сайта и
-    // сбрасываем стадию, чтобы следующий клик по кнопке в футере снова
-    // начинал с выбора языка.
+    // он только возвращает на главное колесо сайта.
     setView("main");
-    setLanguagesStage("language");
   };
 
   return (
@@ -576,35 +600,59 @@ export default function IshvaraPage() {
             // динамически: приветствие с именем пользователя, если он
             // вошёл (и, значит, уже прошёл этап входа — дальше его
             // встретит колесо оплаты), иначе — приглашение войти.
-            //
-            // Подпись кнопки "Меню доступных языков" тоже подменяется
-            // динамически, в зависимости от того, на каком шаге круга
-            // "язык → письменность → снова язык" сейчас находится
-            // пользователь — см. languagesStage выше.
             const label =
               item.key === "all-data"
                 ? isAuthenticated
                   ? `Добро пожаловать, ${getWelcomeName(user)}!`
                   : "Начальная страница сайта"
-                : item.key === "languages"
-                ? languagesStage === "language"
-                  ? "Меню доступных языков"
-                  : "Меню доступных систем письменностей"
                 : item.label;
 
+            const isMenuButton = item.key === "languages";
+
             return (
-              <button
+              <div
                 key={item.key}
-                onClick={() => handleFooterClick(item.key)}
-                className="flex-1 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
-                style={{
-                  color: "#FFD700",
-                  borderColor:
-                    activeFooterNav === item.key ? "#FFD700" : "#FFE066",
-                }}
+                className="flex-1 relative"
+                ref={isMenuButton ? menuRef : undefined}
               >
-                {label}
-              </button>
+                <button
+                  onClick={() => handleFooterClick(item.key)}
+                  className="w-full px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
+                  style={{
+                    color: "#FFD700",
+                    borderColor:
+                      activeFooterNav === item.key ? "#FFD700" : "#FFE066",
+                  }}
+                >
+                  {label}
+                </button>
+
+                {isMenuButton && isMenuOpen && (
+                  <div
+                    className="absolute bottom-full right-0 mb-2 w-56 rounded-2xl border-2 bg-white shadow-lg overflow-hidden z-10"
+                    style={{ borderColor: "#FFD700" }}
+                  >
+                    <button
+                      onClick={() => handleSelectMenuOption("languages")}
+                      className="w-full px-4 py-3 text-left font-bold text-base transition hover:bg-yellow-50"
+                      style={{ color: "#FFD700" }}
+                    >
+                      Языки
+                    </button>
+                    <div
+                      className="h-px w-full"
+                      style={{ backgroundColor: "#FFE066" }}
+                    />
+                    <button
+                      onClick={() => handleSelectMenuOption("scripts")}
+                      className="w-full px-4 py-3 text-left font-bold text-base transition hover:bg-yellow-50"
+                      style={{ color: "#FFD700" }}
+                    >
+                      Системы письменности
+                    </button>
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

@@ -2,8 +2,13 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { GAME_CONFIG, ANIMATION_VARIANTS } from "@/lib/constants";
 import { useLanguage } from "@/lib/i18n";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 import { AuthDropdown } from "./AuthDropdown";
+
+// ⚠️ Импорт LanguageSwitcher убран намеренно: раньше в шапке игры был
+// свой собственный переключатель языка ("EN English ▾"), дублирующий
+// выбор языка на главной странице сайта (IshvaraPage.tsx → кнопка
+// "Меню" в футере → "Языки"). Теперь язык интерфейса выбирается только
+// там — единая точка выбора вместо двух независимых переключателей.
 
 interface GameHeaderProps {
   currentWordIndex: number;
@@ -137,16 +142,6 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
                 </span>
               </div>
             )}
-          </motion.div>
-
-          {/* Language Switcher */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.25 }}
-            className="relative overflow-visible flex-shrink-0"
-          >
-            <LanguageSwitcher />
           </motion.div>
 
           {/* Auth Dropdown - Far Right */}

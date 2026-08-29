@@ -1,4 +1,32 @@
-export type Language = 'en' | 'ru' | 'uk' | 'sa';
+// ⚠️ Раньше здесь были только 4 языка ('en' | 'ru' | 'uk' | 'sa'), хотя
+// колесо выбора языка на IshvaraPage.tsx предлагает 12. Из-за этого
+// LanguageContext.tsx (см. getStoredLanguage) отбрасывал любой код языка
+// за пределами этих четырёх и откатывал выбор обратно на Санскрит при
+// перечтении из localStorage — именно поэтому игра "Алфавит" всегда
+// показывала только санскритский алфавит, что бы ни было выбрано в меню.
+export type Language =
+  | 'sa'
+  | 'en'
+  | 'ar'
+  | 'bn'
+  | 'id'
+  | 'es'
+  | 'pt'
+  | 'ru'
+  | 'uk'
+  | 'ur'
+  | 'fr'
+  | 'hi';
+
+// Единый список всех поддерживаемых кодов языка — используется в
+// LanguageContext.tsx для проверки значения, прочитанного из
+// localStorage. Если в будущем добавляется новый язык, его код нужно
+// внести И сюда, И в languageOptions в IshvaraPage.tsx (с тем же
+// кодом, что и в таблице public.letter_writing_systems в Supabase) —
+// иначе повторится тот же баг.
+export const SUPPORTED_LANGUAGE_CODES: readonly Language[] = [
+  'sa', 'en', 'ar', 'bn', 'id', 'es', 'pt', 'ru', 'uk', 'ur', 'fr', 'hi',
+];
 
 export interface Translations {
   // Header
