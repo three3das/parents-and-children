@@ -27,15 +27,23 @@ export interface Category {
   subIcons: SubIcon[];
 }
 
-// ── Shared rainbow palette for sub-icon buttons ──────────────────────────────
+// ── Shared golden palette for sub-icon buttons ───────────────────────────────
+// ⚠️ ПРАВКА ПО ЦВЕТУ: раньше здесь была радужная палитра (7 разных цветов —
+// красный/оранжевый/жёлтый/зелёный/синий/фиолетовый/пурпурный) для кнопок
+// в ряду суб-иконок на странице категории. Теперь все 7 записей — в одной
+// золотой гамме (тот же оттенок, что и в остальном интерфейсе — GOLD_100 =
+// #FFD700), с небольшим перепадом яркости между записями (от светло-золотого
+// до более тёмного янтарного), чтобы кнопки не сливались в абсолютно
+// одинаковое плоское пятно, но при этом визуально читались как единый
+// золотой набор, а не как радуга.
 const R = [
-  { gradient: "linear-gradient(140deg, #FF5252, #E00000)", shadow: "rgba(220,0,0,0.40)"   },
-  { gradient: "linear-gradient(140deg, #FF9F43, #E07000)", shadow: "rgba(200,100,0,0.40)" },
-  { gradient: "linear-gradient(140deg, #FFE033, #D4B800)", shadow: "rgba(180,150,0,0.40)" },
-  { gradient: "linear-gradient(140deg, #2ECC71, #1A9950)", shadow: "rgba(0,150,70,0.40)"  },
-  { gradient: "linear-gradient(140deg, #3EA6FF, #0066DD)", shadow: "rgba(0,80,210,0.40)"  },
-  { gradient: "linear-gradient(140deg, #6C63FF, #3A33CC)", shadow: "rgba(60,40,200,0.40)" },
-  { gradient: "linear-gradient(140deg, #C84BFF, #8000CC)", shadow: "rgba(130,0,200,0.40)" },
+  { gradient: "linear-gradient(140deg, #FFE066, #FFC700)", shadow: "rgba(230,180,0,0.40)" },
+  { gradient: "linear-gradient(140deg, #FFDA44, #F5B800)", shadow: "rgba(220,170,0,0.40)" },
+  { gradient: "linear-gradient(140deg, #FFD700, #E6A800)", shadow: "rgba(210,150,0,0.40)" },
+  { gradient: "linear-gradient(140deg, #FDC830, #D89A00)", shadow: "rgba(190,130,0,0.40)" },
+  { gradient: "linear-gradient(140deg, #F5BE41, #CC8E00)", shadow: "rgba(180,120,0,0.40)" },
+  { gradient: "linear-gradient(140deg, #E8AC32, #B87A00)", shadow: "rgba(160,105,0,0.40)" },
+  { gradient: "linear-gradient(140deg, #D99A1E, #A66600)", shadow: "rgba(140,90,0,0.40)"  },
 ];
 
 const sub = (emojis: string[], labels: string[]): SubIcon[] =>

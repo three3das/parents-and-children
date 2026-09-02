@@ -2,25 +2,30 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { GAME_CONFIG, ANIMATION_VARIANTS } from "@/lib/constants";
 import { useLanguage } from "@/lib/i18n";
-import { AuthDropdown } from "./AuthDropdown";
 
 // ⚠️ Импорт LanguageSwitcher убран намеренно: раньше в шапке игры был
 // свой собственный переключатель языка ("EN English ▾"), дублирующий
 // выбор языка на главной странице сайта (IshvaraPage.tsx → кнопка
 // "Меню" в футере → "Языки"). Теперь язык интерфейса выбирается только
 // там — единая точка выбора вместо двух независимых переключателей.
-
+//
+// ⚠️ ПРАВКА (эта версия): кнопка AuthDropdown ("значок пользователя"
+// справа, открывавший выпадающее меню "Оформить подписку" / "Войти" /
+// "Регистрация" / "Настройки") убрана из шапки полностью — вместе с
+// импортом компонента и связанными пропсами (onSettingsClick,
+// onLoginClick, onCreateAccountClick, onProgressClick), которые
+// использовались только для передачи в неё. Подписка, вход,
+// регистрация и настройки теперь доступны через кнопки футера
+// (IshvaraPage.tsx: "Начальная страница сайта" / "Ваша страница" /
+// "Все страницы сайта" / "Меню") — дублирующая кнопка в шапке игры
+// больше не нужна.
 interface GameHeaderProps {
   currentWordIndex: number;
   totalWords: number;
   correctAnswersToday: number;
-  onSettingsClick: () => void;
-  onLoginClick: () => void;
-  onCreateAccountClick: () => void;
-  onProgressClick?: () => void;
 }
 
-export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, onSettingsClick, onLoginClick, onCreateAccountClick, onProgressClick }: GameHeaderProps) {
+export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday }: GameHeaderProps) {
   const { t } = useLanguage();
 
   // Calculate progress based on today's correct answers
@@ -142,21 +147,6 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, 
                 </span>
               </div>
             )}
-          </motion.div>
-
-          {/* Auth Dropdown - Far Right */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.28 }}
-            className="flex-shrink-0"
-          >
-            <AuthDropdown
-              onLoginClick={onLoginClick}
-              onCreateAccountClick={onCreateAccountClick}
-              onProgressClick={onProgressClick}
-              onSettingsClick={onSettingsClick}
-            />
           </motion.div>
         </div>
       </div>

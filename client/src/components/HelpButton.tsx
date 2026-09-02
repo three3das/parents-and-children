@@ -7,9 +7,34 @@ interface HelpButtonProps {
   gameType: GameType;
 }
 
+// ⚠️ ПРАВКА: раньше кнопка была квадратной с одним символом "?" — теперь
+// на ней текст "Правила игры" на текущем выбранном языке интерфейса
+// (том же самом, что выбирается колесом "Языки" на IshvaraPage.tsx).
+// Словарь RULES_LABEL — по тому же принципу, что и ALPHABET_LABEL в
+// GameMenu.tsx/IshvaraPage.tsx: один короткий перевод фразы "правила
+// игры" на каждый из 12 языков сайта. Сама функциональность кнопки
+// (открытие модалки с инструкцией к текущей игре) не изменилась —
+// поменялась только надпись на самой кнопке.
+const RULES_LABEL: Record<string, string> = {
+  sa: 'क्रीडा नियमाः',
+  hi: 'खेल के नियम',
+  en: 'Rules of the game',
+  es: 'Reglas del juego',
+  pt: 'Regras do jogo',
+  fr: 'Règles du jeu',
+  id: 'Aturan permainan',
+  ru: 'Правила игры',
+  uk: 'Правила гри',
+  ar: 'قواعد اللعبة',
+  ur: 'کھیل کے اصول',
+  bn: 'খেলার নিয়ম',
+};
+
 export function HelpButton({ gameType }: HelpButtonProps) {
   const [showHelp, setShowHelp] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const rulesLabel = RULES_LABEL[language] ?? RULES_LABEL.en;
 
   const getInstructions = () => {
     if (gameType === 'picture-match') return t.instructions.pictureMatch;
@@ -24,14 +49,19 @@ export function HelpButton({ gameType }: HelpButtonProps) {
 
   return (
     <>
-      {/* Help Button */}
+      {/* Help Button — раньше квадратная кнопка с символом "?" на
+          bg-blue-500 (синяя, выбивалась из золотой палитры). Теперь
+          золотая гамма (как у остальных кнопок GameMenu) и вместо "?"
+          — надпись "Правила игры" на текущем языке интерфейса. Ширина
+          подстраивается под текст (px + whitespace-nowrap), высота
+          осталась как раньше. */}
       <motion.button
-        className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 text-white rounded-xl text-lg sm:text-xl font-bold hover:bg-blue-600 transition-colors shadow-lg"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+        className="h-10 sm:h-16 px-3 sm:px-4 bg-amber-300 text-white rounded-xl font-bold hover:bg-amber-400 transition-colors shadow-lg whitespace-nowrap text-[10px] sm:text-sm leading-tight flex items-center justify-center"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => setShowHelp(!showHelp)}
       >
-        ?
+        {rulesLabel}
       </motion.button>
 
       {/* Help Overlay */}
@@ -57,7 +87,7 @@ export function HelpButton({ gameType }: HelpButtonProps) {
                 {getInstructions()}
               </p>
               <motion.button
-                className="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                className="bg-amber-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-600 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowHelp(false)}

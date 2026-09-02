@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useLanguage, LANGUAGE_FLAGS } from "@/lib/i18n";
 import { useAuth, getWelcomeName } from "@/lib/auth";
@@ -40,6 +40,45 @@ const languageOptions = [
 // Язык по умолчанию — Санскрит. Именно он должен быть активен изначально,
 // пока пользователь не выберет другой язык в колесе.
 const DEFAULT_LANGUAGE = "sa";
+
+// ⚠️ ДОБАВЛЕНО: та же пара словарей (первая буква алфавита / слово
+// "алфавит" на языке), что используется в GameMenu.tsx для кнопки
+// режима "alphabet-placeholder". Здесь они нужны по той же причине —
+// сектор "Алфавит" колеса игр должен показывать актуальные для
+// текущего выбранного языка сайта букву и подпись, а не всегда
+// зафиксированные "🔤"/"Алфавит". При смене языка через колесо
+// "Языки" (view === "languages") этот сектор колеса игр
+// (GAME_WHEEL_LABELS[0]) пересчитывается автоматически — см.
+// getGameWheelLabels()/gameWheelLabels ниже.
+const FIRST_LETTER: Record<string, string> = {
+  sa: 'अ',
+  hi: 'अ',
+  en: 'A',
+  es: 'A',
+  pt: 'A',
+  fr: 'A',
+  id: 'A',
+  ru: 'А',
+  uk: 'А',
+  ar: 'ا',
+  ur: 'ا',
+  bn: 'অ',
+};
+
+const ALPHABET_LABEL: Record<string, string> = {
+  sa: 'वर्णमाला',
+  hi: 'वर्णमाला',
+  en: 'Alphabet',
+  es: 'Alfabeto',
+  pt: 'Alfabeto',
+  fr: 'Alphabet',
+  id: 'Alfabet',
+  ru: 'Алфавит',
+  uk: 'Алфавіт',
+  ar: 'الأبجدية',
+  ur: 'حروف تہجی',
+  bn: 'বর্ণমালা',
+};
 
 // Список систем письменности для второго колеса. Теперь оба колеса
 // (языки и системы письменности) — два РАВНОПРАВНЫХ раздела, которые
@@ -196,6 +235,16 @@ const CATEGORY_WHEEL_LABELS: string[][] = Array.from(
 // в том же порядке, что и в массиве gameTypes. Заполнены только первые
 // 7 секторов (по часовой стрелке от 12 часов) — оставшиеся 5 пустые.
 // Открывается по клику на активный сектор "Игры" колеса категорий.
+//
+// ⚠️ ПРАВКА: раньше первый элемент ("alphabet-placeholder") всегда
+// показывал зафиксированные иконку "🔤" и подпись "Алфавит" — как и
+// остальные 6 игр, GAMES был статичным массивом верхнего уровня, не
+// зависящим от языка интерфейса. Теперь GAMES вынесен внутрь функции
+// getGamesForLanguage(language), которая подставляет для первого
+// элемента актуальные для текущего языка букву (FIRST_LETTER) и слово
+// "алфавит" (ALPHABET_LABEL) — по тому же принципу, что и кнопка
+// "alphabet-placeholder" в GameMenu.tsx. Остальные 6 игр не зависят от
+// языка и не меняются.
 type GameType =
   | "alphabet-placeholder"
   | "picture-match"
@@ -205,20 +254,27 @@ type GameType =
   | "audio-picture"
   | "audio-sentence";
 
-const GAMES: { type: GameType; icon: string; label: string }[] = [
-  { type: "alphabet-placeholder", icon: "🔤", label: "Алфавит" },
-  { type: "picture-match", icon: "🖼️", label: "Картинки" },
-  { type: "spell-word", icon: "✏️", label: "Слово" },
-  { type: "syllables", icon: "🧱", label: "Слоги" },
-  { type: "sentence-game", icon: "📝", label: "Предложение" },
-  { type: "audio-picture", icon: "🔊", label: "Аудио-картинка" },
-  { type: "audio-sentence", icon: "🎧", label: "Аудио-фраза" },
-];
+function getGamesForLanguage(
+  language: string
+): { type: GameType; icon: string; label: string }[] {
+  const alphabetIcon = FIRST_LETTER[language] ?? "A";
+  const alphabetLabel = ALPHABET_LABEL[language] ?? "Alphabet";
+  return [
+    { type: "alphabet-placeholder", icon: alphabetIcon, label: alphabetLabel },
+    { type: "picture-match", icon: "🖼️", label: "Картинки" },
+    { type: "spell-word", icon: "✏️", label: "Слово" },
+    { type: "syllables", icon: "🧱", label: "Слоги" },
+    { type: "sentence-game", icon: "📝", label: "Предложение" },
+    { type: "audio-picture", icon: "🔊", label: "Аудио-картинка" },
+    { type: "audio-sentence", icon: "🎧", label: "Аудио-фраза" },
+  ];
+}
 
-const GAME_WHEEL_LABELS: string[][] = Array.from(
-  { length: SECTOR_COUNT },
-  (_, i) => (i < GAMES.length ? [GAMES[i].icon, GAMES[i].label] : [])
-);
+function getGameWheelLabels(games: { icon: string; label: string }[]): string[][] {
+  return Array.from({ length: SECTOR_COUNT }, (_, i) =>
+    i < games.length ? [games[i].icon, games[i].label] : []
+  );
+}
 
 function Wheel12({
   labels,
@@ -418,6 +474,14 @@ export default function IshvaraPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ⚠️ ДОБАВЛЕНО: список игр и подписи колеса игр теперь зависят от
+  // текущего языка интерфейса (см. getGamesForLanguage/FIRST_LETTER/
+  // ALPHABET_LABEL выше) — при каждой смене language (через колесо
+  // "Языки") сектор "Алфавит" колеса игр пересчитывается и показывает
+  // букву и слово "алфавит" на новом выбранном языке.
+  const games = useMemo(() => getGamesForLanguage(language), [language]);
+  const gameWheelLabels = useMemo(() => getGameWheelLabels(games), [games]);
+
   // "main" — стартовое колесо (сектор 1 "Игры" активен и кликабелен,
   // сектора 2–7 — заглушки разделов, 8–12 — пустые),
   // "games" — колесо с 7 играми, открывается по клику на "Игры",
@@ -463,7 +527,7 @@ export default function IshvaraPage() {
 
   // Клик по сектору колеса игр — переход на страницу конкретной игры.
   const handleGameSectorClick = (index: number) => {
-    const game = GAMES[index];
+    const game = games[index];
     if (game) {
       setLocation(`/game?game=${game.type}`);
     }
@@ -563,7 +627,7 @@ export default function IshvaraPage() {
 
           {view === "games" && (
             <Wheel12
-              labels={GAME_WHEEL_LABELS}
+              labels={gameWheelLabels}
               centerLabel="Игры"
               onSectorClick={handleGameSectorClick}
             />
