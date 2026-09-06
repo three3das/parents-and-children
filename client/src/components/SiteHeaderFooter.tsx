@@ -4,14 +4,14 @@
 // WheelHeader/WheelFooter + WheelPageShell для страниц-«колёс»
 // (PaymentsPage, IshvaraPage и т.п.).
 
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { NavItem } from "@/lib/siteNav";
+import { LanguageScriptMenuPanel } from "@/components/LanguageScriptMenuPanel";
 
 // ═══ SiteHeader — полный хедер (логотип, языки, авторизация) ═══
 // ─── SiteHeader — shared header for all pages ────────────────────────────────
 // Logo · LanguageSwitcher · AuthDropdown (with modals)
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { AuthDropdown } from "./AuthDropdown";
@@ -42,32 +42,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
       setShowLogin(true);
       return;
     }
-    // Show P2P payment modal
     setShowP2PModal(true);
-
-    /* COMMENTED OUT - NOWPayments integration (can be re-enabled later)
-    try {
-      const res = await fetch("/api/payments/create-invoice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: "lifetime", userId: user.id }),
-      });
-      const data = await res.json();
-      console.log("[SiteHeader] Response from server:", data);
-      if (data.invoiceUrl) {
-        console.log("[SiteHeader] Opening invoice URL:", data.invoiceUrl);
-        window.open(data.invoiceUrl, "_blank");
-      } else if (data.error) {
-        alert(data.error);
-      } else {
-        console.error("[SiteHeader] No invoiceUrl in response:", data);
-        alert("Не удалось получить ссылку на оплату");
-      }
-    } catch (err) {
-      console.error("[SiteHeader] Error:", err);
-      alert("Ошибка при создании инвойса. Попробуйте позже.");
-    }
-    */
   };
 
   const handleIshvaraClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -110,7 +85,6 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
           position: "relative",
         }}
       >
-        {/* ── Back button (optional) ── */}
         {onBack && (
           <button
             onClick={onBack}
@@ -132,12 +106,7 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
           </button>
         )}
 
-        {/* ── Logo ── */}
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          {/* Файл логотипа должен лежать здесь:
-              public/images/logo.png
-              И называться именно logo.png
-          */}
           <img
             src="/images/logo.png"
             alt="logo"
@@ -174,7 +143,6 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
           </div>
         </div>
 
-        {/* ── Navigation buttons ── */}
         <nav style={{ display: "flex", gap: "6px", alignItems: "center" }}>
           <a
             href="ishvara.html"
@@ -353,7 +321,6 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
           </a>
         </nav>
 
-        {/* ── Right side: language + auth ── */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <LanguageSwitcher />
           <AuthDropdown
@@ -365,7 +332,6 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
         </div>
       </motion.header>
 
-      {/* ── Modals (self-contained) ── */}
       <P2PPaymentModal
         isOpen={showP2PModal}
         onClose={() => setShowP2PModal(false)}
@@ -397,7 +363,6 @@ export function SiteHeader({ onBack }: SiteHeaderProps = {}) {
 }
 
 // ═══ SiteFooter — информационный футер (используется на home.tsx) ═══
-// ─── SiteFooter — shared footer for all pages ────────────────────────────────
 
 export function SiteFooter() {
   return (
@@ -496,7 +461,6 @@ export function SiteFooter() {
         </article>
       </section>
 
-      {/* Добавим медиа-запросы через style тег */}
       <style>{`
         @media (max-width: 860px) {
           .cards-grid {
@@ -512,7 +476,6 @@ export function SiteFooter() {
 const GOLD_ACTIVE = "#FFD700";
 const GOLD_INACTIVE = "#FFE066";
 
-// Верхняя навигационная панель — общий вид для всех колёс-страниц сайта.
 export function WheelHeader({
   items,
   activeKey,
@@ -543,8 +506,13 @@ export function WheelHeader({
   );
 }
 
-// Нижняя навигационная панель — тот же вид, что и у SiteHeader, но
-// снизу и с бордером сверху вместо снизу.
+// WheelFooter — та же панель кнопок, что и раньше, но теперь кнопка с
+// key === "languages" ("Меню") сама открывает выпадашку с
+// LanguageScriptMenuPanel внутри — это тот самый компонент
+// последовательного выбора (Шаги 0/2/4), который раньше был
+// захардкожен прямо в IshvaraPage.tsx. Перенос сюда даёт эту кнопку
+// автоматически любой странице, использующей WheelFooter (не только
+// IshvaraPage).
 export function WheelFooter({
   items,
   activeKey,
@@ -554,30 +522,64 @@ export function WheelFooter({
   activeKey: string;
   onSelect: (key: string) => void;
 }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
+
   return (
     <footer className="flex-shrink-0 w-full px-6 py-2 border-t border-yellow-200">
       <nav className="flex w-full gap-[0.5cm]">
-        {items.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => onSelect(item.key)}
-            className="flex-1 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
-            style={{
-              color: GOLD_ACTIVE,
-              borderColor: activeKey === item.key ? GOLD_ACTIVE : GOLD_INACTIVE,
-            }}
-          >
-            {item.label}
-          </button>
-        ))}
+        {items.map((item) => {
+          const isMenuButton = item.key === "languages";
+          return (
+            <div
+              key={item.key}
+              className="flex-1 relative"
+              ref={isMenuButton ? menuRef : undefined}
+            >
+              <button
+                onClick={() => {
+                  if (isMenuButton) {
+                    setIsMenuOpen((open) => !open);
+                  }
+                  onSelect(item.key);
+                }}
+                className="w-full px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
+                style={{
+                  color: GOLD_ACTIVE,
+                  borderColor:
+                    activeKey === item.key ? GOLD_ACTIVE : GOLD_INACTIVE,
+                }}
+              >
+                {item.label}
+              </button>
+
+              {isMenuButton && isMenuOpen && (
+                <div
+                  className="absolute bottom-full right-0 mb-2 w-64 rounded-2xl border-2 bg-white shadow-lg overflow-hidden z-10"
+                  style={{ borderColor: GOLD_ACTIVE }}
+                >
+                  <LanguageScriptMenuPanel />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
     </footer>
   );
 }
 
-// Общий каркас страницы-колеса: хедер сверху, футер снизу, а между
-// ними — <main> ровно с теми же классами (flex-1 min-h-0 ...), что
-// были у каждой страницы раньше, чтобы вёрстка не поехала.
 export function WheelPageShell({
   header,
   footer,

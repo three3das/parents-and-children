@@ -4,6 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
+import { LanguageScriptProvider } from "@/lib/languageScript";
+import { LanguageScriptWheelOverlay } from "@/components/LanguageScriptWheelOverlay";
 import { Toaster } from "@/components/ui/toaster";
 import { ToastProvider } from "@/components/ui/toast";
 import HomePage from "@/pages/home";
@@ -38,31 +40,47 @@ export default function App() {
       <ToastProvider>
         <AuthProvider>
           <LanguageProvider>
-            <Switch>
-              <Route path="/" component={IshvaraPage} />
-              <Route path="/login" component={LoginPage} />
-              <Route path="/register" component={RegisterPage} />
-              <Route path="/subscription" component={SubscriptionPage} />
-              <Route path="/admin" component={AdminPanel} />
-              <Route path="/game" component={GamePage} />
-              <Route path="/reading" component={ReadingPage} />
-              <Route path="/alphabet" component={AlphabetPage} />
-              <Route path="/numbers" component={NumbersPage} />
-              <Route path="/notes" component={NotesPage} />
-              <Route path="/colors" component={ColorsPage} />
-              <Route path="/shapes" component={ShapesPage} />
-              <Route path="/living-world" component={LivingWorldPage} />
-              <Route path="/elements" component={ElementsPage} />
-              <Route path="/punctuation" component={PunctuationPage} />
-              <Route path="/ishvara" component={IshvaraPage} />
-              <Route path="/payments" component={PaymentsPage} />
-              <Route path="/svarupa-bhagavana" component={SvarupaBhagavanaPage} />
-              {CATEGORIES.filter((cat) => cat.id !== "reading").map((cat) => (
-                <Route key={cat.id} path={cat.path}>
-                  {() => <CategoryPage category={cat} />}
-                </Route>
-              ))}
-            </Switch>
+            {/* ⚠️ ДОБАВЛЕНО: LanguageScriptProvider — общее состояние
+                выбора языка алфавита + системы письменности (см.
+                @/lib/languageScript). Обязательно ВНУТРИ LanguageProvider,
+                поскольку сам использует useLanguage() для языка. Всё,
+                что использует useLanguageScript() (IshvaraPage, чипы на
+                страницах тем, оверлей колеса ниже), должно быть его
+                потомком — поэтому оборачиваем весь Switch + оверлей. */}
+            <LanguageScriptProvider>
+              <Switch>
+                <Route path="/" component={IshvaraPage} />
+                <Route path="/login" component={LoginPage} />
+                <Route path="/register" component={RegisterPage} />
+                <Route path="/subscription" component={SubscriptionPage} />
+                <Route path="/admin" component={AdminPanel} />
+                <Route path="/game" component={GamePage} />
+                <Route path="/reading" component={ReadingPage} />
+                <Route path="/alphabet" component={AlphabetPage} />
+                <Route path="/numbers" component={NumbersPage} />
+                <Route path="/notes" component={NotesPage} />
+                <Route path="/colors" component={ColorsPage} />
+                <Route path="/shapes" component={ShapesPage} />
+                <Route path="/living-world" component={LivingWorldPage} />
+                <Route path="/elements" component={ElementsPage} />
+                <Route path="/punctuation" component={PunctuationPage} />
+                <Route path="/ishvara" component={IshvaraPage} />
+                <Route path="/payments" component={PaymentsPage} />
+                <Route path="/svarupa-bhagavana" component={SvarupaBhagavanaPage} />
+                {CATEGORIES.filter((cat) => cat.id !== "reading").map((cat) => (
+                  <Route key={cat.id} path={cat.path}>
+                    {() => <CategoryPage category={cat} />}
+                  </Route>
+                ))}
+              </Switch>
+
+              {/* ⚠️ ДОБАВЛЕНО: глобальный оверлей с колесом выбора
+                  языка/письменности — рендерится один раз здесь (а не
+                  на каждой странице отдельно), сам решает, показываться
+                  ли ему, через activeWheel из useLanguageScript(). */}
+              <LanguageScriptWheelOverlay />
+            </LanguageScriptProvider>
+
             <Toaster />
           </LanguageProvider>
         </AuthProvider>

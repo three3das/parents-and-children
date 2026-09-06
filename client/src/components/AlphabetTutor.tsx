@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
+import { Volume2 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { useLanguageScript } from "@/lib/languageScript";
 import { supabase } from "@/lib/supabase";
 
 // ⚠️ ПОЛНАЯ ПЕРЕДЕЛКА: раньше этот компонент брал буквы из захардкоженных
@@ -155,12 +157,28 @@ const PICK_LETTER_LABEL: Record<string, string> = {
   en: 'Pick a letter on the left to practice writing it',
 };
 
+// ⚠️ ДОБАВЛЕНО: подпись-префикс для проверочного блока "буква в
+// выбранной системе письма" — тянет значение из public.letter_text по
+// letter_id текущей выбранной буквы и коду текущей системы письма
+// (script) из useLanguageScript(). Нужен, чтобы наглядно проверить, что
+// для каждой пары (язык, система письма) в правой панели появляется
+// правильное значение из БД.
+const SCRIPT_LETTER_PREFIX: Record<string, string> = {
+  ru: 'В системе',
+  uk: 'У системі',
+  en: 'In script',
+};
+
 function pickLabel(dict: Record<string, string>, uiLanguage: string): string {
   return dict[uiLanguage] ?? dict.en;
 }
 
 export function AlphabetTutor() {
   const { language } = useLanguage();
+  // Текущая выбранная система письма (колесо "Письменность" на
+  // IshvaraPage.tsx) — общий контекст, тот же, что используется везде
+  // на сайте.
+  const { script, scriptLabel } = useLanguageScript();
 
   const [letters, setLetters] = useState<LetterRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -168,6 +186,11 @@ export function AlphabetTutor() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  // Значение буквы в текущей выбранной системе письма (столбец из
+  // public.letter_text, соответствующий коду script) — подтягивается
+  // по letter_id выбранной буквы при каждой смене буквы или системы
+  // письма.
+  const [scriptText, setScriptText] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -234,6 +257,45 @@ export function AlphabetTutor() {
     [letters, selectedId]
   );
 
+  // ⚠️ ДОБАВЛЕНО: при выборе буквы или смене системы письма (script)
+  // подтягиваем из public.letter_text значение нужного столбца по
+  // letter_id этой буквы. Столбец выбирается динамически по коду
+  // текущей системы письма (script: 'devanagari' | 'arabic' | ... —
+  // те же 12 кодов, что и имена столбцов letter_text, см.
+  // @/lib/languageScript и SQL-миграцию таблицы).
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchScriptText() {
+      if (!selectedLetter) {
+        setScriptText(null);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('letter_text')
+          .select('*')
+          .eq('letter_id', selectedLetter.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (!cancelled) {
+          const value = data ? (data as any)[script] : null;
+          setScriptText(typeof value === 'string' && value.length > 0 ? value : null);
+        }
+      } catch (err) {
+        console.error('Ошибка загрузки транслитерации буквы (letter_text):', err);
+        if (!cancelled) setScriptText(null);
+      }
+    }
+
+    fetchScriptText();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedLetter, script]);
+
   const uiLanguage = ['ru', 'uk', 'en'].includes(language) ? language : 'en';
 
   function playLetter(grapheme: string) {
@@ -298,7 +360,12 @@ export function AlphabetTutor() {
                   if (!audioEnabled) e.currentTarget.style.backgroundColor = WHITE;
                 }}
               >
-                🔊 {pickLabel(AUDIO_LABEL, uiLanguage)}
+                <Volume2
+                  className="inline-block w-3.5 h-3.5 mr-1 align-text-bottom"
+                  style={{ color: audioEnabled ? WHITE : GOLD_100 }}
+                  strokeWidth={2.5}
+                />
+                {pickLabel(AUDIO_LABEL, uiLanguage)}
               </button>
             </div>
           </div>
@@ -370,6 +437,8 @@ export function AlphabetTutor() {
           <DrawingPad
             guideLetter={selectedLetter?.grapheme ?? null}
             uiLanguage={uiLanguage}
+            scriptText={scriptText}
+            scriptLabel={scriptLabel}
           />
         </div>
       </div>
@@ -459,9 +528,14 @@ function LetterCard({
 interface DrawingPadProps {
   guideLetter: string | null;
   uiLanguage: string;
+  // Значение текущей буквы в выбранной системе письма (из
+  // public.letter_text) и подпись самой системы — для проверочного
+  // блока внутри поля для письма.
+  scriptText: string | null;
+  scriptLabel: string;
 }
 
-function DrawingPad({ guideLetter, uiLanguage }: DrawingPadProps) {
+function DrawingPad({ guideLetter, uiLanguage, scriptText, scriptLabel }: DrawingPadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDrawingRef = useRef(false);
@@ -573,6 +647,28 @@ function DrawingPad({ guideLetter, uiLanguage }: DrawingPadProps) {
           onPointerLeave={handlePointerUp}
           onPointerCancel={handlePointerUp}
         />
+
+        {/* ⚠️ ДОБАВЛЕНО: проверочная плашка "буква в выбранной системе
+            письма" — тянется из public.letter_text по letter_id текущей
+            буквы и коду текущей системы (script). Полупрозрачный белый
+            фон и pointer-events: none, чтобы не мешать рисованию на
+            холсте под ней; лежит поверх (последняя в DOM = выше по
+            умолчанию, без явного z-index). Показывается только когда
+            буква выбрана — иначе плашка не нужна (кроме "Выберите
+            букву..." подсказки, которая и так есть ниже). */}
+        {guideLetter && (
+          <div
+            className="absolute top-0 inset-x-0 py-1 px-2 text-center pointer-events-none"
+            style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}
+          >
+            <span className="text-[9px] font-bold" style={{ color: GOLD_67 }}>
+              {pickLabel(SCRIPT_LETTER_PREFIX, uiLanguage)} «{scriptLabel}»:{' '}
+            </span>
+            <span className="text-sm font-bold" style={{ color: GOLD_100 }}>
+              {scriptText ?? '—'}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between mt-1 flex-shrink-0">
