@@ -5,66 +5,29 @@ import { useLanguage } from "@/lib/i18n";
 import { useLanguageScript } from "@/lib/languageScript";
 import { supabase } from "@/lib/supabase";
 
-// ⚠️ ПОЛНАЯ ПЕРЕДЕЛКА: раньше этот компонент брал буквы из захардкоженных
-// локальных файлов (@/lib/sanskritAlphabet, @/lib/cyrillicAlphabet) и
-// поддерживал только 4 языка (sa, ru, uk, en) — для остальных 8 языков
-// (ar, bn, id, es, pt, ur, fr, hi) в switch был default, откатывавший
-// показ обратно на санскрит. Теперь буквы загружаются из Supabase
-// (таблицы public.letter_writing_systems + public.letter_anchor) — так
-// же, как это уже сделано в AlphabetPage.tsx, — и работают для любого
-// из всех 12 языков сайта, при условии что для него заполнены строки
-// в letter_anchor.
+// ⚠️ ПРАВКА ПО КОМПОНОВКЕ ПРАВОЙ ЧАСТИ (эта версия):
+// Раньше правая часть была одним полем — только DrawingPad (холст),
+// внутри которого сверху была узкая полупрозрачная плашка-проверка
+// "буква в выбранной системе письма" (из public.letter_text).
 //
-// ⚠️ В letter_anchor нет колонки с произношением/транслитерацией —
-// только grapheme, letter_type, sort_order. Поэтому:
-//   - группы букв ("Гласные"/"Согласные"/...) строятся ДИНАМИЧЕСКИ по
-//     всем значениям letter_type, реально встретившимся у данного
-//     языка (в порядке их первого появления по sort_order), а не по
-//     фиксированному списку категорий, как было раньше для санскрита;
-//   - всплывающая подсказка с произношением убрана — этих данных в
-//     таблице просто нет. Озвучка по клику работает через
-//     speechSynthesis (Web Speech API), как в AlphabetPage.tsx.
+// Теперь правая часть — это ТРИ отдельные зоны, РАВНЫЕ по высоте
+// (flex-col, h-full, каждая zone flex-1 min-h-0):
+//   1. Верхняя зона  — сам символ буквы (grapheme текущего языка).
+//   2. Средняя зона  — тот же символ в выбранной системе письма
+//      (значение из public.letter_text по коду script).
+//   3. Нижняя зона   — холст для рисования (DrawingPad).
 //
-// ⚠️ Экран разделён на две части: слева — Functions/Categories/таблица
-// букв, справа — поле для письма от руки (компонент DrawingPad ниже).
-// Рисование — через Pointer Events (единый обработчик для мыши, пальца
-// на сенсорном экране и стилуса).
+// Старая плашка-проверка внутри холста убрана — она дублировала бы
+// то, что теперь и так постоянно видно в зонах 1 и 2.
 //
-// ⚠️ ПРАВКА ПО КОМПОНОВКЕ:
-//   - Значки букв в таблице уменьшены (40×40px / text-sm), чтобы весь
-//     алфавит помещался на экране без прокрутки.
-//   - Панель "Categories" перенесена в левую колонку, под кнопку
-//     "Audio" — одна колонка "Functions + Categories" слева от
-//     таблицы.
-//   - Поле для письма (DrawingPad) справа — узкое (фиксированная
-//     ширина).
-//   - Заголовок "Write the letter" и кнопка "Clear" перенесены ПОД
-//     холст, чтобы верхний край холста был на одном уровне с верхним
-//     краем левой части.
-//   - Левая часть и правая часть (DrawingPad) выравнены по высоте —
-//     общий flex-контейнер с align-items: stretch.
-//
-// ⚠️ ПРАВКА ПО ЦВЕТУ: палитра ограничена ровно четырьмя
-// цветами — теми же, что использует колесо разделов на главной
-// странице сайта (Wheel12 в IshvaraPage.tsx): чистое золото (100%),
-// золото 67%, золото 33% и белый. Никакого серого/синего/зелёного/
-// жёлтого (tailwind gray-*/blue-*/green-*/yellow-*) нигде не осталось —
-// ни в фонах, ни в рамках, ни в тексте, ни в линии рисования, ни в
-// водяном знаке буквы-трафарета. Различие состояний кнопок и ячеек
-// (обычное / наведение / активное / выбранное) теперь передаётся
-// исключительно комбинациями этих четырёх цветов и толщиной рамки —
-// без введения дополнительных оттенков.
-//
-// ⚠️ ПРАВКА ПО ТОЛЩИНЕ РАМОК (эта версия): раньше рамка правого поля
-// для письма (DrawingPad) была 2px, а рамки всех остальных элементов —
-// кнопок Functions/Categories, контейнера таблицы букв и самих ячеек
-// букв — были 1px, из-за чего правое поле визуально выделялось более
-// толстой обводкой. Теперь ВСЕ рамки в компоненте — 2px, как у правого
-// поля: кнопки Functions/Categories, контейнер таблицы букв, обычные и
-// подсвеченные ячейки букв. Единственное сохранённое исключение —
-// выбранная (кликнутая) буква: у неё рамка чуть толще (3px), чтобы
-// текущий выбор оставался заметным на фоне остальных ячеек с
-// одинаковой базовой толщиной рамки.
+// Внутри холста (зона 3) добавлен переключатель "Буква / Письмо"
+// (двумя кнопками над самим canvas) — он определяет, какой из двух
+// символов сейчас показывается водяным знаком-трафаретом для
+// обводки: сама буква (letterSymbol) или её вид в системе письма
+// (scriptSymbol). Если для текущей пары (буква, система письма) в
+// letter_text нет значения, а режим "Письмо" всё равно выбран —
+// вместо трафарета показывается короткая подсказка "нет данных",
+// а не пустой холст без объяснения.
 
 // Значения посчитаны той же формулой, что и sectorColor() в
 // IshvaraPage.tsx: mix(goldPct) = GOLD*goldPct + WHITE*(1-goldPct),
@@ -75,9 +38,8 @@ const GOLD_33 = '#FFF2AB';  // rgb(255,242,171)
 const WHITE = '#FFFFFF';
 
 // Единая толщина рамки для всех элементов интерфейса (кнопки, контейнер
-// таблицы, ячейки букв, поле для письма) — подогнана под толщину рамки
-// правого поля (DrawingPad), которая раньше была единственной 2px-рамкой
-// в компоненте.
+// таблицы, ячейки букв, три зоны правой части) — 2px, как было решено
+// в предыдущей версии; выбранная буква — 3px.
 const BORDER_WIDTH = 2;
 const BORDER_WIDTH_SELECTED = 3; // чуть толще — только для выбранной буквы
 
@@ -149,7 +111,7 @@ const NO_DATA_LABEL: Record<string, string> = {
   uk: 'Для цієї мови поки немає літер у базі даних.',
   en: 'No letters available for this language yet.',
 };
-const WRITE_LABEL: Record<string, string> = { ru: 'Напишите букву', uk: 'Напишіть літеру', en: 'Write the letter' };
+const WRITE_LABEL: Record<string, string> = { ru: 'Напишите символ', uk: 'Напишіть символ', en: 'Write the symbol' };
 const CLEAR_LABEL: Record<string, string> = { ru: 'Очистить', uk: 'Очистити', en: 'Clear' };
 const PICK_LETTER_LABEL: Record<string, string> = {
   ru: 'Выберите букву слева, чтобы потренироваться её писать',
@@ -157,16 +119,16 @@ const PICK_LETTER_LABEL: Record<string, string> = {
   en: 'Pick a letter on the left to practice writing it',
 };
 
-// ⚠️ ДОБАВЛЕНО: подпись-префикс для проверочного блока "буква в
-// выбранной системе письма" — тянет значение из public.letter_text по
-// letter_id текущей выбранной буквы и коду текущей системы письма
-// (script) из useLanguageScript(). Нужен, чтобы наглядно проверить, что
-// для каждой пары (язык, система письма) в правой панели появляется
-// правильное значение из БД.
-const SCRIPT_LETTER_PREFIX: Record<string, string> = {
-  ru: 'В системе',
-  uk: 'У системі',
-  en: 'In script',
+// ⚠️ ДОБАВЛЕНО: подписи для двух верхних зон правой панели (буква /
+// символ в системе письма) и для переключателя режима внутри холста.
+const LETTER_ZONE_LABEL: Record<string, string> = { ru: 'Буква', uk: 'Літера', en: 'Letter' };
+const SCRIPT_ZONE_LABEL: Record<string, string> = { ru: 'В системе письма', uk: 'У системі письма', en: 'In writing system' };
+const TOGGLE_LETTER_LABEL: Record<string, string> = { ru: 'Буква', uk: 'Буква', en: 'Letter' };
+const TOGGLE_SCRIPT_LABEL: Record<string, string> = { ru: 'Письмо', uk: 'Письмо', en: 'Script' };
+const NO_SCRIPT_DATA_LABEL: Record<string, string> = {
+  ru: 'Нет данных для этой системы письма',
+  uk: 'Немає даних для цієї системи письма',
+  en: 'No data for this writing system',
 };
 
 function pickLabel(dict: Record<string, string>, uiLanguage: string): string {
@@ -257,9 +219,8 @@ export function AlphabetTutor() {
     [letters, selectedId]
   );
 
-  // ⚠️ ДОБАВЛЕНО: при выборе буквы или смене системы письма (script)
-  // подтягиваем из public.letter_text значение нужного столбца по
-  // letter_id этой буквы. Столбец выбирается динамически по коду
+  // Подтягиваем из public.letter_text значение нужного столбца по
+  // letter_id выбранной буквы. Столбец выбирается динамически по коду
   // текущей системы письма (script: 'devanagari' | 'arabic' | ... —
   // те же 12 кодов, что и имена столбцов letter_text, см.
   // @/lib/languageScript и SQL-миграцию таблицы).
@@ -432,14 +393,59 @@ export function AlphabetTutor() {
           </div>
         </div>
 
-        {/* ПРАВАЯ ЧАСТЬ — поле для письма от руки. */}
-        <div className="w-64 flex-shrink-0">
-          <DrawingPad
-            guideLetter={selectedLetter?.grapheme ?? null}
-            uiLanguage={uiLanguage}
-            scriptText={scriptText}
-            scriptLabel={scriptLabel}
-          />
+        {/* ПРАВАЯ ЧАСТЬ — три зоны равной высоты, в стиле кнопок выбора
+            игры (см. GameMenu.tsx): rounded-xl, shadow-md, лёгкая
+            hover/tap-анимация motion. Палитра — по вашему запросу
+            обратная относительно GameMenu (там сплошной золотой фон
+            #FFD700 с белыми иконками): здесь белый фон, золотая рамка
+            (2px, GOLD_100) и золотые символы/подписи. Зоны делят
+            правую колонку на три равные по высоте "кнопки"
+            (flex-1 min-h-0 у каждой). */}
+        <div className="w-64 flex-shrink-0 h-full flex flex-col gap-2">
+          {/* Зона 1 — символ буквы. */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex-1 min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center p-2 overflow-hidden"
+            style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }}
+          >
+            <h4 className="text-[10px] font-bold mb-1" style={{ color: GOLD_100 }}>
+              {pickLabel(LETTER_ZONE_LABEL, uiLanguage)}
+            </h4>
+            <div
+              className="font-bold text-center leading-none break-words"
+              style={{ color: GOLD_100, fontSize: 'clamp(28px, 6vw, 56px)' }}
+            >
+              {selectedLetter?.grapheme ?? '—'}
+            </div>
+          </motion.div>
+
+          {/* Зона 2 — тот же символ в выбранной системе письма. */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex-1 min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center p-2 overflow-hidden"
+            style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }}
+          >
+            <h4 className="text-[10px] font-bold mb-1 text-center" style={{ color: GOLD_100 }}>
+              {pickLabel(SCRIPT_ZONE_LABEL, uiLanguage)} «{scriptLabel}»
+            </h4>
+            <div
+              className="font-bold text-center leading-none break-words"
+              style={{ color: GOLD_100, fontSize: 'clamp(28px, 6vw, 56px)' }}
+            >
+              {selectedLetter ? (scriptText ?? '—') : '—'}
+            </div>
+          </motion.div>
+
+          {/* Зона 3 — холст для письма от руки. */}
+          <div className="flex-1 min-h-0">
+            <DrawingPad
+              letterSymbol={selectedLetter?.grapheme ?? null}
+              scriptSymbol={scriptText}
+              uiLanguage={uiLanguage}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -472,11 +478,6 @@ function LetterCard({
   //     более тёмной золотой рамкой (67%);
   //   - обычная ячейка — белый фон, тонкая светло-золотая рамка (33%),
   //     золотой (100%) текст буквы.
-  //
-  // Базовая толщина рамки для всех ячеек — BORDER_WIDTH (2px), как у
-  // правого поля для письма. У выбранной буквы рамка чуть толще
-  // (BORDER_WIDTH_SELECTED = 3px), чтобы текущий выбор было легко
-  // отличить от остальных ячеек с одинаковой базовой толщиной.
   const background = isSelected ? GOLD_100 : isHighlighted ? GOLD_33 : WHITE;
   const textColor = isSelected ? WHITE : GOLD_100;
   const borderColor = isSelected ? GOLD_100 : isHighlighted ? GOLD_67 : GOLD_33;
@@ -522,24 +523,26 @@ function LetterCard({
 // пальцем на сенсорном экране страница начнёт скроллиться/зумиться
 // вместо того, чтобы рисовать линию.
 //
-// Цвет линии рисования и водяного знака буквы-трафарета — тоже из
-// разрешённой палитры (золото 100% для линии, золото 33% сплошным
-// цветом вместо полупрозрачного чёрного — для трафарета).
+// ⚠️ ДОБАВЛЕНО: переключатель режима "Буква / Письмо" (две кнопки над
+// холстом) — определяет, letterSymbol или scriptSymbol сейчас
+// используется как трафарет-водяной знак для обводки. По умолчанию —
+// режим "Буква". Смена буквы, системы письма или режима — холст
+// очищается (как и раньше при смене буквы).
 interface DrawingPadProps {
-  guideLetter: string | null;
+  letterSymbol: string | null;
+  scriptSymbol: string | null;
   uiLanguage: string;
-  // Значение текущей буквы в выбранной системе письма (из
-  // public.letter_text) и подпись самой системы — для проверочного
-  // блока внутри поля для письма.
-  scriptText: string | null;
-  scriptLabel: string;
 }
 
-function DrawingPad({ guideLetter, uiLanguage, scriptText, scriptLabel }: DrawingPadProps) {
+function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPadProps) {
+  const [mode, setMode] = useState<'letter' | 'script'>('letter');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDrawingRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+
+  const hasSelection = Boolean(letterSymbol);
+  const guideSymbol = mode === 'letter' ? letterSymbol : scriptSymbol;
 
   useEffect(() => {
     function setupCanvas() {
@@ -573,7 +576,7 @@ function DrawingPad({ guideLetter, uiLanguage, scriptText, scriptLabel }: Drawin
   useEffect(() => {
     clearCanvas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [guideLetter]);
+  }, [guideSymbol]);
 
   function clearCanvas() {
     const canvas = canvasRef.current;
@@ -615,24 +618,66 @@ function DrawingPad({ guideLetter, uiLanguage, scriptText, scriptLabel }: Drawin
 
   return (
     <div className="h-full flex flex-col">
-      {/* Холст первым — верхний край поля для письма выравнивается с
-          верхним краем левой части (Functions/Categories/таблица). */}
+      {/* Переключатель "Буква / Письмо" — над холстом. */}
+      <div className="flex gap-1 mb-1 flex-shrink-0">
+        <button
+          onClick={() => setMode('letter')}
+          className="flex-1 px-2 py-1 rounded text-[10px] font-bold transition-colors"
+          style={
+            mode === 'letter'
+              ? { backgroundColor: GOLD_100, color: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }
+              : { backgroundColor: WHITE, color: GOLD_100, border: `${BORDER_WIDTH}px solid ${GOLD_33}` }
+          }
+          onMouseEnter={(e) => {
+            if (mode !== 'letter') e.currentTarget.style.backgroundColor = GOLD_33;
+          }}
+          onMouseLeave={(e) => {
+            if (mode !== 'letter') e.currentTarget.style.backgroundColor = WHITE;
+          }}
+        >
+          {pickLabel(TOGGLE_LETTER_LABEL, uiLanguage)}
+        </button>
+        <button
+          onClick={() => setMode('script')}
+          className="flex-1 px-2 py-1 rounded text-[10px] font-bold transition-colors"
+          style={
+            mode === 'script'
+              ? { backgroundColor: GOLD_100, color: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }
+              : { backgroundColor: WHITE, color: GOLD_100, border: `${BORDER_WIDTH}px solid ${GOLD_33}` }
+          }
+          onMouseEnter={(e) => {
+            if (mode !== 'script') e.currentTarget.style.backgroundColor = GOLD_33;
+          }}
+          onMouseLeave={(e) => {
+            if (mode !== 'script') e.currentTarget.style.backgroundColor = WHITE;
+          }}
+        >
+          {pickLabel(TOGGLE_SCRIPT_LABEL, uiLanguage)}
+        </button>
+      </div>
+
       <div
         ref={containerRef}
-        className="relative flex-1 rounded overflow-hidden"
-        style={{ touchAction: 'none', minHeight: '260px', backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_33}` }}
+        className="relative flex-1 min-h-0 rounded-xl shadow-md overflow-hidden"
+        style={{ touchAction: 'none', minHeight: '90px', backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }}
       >
-        {guideLetter ? (
+        {!hasSelection ? (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none px-4 text-center">
+            <p className="text-xs font-bold" style={{ color: GOLD_67 }}>
+              {pickLabel(PICK_LETTER_LABEL, uiLanguage)}
+            </p>
+          </div>
+        ) : guideSymbol ? (
           <div
             className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
             style={{ fontSize: 'min(30vw, 220px)', color: GOLD_33, fontWeight: 900 }}
           >
-            {guideLetter}
+            {guideSymbol}
           </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none px-4 text-center">
             <p className="text-xs font-bold" style={{ color: GOLD_67 }}>
-              {pickLabel(PICK_LETTER_LABEL, uiLanguage)}
+              {pickLabel(NO_SCRIPT_DATA_LABEL, uiLanguage)}
             </p>
           </div>
         )}
@@ -647,28 +692,6 @@ function DrawingPad({ guideLetter, uiLanguage, scriptText, scriptLabel }: Drawin
           onPointerLeave={handlePointerUp}
           onPointerCancel={handlePointerUp}
         />
-
-        {/* ⚠️ ДОБАВЛЕНО: проверочная плашка "буква в выбранной системе
-            письма" — тянется из public.letter_text по letter_id текущей
-            буквы и коду текущей системы (script). Полупрозрачный белый
-            фон и pointer-events: none, чтобы не мешать рисованию на
-            холсте под ней; лежит поверх (последняя в DOM = выше по
-            умолчанию, без явного z-index). Показывается только когда
-            буква выбрана — иначе плашка не нужна (кроме "Выберите
-            букву..." подсказки, которая и так есть ниже). */}
-        {guideLetter && (
-          <div
-            className="absolute top-0 inset-x-0 py-1 px-2 text-center pointer-events-none"
-            style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}
-          >
-            <span className="text-[9px] font-bold" style={{ color: GOLD_67 }}>
-              {pickLabel(SCRIPT_LETTER_PREFIX, uiLanguage)} «{scriptLabel}»:{' '}
-            </span>
-            <span className="text-sm font-bold" style={{ color: GOLD_100 }}>
-              {scriptText ?? '—'}
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="flex items-center justify-between mt-1 flex-shrink-0">

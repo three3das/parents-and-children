@@ -16,11 +16,12 @@ import { SentenceGame } from "@/components/SentenceGame";
 import { AudioPictureGame } from "@/components/AudioPictureGame";
 import { AudioSentenceGame } from "@/components/AudioSentenceGame";
 import { AlphabetTutor } from "@/components/AlphabetTutor";
-import { LoginModal } from "@/components/LoginModal";
-import { CreateAccountModal } from "@/components/CreateAccountModal";
-import { ProgressModal } from "@/components/ProgressModal";
-import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+// ⚠️ УБРАНО (мусор после переноса Settings/Login/CreateAccount/Progress
+// в футер IshvaraPage.tsx): импорты LoginModal, CreateAccountModal,
+// ProgressModal и useToast/toast — они использовались только теми
+// хендлерами и модалками, которые больше нигде не открываются (см.
+// комментарий ниже, у их прежнего места).
 
 // Helper to read URL params
 function getUrlParams() {
@@ -44,9 +45,10 @@ export default function Game() {
   const [selectedSentence, setSelectedSentence] = useState<MaterialWorld | null>(null);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [gameType, setGameType] = useState<GameType>(urlParams.game || 'picture-match');
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
-  const [showProgressModal, setShowProgressModal] = useState(false);
+  // ⚠️ УБРАНО: showLoginModal / showCreateAccountModal / showProgressModal
+  // — ничто их больше не открывает (кнопка в GameHeader, которая это
+  // делала, убрана; вход/регистрация/настройки/прогресс теперь только
+  // через футер IshvaraPage.tsx). Модалки ниже по файлу тоже убраны.
   const [sessionId] = useState(() => {
     // Check if we have a session ID in localStorage
     const stored = localStorage.getItem('russian-game-session');
@@ -59,7 +61,6 @@ export default function Game() {
     return newSessionId;
   });
 
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, language } = useLanguage();
 
@@ -407,20 +408,10 @@ useEffect(() => {
   };
 
 
-  const handleSettingsClick = () => {
-    toast({
-      title: t.settingsTitle,
-      description: t.settingsDescription,
-      action: (
-        <button
-          onClick={handleResetProgress}
-          className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm"
-        >
-          {t.resetProgress}
-        </button>
-      ),
-    });
-  };
+  // ⚠️ УБРАНО: handleSettingsClick — открывал toast с кнопкой сброса
+  // прогресса, вызывался только из onSettingsClick в GameHeader.
+  // Настройки/сброс прогресса теперь доступны через футер
+  // IshvaraPage.tsx, а не отсюда.
 
   const handleRestartGame = () => {
     setCurrentWordIndex(0);
@@ -432,12 +423,8 @@ useEffect(() => {
     setSelectedSentence(null);
   };
 
-  const handleResetProgress = () => {
-    // Clear the session from localStorage to start fresh
-    localStorage.removeItem('russian-game-session');
-    // Reload the page to get a new session
-    window.location.reload();
-  };
+  // ⚠️ УБРАНО: handleResetProgress — вызывался только изнутри
+  // handleSettingsClick (см. выше), больше нигде не используется.
 
   const handleGameTypeChange = (newGameType: GameType) => {
     setGameType(newGameType);
@@ -446,18 +433,10 @@ useEffect(() => {
     setShowCelebration(false);
   };
 
-  const handleLoginClick = () => setShowLoginModal(true);
-  const handleCreateAccountClick = () => setShowCreateAccountModal(true);
-
-  const switchToCreateAccount = () => {
-    setShowLoginModal(false);
-    setShowCreateAccountModal(true);
-  };
-
-  const switchToLogin = () => {
-    setShowCreateAccountModal(false);
-    setShowLoginModal(true);
-  };
+  // ⚠️ УБРАНО: handleLoginClick / handleCreateAccountClick /
+  // switchToCreateAccount / switchToLogin — управляли
+  // showLoginModal/showCreateAccountModal, которых больше нет; вход и
+  // регистрация теперь только через футер IshvaraPage.tsx.
 
   const handleSyllableAnswer = (isCorrect: boolean) => {
     if (selectedPicture || showCelebration) return;
@@ -551,14 +530,19 @@ useEffect(() => {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
+      {/* ⚠️ ПРАВКА: GameHeader больше не принимает onSettingsClick /
+          onLoginClick / onCreateAccountClick / onProgressClick — этих
+          пропсов больше нет в GameHeaderProps (см. GameHeader.tsx —
+          AuthDropdown и связанные с ним пропы убраны из шапки, вход /
+          регистрация / настройки теперь через футер на IshvaraPage.tsx).
+          Раньше эти пропы всё ещё передавались сюда по инерции — из-за
+          этого TypeScript ругался: "onSettingsClick does not exist on
+          type GameHeaderProps". Убрал их из вызова; сам GameHeader
+          теперь получает только то, что ему действительно нужно. */}
       <GameHeader
         currentWordIndex={currentWordIndex}
         totalWords={words.length}
         correctAnswersToday={todayProgress?.correctAnswersToday || 0}
-        onSettingsClick={handleSettingsClick}
-        onLoginClick={handleLoginClick}
-        onCreateAccountClick={handleCreateAccountClick}
-        onProgressClick={() => setShowProgressModal(true)}
       />
 
       <main className="flex-1 overflow-y-auto max-w-6xl mx-auto px-4 pt-2 pb-8 w-full">
@@ -686,23 +670,13 @@ useEffect(() => {
         isVisible={showCelebration}
         onNext={handleNextWord}
       />
-
-      {/* Auth Modals */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSwitchToCreateAccount={switchToCreateAccount}
-      />
-      <CreateAccountModal
-        isOpen={showCreateAccountModal}
-        onClose={() => setShowCreateAccountModal(false)}
-        onSwitchToLogin={switchToLogin}
-      />
-      <ProgressModal
-        isOpen={showProgressModal}
-        onClose={() => setShowProgressModal(false)}
-        sessionId={sessionId}
-      />
+      {/* ⚠️ УБРАНО: LoginModal / CreateAccountModal / ProgressModal —
+          открывались только из showLoginModal/showCreateAccountModal/
+          showProgressModal, которых больше нет в этом файле. Если эти
+          модалки всё ещё нужны где-то в приложении — их должен
+          рендерить компонент, который реально их открывает (например,
+          футер на IshvaraPage.tsx или общий layout в App.tsx), а не
+          game.tsx. */}
     </div>
   );
 }

@@ -1,22 +1,38 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n";
 
-// Список языков — тот же порядок и коды, что были в IshvaraPage.tsx.
-// Санскрит первым и является языком по умолчанию.
-export const languageOptions = [
-  { code: "sa", label: "Санскрит" },
-  { code: "en", label: "Английский" },
-  { code: "ar", label: "Арабский" },
-  { code: "bn", label: "Бенгальский" },
-  { code: "id", label: "Индонезийский" },
-  { code: "es", label: "Испанский" },
-  { code: "pt", label: "Португальский" },
-  { code: "ru", label: "Русский" },
-  { code: "uk", label: "Украинский" },
-  { code: "ur", label: "Урду" },
-  { code: "fr", label: "Французский" },
-  { code: "hi", label: "Хинди" },
+// ⚠️ ПРАВКА: раньше languageOptions был плоским массивом из 12 языков.
+// Теперь это ПОЛНЫЙ КАТАЛОГ всех языков, которые когда-либо были или
+// будут в колесе — у каждого есть флаг active. languageOptions (см.
+// ниже под каталогом) вычисляется автоматически — это только записи с
+// active: true, в том порядке, в котором они здесь перечислены.
+//
+// Сейчас Бенгальский (bn) отключён (active: false), вместо него в
+// колесе показывается Болгарский (bg) — это ВРЕМЕННАЯ замена. Чтобы
+// вернуть Бенгальский обратно, когда понадобится:
+//   1. У записи "bn" поставьте active: true.
+//   2. У записи "bg" поставьте active: false (или удалите её совсем,
+//      если болгарский эксперимент к тому моменту решат не продолжать).
+// Никаких других правок в файле для этого не требуется — колесо,
+// FIRST_LETTER/ALPHABET_LABEL ниже не нужно трогать, кроме, собственно,
+// добавления bg в эти два словаря (уже сделано).
+const LANGUAGE_CATALOG: { code: string; label: string; active: boolean }[] = [
+  { code: "sa", label: "Санскрит", active: true },
+  { code: "en", label: "Английский", active: true },
+  { code: "ar", label: "Арабский", active: true },
+  { code: "bn", label: "Бенгальский", active: false }, // временно выключен — см. пояснение выше
+  { code: "bg", label: "Болгарский", active: true }, // временная замена бенгальского
+  { code: "id", label: "Индонезийский", active: true },
+  { code: "es", label: "Испанский", active: true },
+  { code: "pt", label: "Португальский", active: true },
+  { code: "ru", label: "Русский", active: true },
+  { code: "uk", label: "Украинский", active: true },
+  { code: "ur", label: "Урду", active: true },
+  { code: "fr", label: "Французский", active: true },
+  { code: "hi", label: "Хинди", active: true },
 ];
+
+export const languageOptions = LANGUAGE_CATALOG.filter((l) => l.active);
 
 // Список систем письменности — Деванагари первым (соответствует
 // Санскриту по умолчанию), остальные 11 — по алфавиту.
@@ -64,6 +80,7 @@ export const FIRST_LETTER: Record<string, string> = {
   id: "A",
   ru: "А",
   uk: "А",
+  bg: "А",
   ar: "ا",
   ur: "ا",
   bn: "অ",
@@ -79,6 +96,7 @@ export const ALPHABET_LABEL: Record<string, string> = {
   id: "Alfabet",
   ru: "Алфавит",
   uk: "Алфавіт",
+  bg: "Азбука",
   ar: "الأبجدية",
   ur: "حروف تہجی",
   bn: "বর্ণমালা",
@@ -91,9 +109,6 @@ interface LanguageScriptContextValue {
   languageLabel: string;
   script: string;
   scriptLabel: string;
-  // Флаги мастера: "пользователь уже проходил этот шаг явно" — не
-  // путать со значениями language/script, которые всегда заданы
-  // (за счёт дефолтов), даже если флаг ещё false.
   hasChosenLanguage: boolean;
   hasChosenScript: boolean;
   activeWheel: WheelKind;
@@ -109,8 +124,6 @@ const LanguageScriptContext = createContext<LanguageScriptContextValue | null>(
 );
 
 export function LanguageScriptProvider({ children }: { children: ReactNode }) {
-  // Язык интерфейса общий для всего сайта — берём и меняем через
-  // существующий useLanguage(), а не заводим отдельную копию.
   const { language, setLanguage } = useLanguage();
   const [script, setScriptState] = useState<string>(DEFAULT_SCRIPT);
   const [hasChosenLanguage, setHasChosenLanguage] = useState(false);
@@ -121,12 +134,6 @@ export function LanguageScriptProvider({ children }: { children: ReactNode }) {
   const openScriptWheel = () => setActiveWheel("script");
   const closeWheel = () => setActiveWheel(null);
 
-  // Клик по сектору колеса языков — работает и для первого выбора
-  // (Шаг 1), и для точечного редактирования языка (чип "изменить").
-  // Если язык реально сменился — старая письменность больше не
-  // гарантированно годится, поэтому сбрасываем флаг hasChosenScript и
-  // сразу открываем колесо письменности следующим шагом. Если выбран
-  // тот же язык — просто закрываем колесо, ничего больше не меняя.
   const selectLanguage = (code: string) => {
     const changed = code !== language;
     setLanguage(code as any);
