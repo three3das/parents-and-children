@@ -9,7 +9,7 @@ export interface SubIcon {
   shadow: string;
   emoji: string;
   label: string;
-  images?: { ru: string; en: string; uk: string; sa: string }; // per-language image (overrides emoji)
+  images?: Partial<Record<string, string>>; // per-language image (overrides emoji) — не у каждого языка обязательно есть картинка
   path?: string; // navigation path on click
 }
 
@@ -18,9 +18,9 @@ export interface Category {
   path: string;
   emoji: string;
   label: string;
-  text?: { ru: string; en: string; uk: string; sa: string }; // multilingual label on home button
+  text?: Partial<Record<string, string>>; // multilingual label on home button — не у каждого языка обязательно есть перевод
   image?: string;     // optional image path (replaces emoji on home button)
-  images?: { ru: string; en: string; uk: string; sa: string }; // per-language images
+  images?: Partial<Record<string, string>>; // per-language images
   gradient: string;   // home button gradient
   shadow: string;     // home button shadow
   bgGradient: string; // category page background

@@ -5,6 +5,7 @@ export interface User {
   lastName: string;
   newsletter: boolean;
   createdAt: string;
+  hasSubscription: boolean;
 }
 
 export interface AuthState {

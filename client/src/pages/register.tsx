@@ -50,7 +50,11 @@ function GoogleGLogo() {
 
 export default function RegisterPage() {
   const [, navigate] = useLocation();
-  const { register } = useAuth();
+  // ⚠️ ИСПРАВЛЕНО: добавили user из контекста авторизации — как и на
+  // LoginPage.tsx, чтобы отследить момент успешной регистрации/входа
+  // через Google и сделать редирект (сама register() из useGoogleAuth.ts
+  // роутера не знает и никуда не переходит).
+  const { register, user } = useAuth();
   const { promptGoogleSignIn, setExtraData, error: googleError, isLoading: googleLoading } = useGoogleAuth();
 
   const [name, setName] = useState("");
@@ -64,6 +68,16 @@ export default function RegisterPage() {
   useEffect(() => {
     setExtraData({ name });
   }, [name, setExtraData]);
+
+  // ⚠️ ДОБАВЛЕНО: та же причина и то же решение, что и на LoginPage.tsx —
+  // вход через Google (handleGoogleResponse внутри useGoogleAuth.ts)
+  // сохраняет пользователя в контексте, но не делает редирект. Этот
+  // useEffect следит за появлением user и переводит на главную.
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

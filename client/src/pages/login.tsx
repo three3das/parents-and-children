@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useGoogleAuth } from "@/lib/auth/useGoogleAuth";
@@ -48,13 +48,30 @@ function GoogleGLogo() {
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
-  const { login } = useAuth();
+  // ⚠️ ИСПРАВЛЕНО: добавили user из контекста авторизации, чтобы отслеживать
+  // момент успешного входа (в т.ч. через Google) и делать редирект.
+  // Если ваш useAuth() возвращает поле с другим именем (например,
+  // currentUser), замените "user" здесь и в useEffect ниже.
+  const { login, user } = useAuth();
   const { promptGoogleSignIn, error: googleError, isLoading: googleLoading } = useGoogleAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // ⚠️ ДОБАВЛЕНО: вход через Google (handleGoogleResponse внутри
+  // useGoogleAuth.ts) вызывает login(data.user), но не делает редирект —
+  // у этого хука нет доступа к роутеру. Раньше страница просто оставалась
+  // на /login, хотя пользователь фактически уже был залогинен. Этот
+  // useEffect следит за появлением пользователя в контексте и переводит
+  // на главную страницу в любом случае (и для Google, и как страховка
+  // для обычного входа).
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -150,7 +150,7 @@ export default function HomePage() {
                         background: "rgba(0,0,0,0.18)",
                       }}
                     >
-                      {cat.text ? cat.text[language] : cat.label}
+                      {cat.text?.[language] ?? cat.label}
                     </span>
 
                     {/* Zamok dlya zablokirovannyh knopok */}
@@ -560,4 +560,4 @@ export default function HomePage() {
       `}</style>
     </div>
   );
-}     
+}

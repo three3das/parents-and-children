@@ -41,7 +41,7 @@ const SIN_HALF = Math.sin(HALF_ANGLE);
 const BADGE_R = (R * SIN_HALF - GAP * (SIN_HALF + 1)) / (1 + SIN_HALF);
 const BADGE_RADIUS = R - BADGE_R - GAP;
 
-const LABEL_FONT_SIZE = 8.4;
+const LABEL_FONT_SIZE = 12.6;
 
 export default function Wheel12({
   labels,

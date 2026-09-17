@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n";
 
 // ⚠️ ПРАВКА: раньше languageOptions был плоским массивом из 12 языков.
@@ -129,6 +129,20 @@ export function LanguageScriptProvider({ children }: { children: ReactNode }) {
   const [hasChosenLanguage, setHasChosenLanguage] = useState(false);
   const [hasChosenScript, setHasChosenScript] = useState(false);
   const [activeWheel, setActiveWheel] = useState<WheelKind>(null);
+
+  // Гарантируем дефолт языка (Санскрит) прямо здесь, а не полагаясь
+  // на внешний компонент (раньше это делал useEffect в IshvaraPage.tsx —
+  // теперь он удалён оттуда, и вся логика дефолта живёт в одном месте).
+  // Срабатывает один раз при монтировании: если текущий language не
+  // входит в список активных языков колеса — принудительно ставим
+  // DEFAULT_LANGUAGE.
+  useEffect(() => {
+    const knownCodes = languageOptions.map((l) => l.code);
+    if (!language || !knownCodes.includes(language)) {
+      setLanguage(DEFAULT_LANGUAGE as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openLanguageWheel = () => setActiveWheel("language");
   const openScriptWheel = () => setActiveWheel("script");

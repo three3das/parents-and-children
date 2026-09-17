@@ -14,7 +14,7 @@ import { supabase } from "@/lib/supabase";
 // (flex-col, h-full, каждая zone flex-1 min-h-0):
 //   1. Верхняя зона  — сам символ буквы (grapheme текущего языка).
 //   2. Средняя зона  — тот же символ в выбранной системе письма
-//      (значение из public.letter_text по коду script).
+//      (значение из public.text_symbols по коду script).
 //   3. Нижняя зона   — холст для рисования (DrawingPad).
 //
 // Старая плашка-проверка внутри холста убрана — она дублировала бы
@@ -25,9 +25,18 @@ import { supabase } from "@/lib/supabase";
 // символов сейчас показывается водяным знаком-трафаретом для
 // обводки: сама буква (letterSymbol) или её вид в системе письма
 // (scriptSymbol). Если для текущей пары (буква, система письма) в
-// letter_text нет значения, а режим "Письмо" всё равно выбран —
+// text_symbols нет значения, а режим "Письмо" всё равно выбран —
 // вместо трафарета показывается короткая подсказка "нет данных",
 // а не пустой холст без объяснения.
+//
+// ⚠️ ПРАВКА (переименование таблиц): таблицы в Supabase переименованы
+// для более общей и понятной номенклатуры (не только "буквы", но и
+// произвольные текстовые символы):
+//   letter_writing_systems  → text_writing_systems
+//   letter_anchor           → text_anchor
+//   letter_text             → text_symbols
+// Названия СТОЛБЦОВ внутри этих таблиц не менялись — правка коснулась
+// только трёх мест ниже, где вызывается supabase.from(...).
 
 // Значения посчитаны той же формулой, что и sectorColor() в
 // IshvaraPage.tsx: mix(goldPct) = GOLD*goldPct + WHITE*(1-goldPct),
@@ -149,7 +158,7 @@ export function AlphabetTutor() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   // Значение буквы в текущей выбранной системе письма (столбец из
-  // public.letter_text, соответствующий коду script) — подтягивается
+  // public.text_symbols, соответствующий коду script) — подтягивается
   // по letter_id выбранной буквы при каждой смене буквы или системы
   // письма.
   const [scriptText, setScriptText] = useState<string | null>(null);
@@ -163,7 +172,7 @@ export function AlphabetTutor() {
       setSelectedId(null);
       try {
         const { data: systems, error: sysError } = await supabase
-          .from('letter_writing_systems')
+          .from('text_writing_systems')
           .select('id')
           .eq('code', language);
 
@@ -173,7 +182,7 @@ export function AlphabetTutor() {
           const systemId = systems[0].id;
 
           const { data: items, error: itemsError } = await supabase
-            .from('letter_anchor')
+            .from('text_anchor')
             .select('*')
             .eq('language_id', systemId)
             .order('sort_order', { ascending: true });
@@ -219,10 +228,10 @@ export function AlphabetTutor() {
     [letters, selectedId]
   );
 
-  // Подтягиваем из public.letter_text значение нужного столбца по
+  // Подтягиваем из public.text_symbols значение нужного столбца по
   // letter_id выбранной буквы. Столбец выбирается динамически по коду
   // текущей системы письма (script: 'devanagari' | 'arabic' | ... —
-  // те же 12 кодов, что и имена столбцов letter_text, см.
+  // те же 12 кодов, что и имена столбцов text_symbols, см.
   // @/lib/languageScript и SQL-миграцию таблицы).
   useEffect(() => {
     let cancelled = false;
@@ -234,7 +243,7 @@ export function AlphabetTutor() {
       }
       try {
         const { data, error } = await supabase
-          .from('letter_text')
+          .from('text_symbols')
           .select('*')
           .eq('letter_id', selectedLetter.id)
           .maybeSingle();
@@ -246,7 +255,7 @@ export function AlphabetTutor() {
           setScriptText(typeof value === 'string' && value.length > 0 ? value : null);
         }
       } catch (err) {
-        console.error('Ошибка загрузки транслитерации буквы (letter_text):', err);
+        console.error('Ошибка загрузки транслитерации буквы (text_symbols):', err);
         if (!cancelled) setScriptText(null);
       }
     }

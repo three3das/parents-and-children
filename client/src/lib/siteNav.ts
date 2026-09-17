@@ -1,10 +1,14 @@
 export type NavItem = { key: string; label: string };
 
+// ⚠️ Это статичный фолбэк на случай прямого импорта без хука. На
+// IshvaraPage подписи теперь берутся динамически через
+// useHeaderNavItems() из "@/lib/headerWords" (зависят от текущих
+// language/script) — см. IshvaraPage.tsx. Дефолт здесь совпадает с
+// дефолтом хука: Санскрит + Деванагари.
 export const headerNav: NavItem[] = [
-  { key: "name", label: "Первое имя участника" },
-  { key: "form", label: "Второе имя участника" },
-  { key: "qualities", label: "Третье имя участника" },
-  { key: "plays", label: "Четвертое имя участника" },
+  { key: "sambandha", label: "सम्बन्ध" },
+  { key: "abhidheya", label: "अभिधेय" },
+  { key: "prayojana", label: "प्रयोजन" },
 ];
 
 // Базовые подписи для нижней навигации. Подпись пункта "all-data"

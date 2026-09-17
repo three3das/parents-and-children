@@ -8,7 +8,7 @@ declare global {
         id?: {
           initialize: (config: any) => void;
           renderButton: (element: HTMLElement, config: any) => void;
-          prompt: () => void;
+          prompt: (momentListener?: (notification: any) => void) => void;
         };
       };
     };
@@ -79,6 +79,15 @@ export function useGoogleAuth() {
         callback: handleGoogleResponse,
         auto_select: false,
         cancel_on_tap_outside: true,
+        // ⚠️ ДОБАВЛЕНО: с апреля 2024 Google переводит One Tap/Automatic
+        // Sign-In на технологию FedCM (Federated Credential Management) —
+        // встроенный в браузер механизм, а не старое всплывающее окно.
+        // Без этого флага (на 2026 год, когда переход уже обязателен)
+        // окно выбора аккаунта ещё показывается (это рисует браузер по
+        // старому пути), но реальный вход после клика по аккаунту тихо
+        // обрывается — именно это мы и наблюдали. Подробнее:
+        // https://developers.google.com/identity/gsi/web/guides/fedcm-migration
+        use_fedcm_for_prompt: true,
       });
     }
   }, [handleGoogleResponse]);
@@ -116,7 +125,34 @@ export function useGoogleAuth() {
 
   const promptGoogleSignIn = useCallback(() => {
     if (window.google?.accounts?.id) {
-      window.google.accounts.id.prompt();
+      // ⚠️ ДОБАВЛЕНО: необязательный колбэк-"слушатель момента" — под
+      // FedCM он получает объект notification с методом getMomentType()
+      // ('display' | 'skipped' | 'dismissed') и (для 'skipped'/'dismissed')
+      // причиной через getSkippedReason()/getDismissedReason(). Раньше
+      // colбэка не было вовсе, поэтому при тихом сбое (например,
+      // пользователь ранее закрывал окно и Google временно не
+      // показывает его снова, либо ограничения куки) в консоли не было
+      // вообще никакой подсказки, почему вход не завершается. Теперь
+      // причина будет видна в консоли браузера.
+      window.google.accounts.id.prompt((notification: any) => {
+        try {
+          const momentType =
+            typeof notification?.getMomentType === 'function'
+              ? notification.getMomentType()
+              : undefined;
+          if (momentType === 'skipped' || momentType === 'dismissed') {
+            const reason =
+              momentType === 'skipped'
+                ? notification.getSkippedReason?.()
+                : notification.getDismissedReason?.();
+            console.warn(
+              `[GoogleAuth] One Tap не завершил вход (${momentType}): ${reason ?? 'причина неизвестна'}`
+            );
+          }
+        } catch (err) {
+          console.error('[GoogleAuth] Ошибка чтения notification от prompt():', err);
+        }
+      });
     }
   }, []);
 
