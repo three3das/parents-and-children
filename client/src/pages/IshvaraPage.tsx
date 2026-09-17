@@ -120,6 +120,27 @@ const PRAYOJANA_WHEEL_LABELS: string[][] = Array.from(
   (_, i) => (i < PRAYOJANA_ITEMS.length ? splitLabelIntoLines(PRAYOJANA_ITEMS[i]) : [])
 );
 
+// "Путеводитель" — колесо, открывающееся вместо мгновенного редиректа
+// на /login для неавторизованного пользователя. Пока заполнен только
+// сектор №1 ("Вход и благотворительный взнос"); остальные 11 — пустые
+// заглушки, видимые, но некликабельные. Текст разбит вручную на 4
+// строки с переносом слова "благотворительный" по дефису между
+// строками 2 и 3 — иначе не помещается в круг.
+const GUIDE_ITEMS: string[] = [
+  "Вход и благотворительный взнос",
+];
+
+const GUIDE_CLICKABLE_INDICES = [0];
+
+function splitGuideLabel(): string[] {
+  return ["Вход", "и благотво-", "рительный", "взнос."];
+}
+
+const GUIDE_WHEEL_LABELS: string[][] = Array.from(
+  { length: SECTOR_COUNT },
+  (_, i) => (i === 0 ? splitGuideLabel() : [])
+);
+
 type GameType =
   | "alphabet-placeholder"
   | "picture-match"
@@ -157,7 +178,9 @@ type ViewState =
   | "dictionary"
   | "sambandha"
   | "abhidheya"
-  | "prayojana";
+  | "prayojana"
+  | "guide"
+  | "guide-info";
 
 export default function IshvaraPage() {
   // Язык и система письменности теперь берутся из общего контекста
@@ -182,8 +205,10 @@ export default function IshvaraPage() {
   // "main" — колесо тем (категорий), "games" — колесо с 7 играми,
   // "dictionary" — страница "Словарь используемых на сайте слов".
   // "sambandha"/"abhidheya"/"prayojana" — колёса из трёх кнопок
-  // хедера. Колёс "languages"/"scripts" здесь больше нет — они
-  // переехали в глобальный оверлей.
+  // хедера. "guide" — колесо-путеводитель (открывается вместо
+  // мгновенного /login для неавторизованного пользователя),
+  // "guide-info" — экран пояснения про благотворительность внутри
+  // сектора №1 путеводителя.
   const [view, setView] = useState<ViewState>("main");
 
   const handleSelectCategory = (index: number) => {
@@ -196,6 +221,12 @@ export default function IshvaraPage() {
     const game = games[index];
     if (game) {
       setLocation(`/game?game=${game.type}`);
+    }
+  };
+
+  const handleGuideSectorClick = (index: number) => {
+    if (index === 0) {
+      setView("guide-info");
     }
   };
 
@@ -222,7 +253,11 @@ export default function IshvaraPage() {
       setView("dictionary");
     } else if (key === "all-data") {
       if (!isAuthenticated) {
-        setLocation("/login");
+        // Было: setLocation("/login") — мгновенный редирект.
+        // Теперь: сначала показываем колесо-путеводитель, чтобы
+        // пользователь мог осмотреться, не будучи сразу обязанным
+        // войти/оплатить.
+        setView("guide");
       } else {
         setLocation("/payments");
       }
@@ -242,6 +277,19 @@ export default function IshvaraPage() {
       : item
   );
 
+  // "← Назад" на любом колесе, кроме колеса тем ("main"), обычно
+  // возвращает на колесо тем (домашний экран). Единственное
+  // исключение — экран "guide-info": оттуда возврат ведёт на
+  // колесо-путеводитель ("guide"), а не сразу на главное колесо,
+  // чтобы не терять контекст путеводителя.
+  const handleBack = () => {
+    if (view === "guide-info") {
+      setView("guide");
+    } else {
+      setView("main");
+    }
+  };
+
   return (
     <WheelPageShell
       header={
@@ -255,13 +303,10 @@ export default function IshvaraPage() {
         />
       }
     >
-      {/* "← Назад" на любом колесе, кроме колеса тем ("main"), всегда
-          возвращает на колесо тем (домашний экран) — правило не
-          изменилось. */}
       {view !== "main" && (
         <div className="flex-shrink-0 relative w-full flex justify-center items-center">
           <button
-            onClick={() => setView("main")}
+            onClick={handleBack}
             className="absolute left-6 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
             style={{ color: "#FFD700", borderColor: "#FFD700" }}
           >
@@ -303,6 +348,32 @@ export default function IshvaraPage() {
 
         {view === "prayojana" && (
           <Wheel12 labels={PRAYOJANA_WHEEL_LABELS} centerLabel="Прайоджана" />
+        )}
+
+        {view === "guide" && (
+          <Wheel12
+            labels={GUIDE_WHEEL_LABELS}
+            centerLabel="Путеводитель"
+            clickableIndices={GUIDE_CLICKABLE_INDICES}
+            onSectorClick={handleGuideSectorClick}
+          />
+        )}
+
+        {view === "guide-info" && (
+          <div className="flex flex-col items-center justify-center gap-6 max-w-lg text-center px-4">
+            <p className="text-lg" style={{ color: "#FFD700" }}>
+              Этот сайт существует и развивается благодаря
+              благотворительности — добровольным пожертвованиям тех,
+              кому он приносит пользу.
+            </p>
+            <button
+              onClick={() => setLocation("/payments")}
+              className="px-6 py-3 rounded-full border-2 font-bold text-base transition bg-white"
+              style={{ color: "#FFD700", borderColor: "#FFD700" }}
+            >
+              Перейти к оплате
+            </button>
+          </div>
         )}
       </div>
     </WheelPageShell>
