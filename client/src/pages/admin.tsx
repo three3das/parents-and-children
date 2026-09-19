@@ -20,7 +20,7 @@ export default function AdminPanel() {
   const [payments, setPayments] = useState<PendingPayment[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [adminEmail] = useState("payments.knowledgechildren@gmail.com");
+  const [adminEmail] = useState("parents-and-children@outlook.com");
 
   const fetchData = async () => {
     try {
@@ -219,7 +219,7 @@ export default function AdminPanel() {
           <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
             <li>Проверьте почту {adminEmail}</li>
             <li>Найдите письмо от клиента с темой "Подписка"</li>
-            <li>Проверьте что деньги пришли на карту 4149 6090 1820 1774</li>
+            <li>Проверьте что деньги пришли на карту 5168 7451 2747 0224</li>
             <li>Нажмите "Активировать" для этого email</li>
             <li>Клиент получит доступ мгновенно</li>
           </ol>

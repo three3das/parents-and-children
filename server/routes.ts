@@ -83,8 +83,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error creating pending payment on register:", pendingErr);
       }
  
-      // Новый пользователь — подписки нет
-      res.status(201).json({ user: { ...userWithoutPassword, hasSubscription: false } });
+      // Новый пользователь — подписки нет, уровень доступа ещё не выбран
+      // (access_tier = NULL сразу после регистрации). ⚠️ ДОБАВЛЕНО:
+      // accessTier в ответе — фронтенду (RequireSubscription) нужно
+      // знать, выбрал ли пользователь уже "free_curious" или нет,
+      // чтобы решить, вести его на /welcome или сразу пускать дальше.
+      res.status(201).json({
+        user: { ...userWithoutPassword, hasSubscription: false, accessTier: (user as any).access_tier ?? null },
+      });
     } catch (error) {
       console.error("Error registering user:", error);
       if (error instanceof z.ZodError) {
@@ -140,7 +146,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const subscription = await getActiveSubscription(user.id);
  
       console.log(`Login successful for ${email}`);
-      res.json({ user: { ...userWithoutPassword, hasSubscription: !!subscription } });
+      // ⚠️ ДОБАВЛЕНО: accessTier в ответе — см. комментарий в /register выше.
+      res.json({
+        user: { ...userWithoutPassword, hasSubscription: !!subscription, accessTier: (user as any).access_tier ?? null },
+      });
     } catch (error: any) {
       console.error("Error logging in:", error);
       if (error instanceof z.ZodError) {
@@ -202,13 +211,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Проверяем наличие активной подписки
       const subscription = await getActiveSubscription(user.id);
  
-      res.json({ user: { ...userWithoutPassword, hasSubscription: !!subscription } });
+      // ⚠️ ДОБАВЛЕНО: accessTier в ответе — см. комментарий в /register выше.
+      res.json({
+        user: { ...userWithoutPassword, hasSubscription: !!subscription, accessTier: (user as any).access_tier ?? null },
+      });
     } catch (error) {
       console.error("Error with Google auth:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid Google data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to authenticate with Google" });
+    }
+  });
+
+  // ⚠️ ДОБАВЛЕНО: выбор бесплатного уровня доступа ("любознательный
+  // участник"). В отличие от activatePayment() в p2p-payments.ts —
+  // здесь нет ни оплаты, ни модерации администратором, ни писем.
+  // Просто фиксируем выбор пользователя прямо в users.access_tier.
+  app.post("/api/auth/choose-free-tier", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) {
+        return res.status(400).json({ message: "userId обязателен" });
+      }
+
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Пользователь не найден" });
+      }
+
+      await storage.updateUserAccessTier(userId, "free_curious");
+
+      res.json({ success: true, accessTier: "free_curious" });
+    } catch (error) {
+      console.error("Error choosing free tier:", error);
+      res.status(500).json({ message: "Не удалось сохранить выбор" });
     }
   });
  

@@ -7,10 +7,10 @@ interface P2PPaymentModalProps {
 }
 
 export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalProps) {
-  const cardNumber = "4149 6090 1820 1774";
+  const cardNumber = "5168 7451 2747 0224";
   const recipient = "Урiзко Олександр Леонiдович";
   const amount = "100";
-  const contactEmail = "payments.knowledgechildren@gmail.com";
+  const contactEmail = "parents-and-children@outlook.com";
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);

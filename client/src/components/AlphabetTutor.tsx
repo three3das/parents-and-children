@@ -8,35 +8,56 @@ import { supabase } from "@/lib/supabase";
 // ⚠️ ПРАВКА ПО КОМПОНОВКЕ ПРАВОЙ ЧАСТИ (эта версия):
 // Раньше правая часть была одним полем — только DrawingPad (холст),
 // внутри которого сверху была узкая полупрозрачная плашка-проверка
-// "буква в выбранной системе письма" (из public.letter_text).
+// "буква в выбранной системе письма" (из public.text_letter_writing_systems).
 //
-// Теперь правая часть — это ТРИ отдельные зоны, РАВНЫЕ по высоте
-// (flex-col, h-full, каждая zone flex-1 min-h-0):
+// Теперь правая часть — это ТРИ отдельные зоны (flex-col, h-full):
 //   1. Верхняя зона  — сам символ буквы (grapheme текущего языка).
 //   2. Средняя зона  — тот же символ в выбранной системе письма
-//      (значение из public.text_symbols по коду script).
+//      (значение из public.text_letter_writing_systems по коду script).
 //   3. Нижняя зона   — холст для рисования (DrawingPad).
+//
+// ⚠️ ПРАВКА (пропорции зон): исходно все три зоны были равными
+// (flex-1/flex-1/flex-1) — правая колонка не помещалась по высоте и
+// появлялся вертикальный скролл. Шаг 1: зоны 1 и 2 уменьшены вдвое
+// (flex-[0.5]/flex-[0.5]), а зона 3 увеличена (flex-[2]). Шаг 2: зона 3
+// дополнительно уменьшена на 30% (flex-[2] → flex-[1.4]) по прямому
+// запросу — скролл при этом мог сохраниться, если его причина не в
+// пропорциях внутри колонки, а в том, что суммарная высота колонки
+// превышает высоту родительского контейнера (см. компонент страницы
+// /game, если проблема не исчезла).
 //
 // Старая плашка-проверка внутри холста убрана — она дублировала бы
 // то, что теперь и так постоянно видно в зонах 1 и 2.
 //
-// Внутри холста (зона 3) добавлен переключатель "Буква / Письмо"
-// (двумя кнопками над самим canvas) — он определяет, какой из двух
-// символов сейчас показывается водяным знаком-трафаретом для
-// обводки: сама буква (letterSymbol) или её вид в системе письма
-// (scriptSymbol). Если для текущей пары (буква, система письма) в
-// text_symbols нет значения, а режим "Письмо" всё равно выбран —
-// вместо трафарета показывается короткая подсказка "нет данных",
-// а не пустой холст без объяснения.
+// Внутри холста (зона 3) добавлен переключатель "Буква / Письмо" (двумя
+// кнопками над самим canvas) — он определяет, какой из двух символов
+// сейчас показывается водяным знаком-трафаретом для обводки: сама
+// буква (letterSymbol) или её вид в системе письма (scriptSymbol).
+// Если для текущей пары (буква, система письма) в
+// text_letter_writing_systems нет значения, а режим "Письмо" всё равно
+// выбран — вместо трафарета показывается короткая подсказка "нет
+// данных", а не пустой холст без объяснения.
 //
-// ⚠️ ПРАВКА (переименование таблиц): таблицы в Supabase переименованы
-// для более общей и понятной номенклатуры (не только "буквы", но и
-// произвольные текстовые символы):
-//   letter_writing_systems  → text_writing_systems
-//   letter_anchor           → text_anchor
-//   letter_text             → text_symbols
+// ⚠️ ПРАВКА (переименование таблиц): таблицы в Supabase приведены к
+// именам, согласованным со схемой проекта Krishna-consciousness (в
+// частности text_letter_languages / text_letter_writing_systems /
+// text_languages_systems уже используются там для того же назначения):
+//   letter_writing_systems  → text_languages_systems
+//   letter_anchor           → text_letter_languages
+//   letter_text             → text_letter_writing_systems
 // Названия СТОЛБЦОВ внутри этих таблиц не менялись — правка коснулась
 // только трёх мест ниже, где вызывается supabase.from(...).
+//
+// ⚠️ ПРАВКА (адаптивная вёрстка / мобильные устройства): на узких
+// экранах (< 640px, ниже брейкпоинта sm) три колонки (Functions/
+// Categories, таблица букв, панель письма) укладываются в вертикальный
+// стек вместо горизонтального ряда, чтобы таблица букв не обрезалась
+// и не уезжала за пределы экрана. Порядок на мобильном:
+//   1. Functions/Categories (order-1)
+//   2. Панель "Буква/Письмо + холст" (order-2)
+//   3. Таблица букв (order-3, внизу — по прямому запросу)
+// На sm: и выше порядок и ширины возвращаются к исходному горизонтальному
+// виду (order сбрасывается через sm:order-*).
 
 // Значения посчитаны той же формулой, что и sectorColor() в
 // IshvaraPage.tsx: mix(goldPct) = GOLD*goldPct + WHITE*(1-goldPct),
@@ -158,9 +179,9 @@ export function AlphabetTutor() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   // Значение буквы в текущей выбранной системе письма (столбец из
-  // public.text_symbols, соответствующий коду script) — подтягивается
-  // по letter_id выбранной буквы при каждой смене буквы или системы
-  // письма.
+  // public.text_letter_writing_systems, соответствующий коду script) —
+  // подтягивается по letter_id выбранной буквы при каждой смене буквы
+  // или системы письма.
   const [scriptText, setScriptText] = useState<string | null>(null);
 
   useEffect(() => {
@@ -172,7 +193,7 @@ export function AlphabetTutor() {
       setSelectedId(null);
       try {
         const { data: systems, error: sysError } = await supabase
-          .from('text_writing_systems')
+          .from('text_languages_systems')
           .select('id')
           .eq('code', language);
 
@@ -182,7 +203,7 @@ export function AlphabetTutor() {
           const systemId = systems[0].id;
 
           const { data: items, error: itemsError } = await supabase
-            .from('text_anchor')
+            .from('text_letter_languages')
             .select('*')
             .eq('language_id', systemId)
             .order('sort_order', { ascending: true });
@@ -228,10 +249,10 @@ export function AlphabetTutor() {
     [letters, selectedId]
   );
 
-  // Подтягиваем из public.text_symbols значение нужного столбца по
-  // letter_id выбранной буквы. Столбец выбирается динамически по коду
-  // текущей системы письма (script: 'devanagari' | 'arabic' | ... —
-  // те же 12 кодов, что и имена столбцов text_symbols, см.
+  // Подтягиваем из public.text_letter_writing_systems значение нужного
+  // столбца по letter_id выбранной буквы. Столбец выбирается динамически
+  // по коду текущей системы письма (script: 'devanagari' | 'arabic' | ... —
+  // те же 12 кодов, что и имена столбцов text_letter_writing_systems, см.
   // @/lib/languageScript и SQL-миграцию таблицы).
   useEffect(() => {
     let cancelled = false;
@@ -243,7 +264,7 @@ export function AlphabetTutor() {
       }
       try {
         const { data, error } = await supabase
-          .from('text_symbols')
+          .from('text_letter_writing_systems')
           .select('*')
           .eq('letter_id', selectedLetter.id)
           .maybeSingle();
@@ -255,7 +276,7 @@ export function AlphabetTutor() {
           setScriptText(typeof value === 'string' && value.length > 0 ? value : null);
         }
       } catch (err) {
-        console.error('Ошибка загрузки транслитерации буквы (text_symbols):', err);
+        console.error('Ошибка загрузки транслитерации буквы (text_letter_writing_systems):', err);
         if (!cancelled) setScriptText(null);
       }
     }
@@ -306,10 +327,20 @@ export function AlphabetTutor() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 h-full" style={{ backgroundColor: WHITE }}>
-      <div className="flex gap-4 items-stretch h-full">
-        {/* ЛЕВАЯ КОЛОНКА — Functions и Categories вместе. */}
-        <div className="w-40 flex-shrink-0 space-y-4">
+    <div className="max-w-7xl mx-auto p-4 h-auto sm:h-full" style={{ backgroundColor: WHITE }}>
+      {/* ⚠️ ПРАВКА (мобильная адаптивность): flex-col по умолчанию
+          (мобильные, < sm), sm:flex-row — исходный горизонтальный ряд
+          на планшетах/десктопе.
+          ⚠️ ПРАВКА (высота на мобильном): h-full/items-stretch убраны
+          на мобильном (h-auto, items-stretch только с sm:) — иначе
+          дочерние блоки в column-раскладке сжимались в жёстко заданную
+          высоту родителя, и блоку с буквами (у него был overflow-auto)
+          не оставалось видимой высоты. На мобильном страница теперь
+          просто растёт по контенту и скроллится целиком браузером. */}
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-stretch h-auto sm:h-full">
+        {/* ЛЕВАЯ КОЛОНКА — Functions и Categories вместе.
+            На мобильном — на всю ширину, order-1 (идёт первой). */}
+        <div className="w-full sm:w-40 flex-shrink-0 space-y-4 order-1">
           <div>
             <h4 className="text-[10px] font-bold mb-1" style={{ color: GOLD_100 }}>
               {pickLabel(FUNCTIONS_LABEL, uiLanguage)}
@@ -372,8 +403,12 @@ export function AlphabetTutor() {
           </div>
         </div>
 
-        {/* ЦЕНТР — таблица букв. */}
-        <div className="flex-1 min-w-0 overflow-auto">
+        {/* ЦЕНТР — таблица букв.
+            ⚠️ ПРАВКА: на мобильном — на всю ширину и order-3 (уходит
+            вниз, под панель письма — по прямому запросу "сгруппировать
+            снизу"). На sm: и выше — sm:order-2, как в исходной
+            раскладке (между левой колонкой и правой панелью). */}
+        <div className="w-full sm:flex-1 min-w-0 overflow-visible sm:overflow-auto order-3 sm:order-2">
           <div
             className="p-3 rounded space-y-2"
             style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_33}` }}
@@ -402,20 +437,27 @@ export function AlphabetTutor() {
           </div>
         </div>
 
-        {/* ПРАВАЯ ЧАСТЬ — три зоны равной высоты, в стиле кнопок выбора
-            игры (см. GameMenu.tsx): rounded-xl, shadow-md, лёгкая
-            hover/tap-анимация motion. Палитра — по вашему запросу
-            обратная относительно GameMenu (там сплошной золотой фон
-            #FFD700 с белыми иконками): здесь белый фон, золотая рамка
-            (2px, GOLD_100) и золотые символы/подписи. Зоны делят
-            правую колонку на три равные по высоте "кнопки"
-            (flex-1 min-h-0 у каждой). */}
-        <div className="w-64 flex-shrink-0 h-full flex flex-col gap-2">
-          {/* Зона 1 — символ буквы. */}
+        {/* ПРАВАЯ ЧАСТЬ — три зоны, в стиле кнопок выбора игры (см.
+            GameMenu.tsx): rounded-xl, shadow-md, лёгкая hover/tap-
+            анимация motion. Палитра — по вашему запросу обратная
+            относительно GameMenu (там сплошной золотой фон #FFD700 с
+            белыми иконками): здесь белый фон, золотая рамка (2px,
+            GOLD_100) и золотые символы/подписи.
+            Пропорции по высоте — 0.5 / 0.5 / 1.4: зоны 1 и 2 (буква /
+            система письма) компактнее равных долей, зона 3 (холст)
+            уменьшена на 30% относительно предыдущей версии (была
+            flex-[2]).
+            ⚠️ ПРАВКА: на мобильном — на всю ширину, h-auto (высота по
+            контенту, а не h-full, иначе flex-[...] зонам нечего было бы
+            делить) и order-2 (идёт между сайдбаром и таблицей букв). На
+            sm: и выше — исходные w-64/h-full/order-3. */}
+        <div className="w-full sm:w-64 flex-shrink-0 h-auto sm:h-full flex flex-col gap-2 order-2 sm:order-3">
+          {/* Зона 1 — символ буквы. min-h на мобильном — чтобы flex-[0.5]
+              не схлопывался в 0 при h-auto. */}
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="flex-1 min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center p-2 overflow-hidden"
+            className="flex-[0.5] min-h-[70px] sm:min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center p-2 overflow-hidden"
             style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }}
           >
             <h4 className="text-[10px] font-bold mb-1" style={{ color: GOLD_100 }}>
@@ -423,7 +465,7 @@ export function AlphabetTutor() {
             </h4>
             <div
               className="font-bold text-center leading-none break-words"
-              style={{ color: GOLD_100, fontSize: 'clamp(28px, 6vw, 56px)' }}
+              style={{ color: GOLD_100, fontSize: 'clamp(20px, 4vw, 40px)' }}
             >
               {selectedLetter?.grapheme ?? '—'}
             </div>
@@ -433,7 +475,7 @@ export function AlphabetTutor() {
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="flex-1 min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center p-2 overflow-hidden"
+            className="flex-[0.5] min-h-[70px] sm:min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center p-2 overflow-hidden"
             style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }}
           >
             <h4 className="text-[10px] font-bold mb-1 text-center" style={{ color: GOLD_100 }}>
@@ -441,14 +483,16 @@ export function AlphabetTutor() {
             </h4>
             <div
               className="font-bold text-center leading-none break-words"
-              style={{ color: GOLD_100, fontSize: 'clamp(28px, 6vw, 56px)' }}
+              style={{ color: GOLD_100, fontSize: 'clamp(20px, 4vw, 40px)' }}
             >
               {selectedLetter ? (scriptText ?? '—') : '—'}
             </div>
           </motion.div>
 
-          {/* Зона 3 — холст для письма от руки. */}
-          <div className="flex-1 min-h-0">
+          {/* Зона 3 — холст для письма от руки. Уменьшена на 30%
+              относительно предыдущей версии (flex-[2] → flex-[1.4]).
+              min-h на мобильном — та же причина, что у зон 1 и 2. */}
+          <div className="flex-[1.4] min-h-[220px] sm:min-h-0">
             <DrawingPad
               letterSymbol={selectedLetter?.grapheme ?? null}
               scriptSymbol={scriptText}

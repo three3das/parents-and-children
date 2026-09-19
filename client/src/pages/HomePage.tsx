@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { footerNav } from "@/lib/siteNav";
 import { useHeaderNavItems } from "@/lib/headerWords";
@@ -20,6 +20,17 @@ import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeade
 // языка/письменности. Здесь остаётся только то, что относится к
 // колесу ТЕМ (категории/игры) — это прямая ответственность этой
 // страницы.
+//
+// ⚠️ ПРАВКА (заставка перенесена наружу): SplashScreen больше НЕ
+// рендерится здесь. Раньше маршрут "/" был обёрнут в
+// RequireSubscription, который редиректил неавторизованных на /login
+// ещё до рендера HomePage — заставка внутри HomePage для таких
+// пользователей просто никогда не показывалась. Теперь заставкой
+// управляет SplashGate.tsx на уровне маршрута "/", вне
+// RequireSubscription; HomePage получает необязательный проп
+// initialFooterKey — ключ кнопки, которую выбрали на заставке — и при
+// монтировании выполняет тот же handleFooterClick, что и обычный клик
+// по футеру, так что переходы гарантированно совпадают.
 
 const DICTIONARY_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
@@ -182,7 +193,15 @@ type ViewState =
   | "guide"
   | "guide-info";
 
-export default function IshvaraPage() {
+interface HomePageProps {
+  // Ключ кнопки, выбранной на заставке SplashGate (см. комментарий
+  // выше файла) — "all-data" | "your-page" | "site-page" | "languages".
+  // Необязательный: при обычном заходе (не через заставку) не
+  // передаётся, и HomePage ведёт себя как раньше.
+  initialFooterKey?: string;
+}
+
+export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // Язык и система письменности теперь берутся из общего контекста
   // (проксирует useLanguage() из "@/lib/i18n" — тот же язык, что видит
   // весь остальной сайт). Подписи кнопок хедера зависят от обоих
@@ -265,6 +284,18 @@ export default function IshvaraPage() {
       // Пока без действия.
     }
   };
+
+  // ⚠️ ДОБАВЛЕНО: если HomePage смонтирована с initialFooterKey (то
+  // есть пользователь только что выбрал одну из 4 кнопок на заставке
+  // SplashGate) — выполняем ровно то же действие, что и обычный клик
+  // по соответствующей кнопке футера. Срабатывает один раз при
+  // монтировании.
+  useEffect(() => {
+    if (initialFooterKey) {
+      handleFooterClick(initialFooterKey);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const footerItems = footerNav.map((item) =>
     item.key === "all-data"

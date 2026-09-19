@@ -529,7 +529,14 @@ useEffect(() => {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    // ⚠️ ПРАВКА (адаптивная вёрстка / мобильные устройства): на
+    // мобильном (< sm) убраны h-screen/overflow-hidden — иначе
+    // контент AlphabetTutor в вертикальном стеке (Functions → панель
+    // письма → таблица букв) не помещался в жёстко заданную высоту
+    // экрана и обрезался без возможности прокрутки. На sm: и выше
+    // поведение не изменилось — фиксированная высота, без общей
+    // прокрутки страницы, как и было задумано изначально.
+    <div className="h-auto overflow-visible sm:h-screen sm:overflow-hidden flex flex-col">
       {/* ⚠️ ПРАВКА: GameHeader больше не принимает onSettingsClick /
           onLoginClick / onCreateAccountClick / onProgressClick — этих
           пропсов больше нет в GameHeaderProps (см. GameHeader.tsx —
@@ -545,125 +552,157 @@ useEffect(() => {
         correctAnswersToday={todayProgress?.correctAnswersToday || 0}
       />
 
-      <main className="flex-1 overflow-y-auto max-w-6xl mx-auto px-4 pt-2 pb-8 w-full">
-        <GameMenu
-          currentGameType={gameType}
-          onGameTypeChange={handleGameTypeChange}
-        />
+      {/* ⚠️ ПРАВКА (устранение скролла в AlphabetTutor): main теперь
+          flex-колонка вместо простого блочного контейнера. Раньше
+          GameMenu и игровой контент шли друг под другом внутри main
+          с overflow-y-auto — AlphabetTutor внутри запрашивал h-full
+          (100% высоты main), но GameMenu уже занимал часть этой
+          высоты сверху, из-за чего суммарная высота превышала место
+          в main и появлялся вертикальный скролл, сколько бы ни
+          подгонялись пропорции внутри самого AlphabetTutor.
+          Теперь: GameMenu — flex-shrink-0 (занимает свою естественную
+          высоту), а контент игры — flex-1 min-h-0 overflow-y-auto
+          (получает ровно оставшееся место; AlphabetTutor с его
+          h-full корректно вписывается в эту высоту). Скролл для
+          остальных игр (picture-match и т.д.) сохранён — он теперь
+          просто на внутренней обёртке, а не на main целиком.
+          ⚠️ ПРАВКА (мобильная адаптивность): overflow-hidden на main
+          заменён на overflow-visible на мобильном (< sm) — иначе
+          контент AlphabetTutor, растянутый в вертикальный стек,
+          обрезался бы этим же свойством ещё до того, как получал бы
+          шанс прокрутиться во внутренней обёртке ниже. На sm: и
+          выше — прежнее поведение (overflow-hidden). */}
+      <main className="flex-1 overflow-visible sm:overflow-hidden max-w-6xl mx-auto px-4 pt-2 pb-8 w-full flex flex-col">
+        <div className="flex-shrink-0">
+          <GameMenu
+            currentGameType={gameType}
+            onGameTypeChange={handleGameTypeChange}
+          />
+        </div>
 
-        {gameType === 'alphabet-placeholder' && (
-          <AlphabetTutor />
-        )}
+        {/* ⚠️ ПРАВКА (мобильная адаптивность): на мобильном (< sm)
+            эта обёртка больше не имеет собственной высоты/прокрутки
+            (overflow-visible, без min-h-0/flex-1 constraints по
+            высоте) — весь контент, включая AlphabetTutor, просто
+            растёт по естественной высоте, и скроллится сама страница
+            (см. правку на корневом div выше). На sm: и выше —
+            исходное поведение: flex-1 min-h-0 overflow-y-auto,
+            собственная внутренняя прокрутка в пределах main. */}
+        <div className="overflow-visible sm:flex-1 sm:min-h-0 sm:overflow-y-auto">
+          {gameType === 'alphabet-placeholder' && (
+            <AlphabetTutor />
+          )}
 
-        {gameType === 'picture-match' && (
-          <>
-            {distractorsLoading ? (
+          {gameType === 'picture-match' && (
+            <>
+              {distractorsLoading ? (
+                <div className="text-center py-8">
+                  <div className="text-2xl"> </div>
+                  <p className="text-sm text-[#FFD700] font-bold">...</p>
+                </div>
+              ) : (
+                <PictureGrid
+                  correctWord={currentWord}
+                  distractors={distractors || []}
+                  onPictureSelect={handlePictureSelect}
+                  disabled={!!selectedPicture || showCelebration}
+                  selectedPicture={selectedPicture}
+                />
+              )}
+
+              <div className="mt-2 sm:mt-4">
+                <WordDisplay word={currentWord.translatedWord || currentWord.word} />
+              </div>
+
+              <div className="text-center mt-2 sm:mt-8">
+                <motion.div
+                  className="text-4xl sm:text-6xl"
+                  animate={{
+                    rotate: [-10, 10, -10],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  👆
+                </motion.div>
+              </div>
+            </>
+          )}
+
+          {gameType === 'spell-word' && (
+            spellLettersLoading ? (
               <div className="text-center py-8">
-                <div className="text-2xl"> </div>
-                <p className="text-sm text-[#FFD700] font-bold">...</p>
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-[#FFD700] font-bold">{t.preparingLetters}</p>
+              </div>
+            ) : spellLettersData ? (
+              <SpellWordGame
+                word={currentWord}
+                availableLetters={spellLettersData.availableLetters}
+                onWordComplete={handleWordComplete}
+                onIncorrectLetter={handleSpellIncorrectLetter}
+                disabled={!!selectedPicture || showCelebration}
+              />
+            ) : null
+          )}
+
+          {gameType === 'syllables' && (
+            <SyllablesGame
+              onAnswer={handleSyllableAnswer}
+              disabled={!!selectedPicture || showCelebration}
+            />
+          )}
+
+          {gameType === 'sentence-game' && (
+            <SentenceGame
+              onAnswer={handleSentenceAnswer}
+              disabled={!!selectedPicture || showCelebration}
+            />
+          )}
+
+          {gameType === 'audio-picture' && (
+            distractorsLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-[#FFD700] font-bold">{t.loadingOptions}</p>
               </div>
             ) : (
-              <PictureGrid
-                correctWord={currentWord}
+              <AudioPictureGame
+                word={currentWord}
                 distractors={distractors || []}
-                onPictureSelect={handlePictureSelect}
+                onPictureSelect={handleAudioPictureSelect}
                 disabled={!!selectedPicture || showCelebration}
                 selectedPicture={selectedPicture}
               />
-            )}
+            )
+          )}
 
-            <div className="mt-2 sm:mt-4">
-              <WordDisplay word={currentWord.translatedWord || currentWord.word} />
-            </div>
-
-            <div className="text-center mt-2 sm:mt-8">
-              <motion.div
-                className="text-4xl sm:text-6xl"
-                animate={{
-                  rotate: [-10, 10, -10],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                👆
-              </motion.div>
-            </div>
-          </>
-        )}
-
-        {gameType === 'spell-word' && (
-          spellLettersLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-[#FFD700] font-bold">{t.preparingLetters}</p>
-            </div>
-          ) : spellLettersData ? (
-            <SpellWordGame
-              word={currentWord}
-              availableLetters={spellLettersData.availableLetters}
-              onWordComplete={handleWordComplete}
-              onIncorrectLetter={handleSpellIncorrectLetter}
-              disabled={!!selectedPicture || showCelebration}
-            />
-          ) : null
-        )}
-
-        {gameType === 'syllables' && (
-          <SyllablesGame
-            onAnswer={handleSyllableAnswer}
-            disabled={!!selectedPicture || showCelebration}
-          />
-        )}
-
-        {gameType === 'sentence-game' && (
-          <SentenceGame
-            onAnswer={handleSentenceAnswer}
-            disabled={!!selectedPicture || showCelebration}
-          />
-        )}
-
-        {gameType === 'audio-picture' && (
-          distractorsLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-[#FFD700] font-bold">{t.loadingOptions}</p>
-            </div>
-          ) : (
-            <AudioPictureGame
-              word={currentWord}
-              distractors={distractors || []}
-              onPictureSelect={handleAudioPictureSelect}
-              disabled={!!selectedPicture || showCelebration}
-              selectedPicture={selectedPicture}
-            />
-          )
-        )}
-
-        {gameType === 'audio-sentence' && (
-          materialWorldLoading || sentenceDistractorsLoading ? (
-            <div className="text-center py-8">
-              <div className="text-2xl">⏳</div>
-              <p className="text-sm text-[#FFD700] font-bold">{t.loadingOptions}</p>
-            </div>
-          ) : currentSentence ? (
-            <AudioSentenceGame
-              sentence={currentSentence}
-              distractors={sentenceDistractors || []}
-              onSelect={handleAudioSentenceSelect}
-              disabled={!!selectedSentence || showCelebration}
-              selectedItem={selectedSentence}
-            />
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-2xl">📭</div>
-              <p className="text-sm text-[#FFD700] font-bold">{t.loading}</p>
-            </div>
-          )
-        )}
+          {gameType === 'audio-sentence' && (
+            materialWorldLoading || sentenceDistractorsLoading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⏳</div>
+                <p className="text-sm text-[#FFD700] font-bold">{t.loadingOptions}</p>
+              </div>
+            ) : currentSentence ? (
+              <AudioSentenceGame
+                sentence={currentSentence}
+                distractors={sentenceDistractors || []}
+                onSelect={handleAudioSentenceSelect}
+                disabled={!!selectedSentence || showCelebration}
+                selectedItem={selectedSentence}
+              />
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-2xl">📭</div>
+                <p className="text-sm text-[#FFD700] font-bold">{t.loading}</p>
+              </div>
+            )
+          )}
+        </div>
       </main>
       <CelebrationOverlay
         key={`celebration-${currentWord?.id}-${correctAnswers}`}

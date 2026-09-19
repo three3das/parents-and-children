@@ -18,7 +18,7 @@ import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeade
 // ============================================================================
 
 // Тот же список из 5 категорий, что и на главной странице сайта
-// (IshvaraPage.tsx) — нужен здесь только для визуального ряда над
+// (HomePage.tsx) — нужен здесь только для визуального ряда над
 // колесом, чтобы колесо оплаты было ТОГО ЖЕ размера, что и остальные
 // колёса сайта (иначе оно растягивается на всю высоту <main> и
 // выглядит крупнее). Клик по любой категории возвращает на главное
@@ -77,7 +77,7 @@ const LABEL_FONT_SIZE = 8.4;
 //     чтобы номер карты не дублировался в двух местах вручную. Если
 //     карта сменится — достаточно поменять значение здесь. ---
 const PRIVATBANK_CARD = "5168 7451 2747 0224";
-const PRIVATBANK_HOLDER = "Уризко Александр Леонидович";
+const PRIVATBANK_HOLDER = "Урiзко Олександр Леонiдович";
 
 // --- данные способов оплаты ---
 type PaymentMethod = {
@@ -355,7 +355,7 @@ export default function PaymentsPage() {
   const [, navigate] = useLocation();
 
   // Реальный пользователь из общего контекста авторизации
-  // (тот же useAuth(), что используют login.tsx, useGoogleAuth.ts и IshvaraPage).
+  // (тот же useAuth(), что используют login.tsx, useGoogleAuth.ts и HomePage).
   const { user, logout } = useAuth();
 
   const labels = PAYMENT_METHODS.map((m) => m?.labelLines ?? []);
@@ -424,14 +424,14 @@ export default function PaymentsPage() {
   // Footer этой страницы: "site-page" и "languages" ведут обратно на
   // главное колесо сайта (глубокая ссылка сразу в конкретный подраздел
   // с этой страницы пока не реализована). "your-page" пока без
-  // действия — как и на IshvaraPage. "all-data" — мы уже здесь, поэтому
-  // (в отличие от IshvaraPage, где та же кнопка ведёт СЮДА) здесь клик
+  // действия — как и на HomePage. "all-data" — мы уже здесь, поэтому
+  // (в отличие от HomePage, где та же кнопка ведёт СЮДА) здесь клик
   // по кнопке с приветствием служит выходом из аккаунта — вести
   // пользователя ещё раз на ту же страницу оплаты смысла нет.
   const handleFooterClick = (key: string) => {
     setActiveFooterNav(key);
     if (key === "site-page" || key === "languages") {
-      navigate("/ishvara");
+      navigate("/home");
     } else if (key === "all-data" && user) {
       setShowLogoutConfirm(true);
     }
@@ -478,7 +478,7 @@ export default function PaymentsPage() {
             {categories.map((cat) => (
               <button
                 key={cat.key}
-                onClick={() => navigate("/ishvara")}
+                onClick={() => navigate("/home")}
                 className="px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
                 style={{ color: "#FFD700", borderColor: "#FFE066" }}
               >
@@ -538,7 +538,7 @@ export default function PaymentsPage() {
                 onClick={() => {
                   logout();
                   setShowLogoutConfirm(false);
-                  navigate("/ishvara");
+                  navigate("/home");
                 }}
                 className="px-5 py-2 rounded-full font-bold text-sm text-white"
                 style={{ backgroundColor: "#FFD700" }}

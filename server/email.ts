@@ -401,7 +401,7 @@ const PAYMENT_METHOD_DETAILS: Record<string, PaymentMethodDetails> = {
     label: "карта Приватбанка",
     card: "5168 7451 2747 0224",
     cardFieldLabel: "Номер карты",
-    holder: "Уризко Александр Леонидович",
+    holder: "Урiзко Олександр Леонiдович",
   },
   usdt_trc20: {
     label: "USDT (сеть TRC20)",

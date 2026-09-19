@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User, AuthState } from './types';
 
-const STORAGE_KEY = 'knowledgechildren-auth';
+const STORAGE_KEY = 'parents.and.children-auth';
 
 interface AuthContextType extends AuthState {
   login: (user: User) => void;

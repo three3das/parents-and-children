@@ -17,6 +17,10 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserById(id: string): Promise<User | undefined>;
   updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
+  // ⚠️ ДОБАВЛЕНО: запись выбранного уровня доступа ("free_curious" и
+  // т.д.) — пишет напрямую в users.access_tier, без затрагивания
+  // таблицы subscriptions (та отвечает только за платные активации).
+  updateUserAccessTier(userId: string, accessTier: string): Promise<void>;
 
   // Password reset tokens
   createPasswordResetToken(userId: string): Promise<string>;
@@ -117,6 +121,16 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
     await db.update(users).set({ password: hashedPassword }).where(eq(users.id, userId));
+  }
+
+  // ⚠️ ДОБАВЛЕНО: access_tier была добавлена в users через сырой
+  // ALTER TABLE (не через Drizzle-схему @shared/schema.ts), поэтому
+  // пишем через db.execute(sql`...`), а не через типизированный
+  // db.update(users).set(...) — иначе TypeScript не узнает это поле.
+  async updateUserAccessTier(userId: string, accessTier: string): Promise<void> {
+    await db.execute(
+      sql`UPDATE users SET access_tier = ${accessTier} WHERE id = ${userId}`
+    );
   }
 
   // Password reset token methods

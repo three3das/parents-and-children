@@ -3,7 +3,7 @@ import type { Language, Translations } from './types';
 import { SUPPORTED_LANGUAGE_CODES } from './types';
 import { translations, DEFAULT_LANGUAGE } from './translations';
 
-const STORAGE_KEY = 'knowledgechildren-language';
+const STORAGE_KEY = 'parents.and.children-language';
 
 interface LanguageContextType {
   language: Language;

@@ -30,7 +30,7 @@ export default defineConfig({
   // which is why VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY were not being
   // picked up even though they were present in the root .env file.
   envDir: path.resolve(import.meta.dirname),
-  publicDir: path.resolve(import.meta.dirname, "public"),
+  publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
