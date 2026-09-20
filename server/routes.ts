@@ -248,6 +248,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Не удалось сохранить выбор" });
     }
   });
+
+  // Лёгкая проверка статуса подписки без полного повторного логина —
+  // используется PaymentsPage.tsx для автоматического опроса после
+  // отправки заявки на оплату, чтобы не требовать от пользователя
+  // ручного выхода/входа после подтверждения администратором.
+  app.get("/api/auth/status/:userId", async (req, res) => {
+    try {
+      const subscription = await getActiveSubscription(req.params.userId);
+      res.json({ hasSubscription: !!subscription });
+    } catch (error) {
+      console.error("Error checking auth status:", error);
+      res.status(500).json({ message: "Failed to check status" });
+    }
+  });
  
   // Forgot password request
   app.post("/api/auth/forgot-password", async (req, res) => {

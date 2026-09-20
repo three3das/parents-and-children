@@ -366,7 +366,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
         )}
 
         {view === "dictionary" && (
-          <Wheel12 labels={DICTIONARY_LABELS} centerLabel="Словарь" />
+          <Wheel12 labels={DICTIONARY_LABELS} centerLabel="Все страницы сайта" />
         )}
 
         {view === "sambandha" && (
@@ -384,7 +384,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
         {view === "guide" && (
           <Wheel12
             labels={GUIDE_WHEEL_LABELS}
-            centerLabel="Путеводитель"
+            centerLabel="Начальная страница сайта"
             clickableIndices={GUIDE_CLICKABLE_INDICES}
             onSectorClick={handleGuideSectorClick}
           />
@@ -393,9 +393,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
         {view === "guide-info" && (
           <div className="flex flex-col items-center justify-center gap-6 max-w-lg text-center px-4">
             <p className="text-lg" style={{ color: "#FFD700" }}>
-              Этот сайт существует и развивается благодаря
-              благотворительности — добровольным пожертвованиям тех,
-              кому он приносит пользу.
+              Этот сайт поддерживается благодаря Верховной Личности Бога, и всем Его последователям.
             </p>
             <button
               onClick={() => setLocation("/payments")}

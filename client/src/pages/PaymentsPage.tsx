@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth, getWelcomeName } from "@/lib/auth";
 import { headerNav, footerNav } from "@/lib/siteNav";
@@ -6,7 +6,7 @@ import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeade
 
 // ============================================================================
 // Колесо способов оплаты — 12 секторов, тот же визуальный стиль,
-// что и остальные колёса сайта (Игры, Астрология и т.д.).
+// что и остальные колёса сайта.
 //
 // Раскладка секторов (обновлено):
 //   Сектор 1 — оплата с любой карты (украинской или иностранной) →
@@ -16,20 +16,6 @@ import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeade
 //              «ПриватБанк» (грн), что и в секторе 2
 //   Остальные секторы — пустые заготовки под будущие способы оплаты.
 // ============================================================================
-
-// Тот же список из 5 категорий, что и на главной странице сайта
-// (HomePage.tsx) — нужен здесь только для визуального ряда над
-// колесом, чтобы колесо оплаты было ТОГО ЖЕ размера, что и остальные
-// колёса сайта (иначе оно растягивается на всю высоту <main> и
-// выглядит крупнее). Клик по любой категории возвращает на главное
-// колесо сайта — на самой странице оплаты категории не переключаются.
-const categories = [
-  { key: "ishvara", label: "Астрология" },
-  { key: "jiva", label: "Здоровье" },
-  { key: "prakriti", label: "Игры" },
-  { key: "karma", label: "Природа Материального мира" },
-  { key: "kala", label: "Творчество" },
-];
 
 const SECTOR_COUNT = 12;
 const CX = 250;
@@ -276,7 +262,7 @@ function PaymentDetailsPanel({
         ← Назад к способам оплаты
       </button>
 
-      <div className="rounded-2xl border-2 border-yellow-400 bg-white p-6 flex flex-col gap-4">
+      <div className="rounded-2xl border-2 border-yellow-400 bg-white p-4 sm:p-6 flex flex-col gap-4">
         <h2 className="text-xl font-bold" style={{ color: "#FFD700" }}>
           {method.title}
         </h2>
@@ -286,11 +272,11 @@ function PaymentDetailsPanel({
             <span className="text-sm text-[#FFD700] font-bold">
               {method.cardFieldLabel ?? "Номер карты"}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {/* Само значение (номер карты / адрес кошелька) — именно
                   этот текст был чёрным на скриншотах. Красим его тоже. */}
               <span
-                className="text-lg font-mono font-bold tracking-wider break-all"
+                className="text-lg font-mono font-bold tracking-wider break-all min-w-0"
                 style={{ color: "#FFD700" }}
               >
                 {method.card}
@@ -351,12 +337,48 @@ export default function PaymentsPage() {
     title: string;
     message: string;
   } | null>(null);
+  // ⚠️ ДОБАВЛЕНО: true в короткий промежуток между тем, как опрос ниже
+  // обнаружил hasSubscription: true, и фактическим переходом на "/" —
+  // показывает сообщение "Оплата подтверждена! Переходим..." вместо
+  // мгновенного резкого редиректа.
+  const [confirmedPending, setConfirmedPending] = useState(false);
 
   const [, navigate] = useLocation();
 
   // Реальный пользователь из общего контекста авторизации
   // (тот же useAuth(), что используют login.tsx, useGoogleAuth.ts и HomePage).
-  const { user, logout } = useAuth();
+  const { user, login, logout } = useAuth();
+
+  // ⚠️ ДОБАВЛЕНО: автоматический опрос статуса подписки. Пока
+  // пользователь на этой странице и ещё не имеет подписки — раз в 5
+  // секунд спрашиваем уже существующий эндпоинт GET
+  // /api/auth/status/:userId (server/routes.ts). Как только
+  // администратор подтвердит оплату в Telegram-боте и hasSubscription
+  // станет true на сервере — останавливаем опрос, обновляем user в
+  // общем контексте (через login(), это же обновит localStorage) и
+  // переходим на "/" с коротким сообщением-паузой.
+  useEffect(() => {
+    if (!user || user.hasSubscription) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/auth/status/${user.id}`);
+        const data = await res.json();
+        if (data.hasSubscription) {
+          clearInterval(interval);
+          setConfirmedPending(true);
+          login({ ...user, hasSubscription: true });
+          setTimeout(() => {
+            navigate("/?skipSplash=true");
+          }, 1500);
+        }
+      } catch {
+        // сеть недоступна временно — просто попробуем на следующем тике
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [user, login, navigate]);
 
   const labels = PAYMENT_METHODS.map((m) => m?.labelLines ?? []);
   const disabledIndices = new Set(
@@ -439,7 +461,7 @@ export default function PaymentsPage() {
 
   // Приветствие берётся из части email до "@" (та же логика, что и на
   // остальных страницах сайта) — см. getWelcomeName() в "@/lib/auth".
-  // Раньше здесь ошибочно бралось user.firstName — то есть поле "Имя"
+  // Раньше здесь ошибочно бралось user.firstName — то есть поле «Имя»
   // из формы регистрации, а не сам email.
   const footerItems = footerNav.map((item) =>
     item.key === "all-data"
@@ -469,27 +491,18 @@ export default function PaymentsPage() {
           />
         }
       >
-        {/* Тот же ряд из 5 категорий, что и на главной странице сайта —
-            нужен только для того, чтобы колесо оплаты занимало ту же
-            высоту (и, значит, тот же размер), что и остальные колёса
-            сайта. Клик по любой категории возвращает на главное колесо. */}
-        <div className="flex-shrink-0 w-full flex justify-center items-center">
-          <div className="flex flex-wrap justify-center gap-3">
-            {categories.map((cat) => (
-              <button
-                key={cat.key}
-                onClick={() => navigate("/home")}
-                className="px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
-                style={{ color: "#FFD700", borderColor: "#FFE066" }}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
-          {selectedMethod ? (
+        <div className="flex-1 min-h-0 w-full flex items-start justify-center overflow-y-auto py-4">
+          {confirmedPending ? (
+            // ⚠️ ДОБАВЛЕНО: короткое сообщение вместо мгновенного
+            // редиректа — показывается на 1.5с, пока не сработает
+            // setTimeout(() => navigate("/"), ...) в useEffect выше.
+            <div className="flex flex-col items-center justify-center gap-4 pt-20">
+              <p className="text-xl font-bold" style={{ color: "#FFD700" }}>
+                Оплата подтверждена! Переходим...
+              </p>
+            </div>
+          ) : selectedMethod ? (
             <PaymentDetailsPanel
               method={selectedMethod}
               onBack={() => setSelected(null)}
