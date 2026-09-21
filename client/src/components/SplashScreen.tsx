@@ -91,16 +91,15 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
 
   return (
     <div
-      // ⚠️ ПРАВКА (адаптивность): на мобильных экранах (по умолчанию,
-      // до md/768px) блок остаётся по центру, как было изначально —
-      // в углу на маленьком экране кнопки было бы трудно нажимать
-      // пальцем и часть текста могла обрезаться. От md: и шире
-      // (планшеты/десктоп) блок смещается в правый верхний угол.
-      className="fixed inset-0 z-50 flex items-center justify-center md:items-start md:justify-end bg-black md:pt-12 md:pr-8"
+      // Мобильные (по умолчанию): flex-col, заголовок сверху / меню
+      // снизу (см. justify-between на motion.div ниже), без
+      // items-center/justify-center на этом внешнем div. Позиция фона
+      // сдвинута влево (bg-[position:35%_center]) — показывает больше
+      // Кришны слева, меньше справа. Десктоп (md:): угол в правом
+      // верхнем, фон по центру (md:bg-center), как было раньше.
+      className="fixed inset-0 z-50 flex flex-col md:flex-row md:items-start md:justify-end bg-black bg-cover bg-[position:30%_center] md:bg-center py-6 md:py-0 md:pt-12 md:pr-8"
       style={{
         backgroundImage: `url(${SPLASH_IMAGE_SRC})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
       }}
       onClick={!tapped ? handleTap : undefined}
     >
@@ -111,7 +110,7 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="text-center px-6"
+            className="m-auto text-center px-6"
           >
             <p className="text-xl font-bold animate-pulse" style={{ color: GOLD }}>
               Нажмите, чтобы войти
@@ -128,22 +127,26 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
             animate={{ opacity: fadingOut ? 0 : 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
-            // ⚠️ ПРАВКА (адаптивность): на мобильных — items-center и
-            // text-center (текст/кнопки центрированы внутри блока, как
-            // было изначально). От md: — items-end и text-right
-            // (прижаты к правому краю, для варианта "в углу").
-            className="flex flex-col items-center gap-6 px-6 max-w-md text-center md:items-end md:text-right"
+            // Мобильные: h-full + justify-between — заголовок прижат к
+            // верху, меню (последний блок) — к низу, центр экрана
+            // свободен для картинки. Десктоп (md:): h-auto,
+            // justify-start, items-end, text-right — компактный блок в
+            // углу, как было.
+            className="flex flex-col items-center h-full justify-between gap-3 px-4 max-w-md text-center md:h-auto md:justify-start md:items-end md:text-right md:gap-6 md:px-6"
           >
-            <h1 className="text-2xl font-bold leading-tight" style={{ color: GOLD }}>
+            <h1 className="text-lg font-bold leading-tight md:text-2xl" style={{ color: GOLD }}>
               <span className="whitespace-nowrap">Сайт «Сознания Кришны»</span>
               <br />
-              для тех, кто любит жизнь
+              для тех, кто любит жизнь!
             </h1>
-            <p className="text-lg" style={{ color: GOLD }}>
-              Начните свое путешествие с этого меню!
-            </p>
 
-            <div className="flex flex-col gap-3 w-full">
+            {/* ⚠️ ПРАВКА: подзаголовок "Начните свое путешествие с
+                этого меню!" перенесён внутрь блока с кнопками (сразу
+                перед ними), а не отдельным элементом сразу под
+                заголовком — теперь он визуально и структурно относится
+                к меню, а не к приветственной надписи. */}
+            <div className="flex flex-col gap-2 w-full mt-auto md:gap-3 md:mt-0"> 
+              
               {SPLASH_OPTIONS.map((option) => (
                 <button
                   key={option.key}
@@ -151,7 +154,7 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
                     e.stopPropagation();
                     handleOptionClick(option);
                   }}
-                  className="w-full px-5 py-3 rounded-full border-2 font-bold text-base transition bg-white"
+                  className="w-full px-4 py-2 rounded-full border-2 font-bold text-sm md:px-5 md:py-3 md:text-base transition bg-white"
                   style={{ color: GOLD, borderColor: GOLD }}
                 >
                   {option.label}
