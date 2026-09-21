@@ -14,10 +14,10 @@ interface SplashOption {
 }
 
 const SPLASH_OPTIONS: SplashOption[] = [
-  { key: "all-data", label: "Для начинающих любо-искателей знания" },
-  { key: "your-page", label: "Продолжить совершенствовать свои способности и обрести новое умение" },
-  { key: "site-page", label: "Узнать о последних новостях" },
-  { key: "languages", label: "Задать удобные параметры для выполнения заданий" },
+  { key: "all-data", label: "Познавательное, для начинающих" },
+  { key: "your-page", label: "Ваша страница" },
+  { key: "site-page", label: "Все страницы сайта" },
+  { key: "languages", label: "Меню" },
 ];
 
 interface SplashScreenProps {
@@ -91,7 +91,12 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+      // ⚠️ ПРАВКА (адаптивность): на мобильных экранах (по умолчанию,
+      // до md/768px) блок остаётся по центру, как было изначально —
+      // в углу на маленьком экране кнопки было бы трудно нажимать
+      // пальцем и часть текста могла обрезаться. От md: и шире
+      // (планшеты/десктоп) блок смещается в правый верхний угол.
+      className="fixed inset-0 z-50 flex items-center justify-center md:items-start md:justify-end bg-black md:pt-12 md:pr-8"
       style={{
         backgroundImage: `url(${SPLASH_IMAGE_SRC})`,
         backgroundSize: "cover",
@@ -123,13 +128,19 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
             animate={{ opacity: fadingOut ? 0 : 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col items-center gap-6 px-6 max-w-xl text-center"
+            // ⚠️ ПРАВКА (адаптивность): на мобильных — items-center и
+            // text-center (текст/кнопки центрированы внутри блока, как
+            // было изначально). От md: — items-end и text-right
+            // (прижаты к правому краю, для варианта "в углу").
+            className="flex flex-col items-center gap-6 px-6 max-w-md text-center md:items-end md:text-right"
           >
-            <h1 className="text-2xl font-bold" style={{ color: GOLD }}>
-              Сайт «Parents and children» приветствует Вас!
+            <h1 className="text-2xl font-bold leading-tight" style={{ color: GOLD }}>
+              <span className="whitespace-nowrap">Сайт «Сознания Кришны»</span>
+              <br />
+              для тех, кто любит жизнь
             </h1>
             <p className="text-lg" style={{ color: GOLD }}>
-              Пожалуйста, выберите, чем бы Вы хотели заняться:
+              Начните свое путешествие с этого меню!
             </p>
 
             <div className="flex flex-col gap-3 w-full">
