@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuth, getWelcomeName } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import { headerNav, footerNav } from "@/lib/siteNav";
 import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeaderFooter";
 
@@ -329,7 +329,7 @@ export default function PaymentsPage() {
   const [selected, setSelected] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [activeNav, setActiveNav] = useState<string>(headerNav[0].key);
-  const [activeFooterNav, setActiveFooterNav] = useState<string>("all-data");
+  const [activeFooterNav, setActiveFooterNav] = useState<string>("dynamic");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   // Собственное окно-уведомление в стиле сайта (золотой текст) —
   // заменяет системный alert(), который браузер стилизовать не даёт.
@@ -443,36 +443,15 @@ export default function PaymentsPage() {
     }
   };
 
-  // Footer этой страницы: "site-page" и "languages" ведут обратно на
-  // главное колесо сайта (глубокая ссылка сразу в конкретный подраздел
-  // с этой страницы пока не реализована). "your-page" пока без
-  // действия — как и на HomePage. "all-data" — мы уже здесь, поэтому
-  // (в отличие от HomePage, где та же кнопка ведёт СЮДА) здесь клик
-  // по кнопке с приветствием служит выходом из аккаунта — вести
-  // пользователя ещё раз на ту же страницу оплаты смысла нет.
+
+  // Футер здесь общий с домашней страницей (3 кнопки: "stable" /
+  // "home" / "dynamic"), но сама эта страница — не одно из тех колёс,
+  // поэтому любой клик по футеру просто возвращает на домашнюю
+  // страницу, где уже можно выбрать нужное колесо снова.
   const handleFooterClick = (key: string) => {
     setActiveFooterNav(key);
-    if (key === "site-page" || key === "languages") {
-      navigate("/home");
-    } else if (key === "all-data" && user) {
-      setShowLogoutConfirm(true);
-    }
+    navigate("/home");
   };
-
-  // Приветствие берётся из части email до "@" (та же логика, что и на
-  // остальных страницах сайта) — см. getWelcomeName() в "@/lib/auth".
-  // Раньше здесь ошибочно бралось user.firstName — то есть поле «Имя»
-  // из формы регистрации, а не сам email.
-  const footerItems = footerNav.map((item) =>
-    item.key === "all-data"
-      ? {
-          key: item.key,
-          label: user
-            ? `Добро пожаловать, ${getWelcomeName(user)}!`
-            : "Точка доступа к данным сайта",
-        }
-      : item
-  );
 
   const selectedMethod =
     selected !== null ? PAYMENT_METHODS[selected] : null;
@@ -485,7 +464,7 @@ export default function PaymentsPage() {
         }
         footer={
           <WheelFooter
-            items={footerItems}
+            items={footerNav}
             activeKey={activeFooterNav}
             onSelect={handleFooterClick}
           />
