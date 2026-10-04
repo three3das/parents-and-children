@@ -44,13 +44,17 @@ import { supabase } from "@/lib/supabase";
 // ⚠️ ПРАВКА (колесо «Свойства сайта»): кнопка «Свойства» в футере
 // «Свойства сайта» (ключ "site-page" — та же кнопка на заставке и
 // в футере) теперь открывает колесо из 12 секторов
-// (view "properties"). В первом секторе — кнопка «Меню».
+// (view "properties"). В первом секторе — кнопка «Меню», в
+// двенадцатом — кнопка «Хочу поддержать проект».
 // Кнопка «Меню» (сектор №1) открывает колесо выбора (view
 // "properties-menu") из двух секторов: «Язык» и «Системы письменности».
 // Они вызывают openLanguageWheel() / openScriptWheel() из контекста
 // useLanguageScript() — тот же глобальный оверлей
 // LanguageScriptWheelOverlay, что и блок «Русский / Кириллица —
 // изменить», поэтому логика выбора языка не дублируется.
+// Кнопка «Хочу поддержать проект» (сектор №12) открывает экран
+// "guide-info" (благодарность + «Перейти к оплате»), а кнопка «Назад»
+// возвращает обратно в «Свойства сайта» (см. guideInfoOrigin).
 
 // Фиксированные названия кнопок хедера (по ключу кнопки).
 const HEADER_LABELS: Record<string, string> = {
@@ -229,21 +233,32 @@ const GUIDE_WHEEL_LABELS: string[][] = Array.from(
 );
 
 // "Свойства сайта" — колесо, которое открывает кнопка «Свойства» в
-// футере. Пока заполнен только сектор №1 («Меню»), остальные 11 —
-// пустые заглушки, видимые, но некликабельные.
+// футере. Заполнены два сектора: №1 («Меню») и №12 («Хочу поддержать
+// проект»); остальные 10 — пустые заглушки, видимые, но некликабельные.
 // Ключ кнопки «Свойства сайта»: на заставке (SplashScreen) это третья
 // кнопка, в футере — тоже третья. Оба места используют один ключ
 // "site-page", поэтому колесо открывается из обоих. «Домашняя
 // страница» ("your-page") остаётся без действия, как раньше.
 const PROPERTIES_FOOTER_KEY = "site-page";
 
-const PROPERTIES_ITEMS: string[] = ["Меню"];
+// Индексы секторов (нумерация с 0): сектор №1 → 0, сектор №12 → 11.
+const PROPERTIES_MENU_INDEX = 0;
+const PROPERTIES_SUPPORT_INDEX = SECTOR_COUNT - 1;
 
-const PROPERTIES_CLICKABLE_INDICES = [0];
+const PROPERTIES_CLICKABLE_INDICES = [
+  PROPERTIES_MENU_INDEX,
+  PROPERTIES_SUPPORT_INDEX,
+];
 
 const PROPERTIES_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
-  (_, i) => (i < PROPERTIES_ITEMS.length ? splitLabelIntoLines(PROPERTIES_ITEMS[i]) : [])
+  (_, i) => {
+    if (i === PROPERTIES_MENU_INDEX) return ["Меню"];
+    // Ручная разбивка по одному слову на строку (3 строки) — иначе
+    // "Хочу поддержать проект" не помещается в круг как нужно.
+    if (i === PROPERTIES_SUPPORT_INDEX) return ["Хочу", "поддержать", "проект"];
+    return [];
+  }
 );
 
 // Колесо «Меню»: два сектора — выбор языка и выбор системы письменности
@@ -350,6 +365,12 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // благотворительность внутри сектора №1 путеводителя.
   const [view, setView] = useState<ViewState>("main");
 
+  // ⚠️ ДОБАВЛЕНО: откуда открыт экран "guide-info" — из колеса "guide"
+  // (сектор благотворительности) или из "properties" (сектор №12
+  // "Хочу поддержать проект"). Нужно, чтобы кнопка "Назад" возвращала
+  // туда, откуда реально зашли.
+  const [guideInfoOrigin, setGuideInfoOrigin] = useState<"guide" | "properties">("guide");
+
   // ─── Состояние колеса «Пракрити» ─────────────────────────────────────────
   const [prakritiSentences, setPrakritiSentences] = useState<PrakritiSentence[]>([]);
   const [prakritiLoading, setPrakritiLoading] = useState(false);
@@ -444,9 +465,14 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     setView("properties-menu");
   };
 
+  // Колесо «Свойства сайта»: сектор №1 — «Меню», сектор №12 —
+  // «Хочу поддержать проект» (экран с оплатой, "guide-info").
   const handlePropertiesSectorClick = (index: number) => {
-    if (index === 0) {
+    if (index === PROPERTIES_MENU_INDEX) {
       handleMenuClick();
+    } else if (index === PROPERTIES_SUPPORT_INDEX) {
+      setGuideInfoOrigin("properties");
+      setView("guide-info");
     }
   };
 
@@ -461,6 +487,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
   const handleGuideSectorClick = (index: number) => {
     if (index === 0) {
+      setGuideInfoOrigin("guide");
       setView("guide-info");
     }
   };
@@ -555,13 +582,14 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
   // "← Назад" на любом колесе, кроме колеса тем ("main"), обычно
   // возвращает на колесо тем (домашний экран). Исключения:
-  //  • "guide-info" → "guide" (не теряем контекст путеводителя);
+  //  • "guide-info" → туда, откуда зашли: "guide" или "properties"
+  //    (см. guideInfoOrigin);
   //  • "properties-menu" → "properties" (обратно в «Свойства сайта»);
   //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
   //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений).
   const handleBack = () => {
     if (view === "guide-info") {
-      setView("guide");
+      setView(guideInfoOrigin);
     } else if (view === "properties-menu") {
       setView("properties");
     } else if (view === "prakriti") {
