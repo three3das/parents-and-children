@@ -6,9 +6,9 @@ export type NavItem = { key: string; label: string };
 // language/script) — см. IshvaraPage.tsx. Дефолт здесь совпадает с
 // дефолтом хука: Санскрит + Деванагари.
 export const headerNav: NavItem[] = [
-  { key: "sambandha", label: "सम्बन्ध" },
-  { key: "abhidheya", label: "अभिधेय" },
-  { key: "prayojana", label: "प्रयोजन" },
+  { key: "Родители", label: "सम्बन्ध" },
+  { key: "", label: "अभिधेय" },
+  { key: "Дети", label: "प्रयोजन" },
 ];
 
 // Нижняя навигация — 3 кнопки вместо прежних 4:
@@ -20,7 +20,7 @@ export const headerNav: NavItem[] = [
 //               служения проекта и т.д.).
 // Логика того, что открывается по каждой кнопке, — в HomePage.tsx.
 export const footerNav: NavItem[] = [
-  { key: "stable", label: "Предмет" },
-  { key: "home", label: "Домой" },
-  { key: "dynamic", label: "Свойства" },
+  { key: "stable", label: "Предмет изучения" },
+  { key: "home", label: "Домашняя страница" },
+  { key: "dynamic", label: "Свойства сайта" },
 ];

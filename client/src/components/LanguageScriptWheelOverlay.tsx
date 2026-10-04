@@ -16,6 +16,38 @@ import {
 // правило "Назад всегда ведёт на колесо тем" касается только
 // внутренних колёс IshvaraPage.tsx (категории/игры/подколёса) и не
 // затронуто этим компонентом.
+
+// ⚠️ ПРАВКА: подписи секторов раньше выводились одной строкой
+// ([o.label]) и длинные названия ("Арабское письмо", "Индонезийский")
+// выходили за круг сектора. Теперь:
+//  • название из двух слов разбивается на два ряда (по слову в ряд);
+//  • одно очень длинное слово (> MAX_WORD_CHARS) переносится по
+//    слогам с дефисом (для известных слов — вручную, иначе пополам).
+const MAX_WORD_CHARS = 11;
+
+const HYPHENATED_WORDS: Record<string, string[]> = {
+  Индонезийский: ["Индонезий-", "ский"],
+  Португальский: ["Португаль-", "ский"],
+};
+
+function splitLabelForSector(label: string): string[] {
+  const words = label.split(" ").filter(Boolean);
+
+  if (words.length > 1) {
+    // По слову в ряд (у нас названия из двух слов, максимум 4 ряда
+    // поддерживает Wheel12).
+    return words;
+  }
+
+  const word = words[0] ?? label;
+  if (word.length <= MAX_WORD_CHARS) return [word];
+
+  if (HYPHENATED_WORDS[word]) return HYPHENATED_WORDS[word];
+
+  const mid = Math.ceil(word.length / 2);
+  return [word.slice(0, mid) + "-", word.slice(mid)];
+}
+
 export function LanguageScriptWheelOverlay() {
   const { activeWheel, language, script, closeWheel, selectLanguage, selectScript } =
     useLanguageScript();
@@ -24,7 +56,7 @@ export function LanguageScriptWheelOverlay() {
 
   const isLanguage = activeWheel === "language";
   const options = isLanguage ? languageOptions : scriptOptions;
-  const labels = options.map((o) => [o.label]);
+  const labels = options.map((o) => splitLabelForSector(o.label));
   const activeIndex = isLanguage
     ? languageOptions.findIndex((l) => l.code === language)
     : scriptOptions.findIndex((s) => s.code === script);

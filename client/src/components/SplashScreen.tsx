@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LanguageScriptMenuPanel } from "@/components/LanguageScriptMenuPanel";
 
 // пути к изображению и аудио файлу
 const SPLASH_IMAGE_SRC = "/images/krishna.jpg";
@@ -14,10 +13,9 @@ interface SplashOption {
 }
 
 const SPLASH_OPTIONS: SplashOption[] = [
-  { key: "all-data", label: "Познавательное, для начинающих" },
-  { key: "your-page", label: "Ваша страница" },
-  { key: "site-page", label: "Все страницы сайта" },
-  { key: "languages", label: "Меню" },
+  { key: "all-data", label: "Предмет изучения" },
+  { key: "your-page", label: "Домашняя страница" },
+  { key: "site-page", label: "Свойства сайта" },
 ];
 
 interface SplashScreenProps {
@@ -28,7 +26,6 @@ interface SplashScreenProps {
 export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
   const [tapped, setTapped] = useState(false);
   const [fadingOut, setFadingOut] = useState(false);
-  const [showLanguagePanel, setShowLanguagePanel] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -76,12 +73,6 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
 
   async function handleOptionClick(option: SplashOption) {
     if (fadingOut) return;
-
-    if (option.key === "languages") {
-      setShowLanguagePanel((open) => !open);
-      onSelect(option.key);
-      return;
-    }
 
     setFadingOut(true);
     await fadeOutAudio();
@@ -135,7 +126,7 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
             className="flex flex-col items-center h-full justify-between gap-3 px-4 max-w-md text-center md:h-auto md:justify-start md:items-end md:text-right md:gap-6 md:px-6"
           >
             <h1 className="text-lg font-bold leading-tight md:text-2xl" style={{ color: GOLD }}>
-              <span className="whitespace-nowrap">Сайт «Сознания Кришны»</span>
+              <span className="whitespace-nowrap">Сайт «Родители и дети»</span>
               <br />
               для тех, кто любит жизнь!
             </h1>
@@ -161,16 +152,6 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
                 </button>
               ))}
             </div>
-
-            {showLanguagePanel && (
-              <div
-                className="mt-2 w-64 rounded-2xl border-2 bg-white shadow-lg overflow-hidden"
-                style={{ borderColor: GOLD }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <LanguageScriptMenuPanel />
-              </div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>

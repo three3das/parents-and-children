@@ -65,8 +65,12 @@ export const scriptOptions = [
   { code: "ethiopic", label: "Эфиопское письмо" },
 ];
 
-export const DEFAULT_LANGUAGE = "sa";
-export const DEFAULT_SCRIPT = "devanagari";
+// ⚠️ ПРАВКА (значения по умолчанию): если пользователь не выбрал язык
+// или систему письменности, используется Английский и Латиница.
+// Раньше по умолчанию были Санскрит ("sa") и Деванагари ("devanagari").
+// Оба кода обязаны быть в languageOptions / scriptOptions выше.
+export const DEFAULT_LANGUAGE = "en";
+export const DEFAULT_SCRIPT = "latin";
 
 // Перенесено из IshvaraPage.tsx / GameMenu.tsx без изменений — первая
 // буква алфавита и слово "алфавит" на каждом языке.
@@ -130,12 +134,12 @@ export function LanguageScriptProvider({ children }: { children: ReactNode }) {
   const [hasChosenScript, setHasChosenScript] = useState(false);
   const [activeWheel, setActiveWheel] = useState<WheelKind>(null);
 
-  // Гарантируем дефолт языка (Санскрит) прямо здесь, а не полагаясь
-  // на внешний компонент (раньше это делал useEffect в IshvaraPage.tsx —
-  // теперь он удалён оттуда, и вся логика дефолта живёт в одном месте).
-  // Срабатывает один раз при монтировании: если текущий language не
-  // входит в список активных языков колеса — принудительно ставим
-  // DEFAULT_LANGUAGE.
+  // Гарантируем дефолт языка (теперь Английский) прямо здесь, а не
+  // полагаясь на внешний компонент (раньше это делал useEffect в
+  // IshvaraPage.tsx — теперь он удалён оттуда, и вся логика дефолта
+  // живёт в одном месте). Срабатывает один раз при монтировании: если
+  // текущий language не входит в список активных языков колеса —
+  // принудительно ставим DEFAULT_LANGUAGE.
   useEffect(() => {
     const knownCodes = languageOptions.map((l) => l.code);
     if (!language || !knownCodes.includes(language)) {

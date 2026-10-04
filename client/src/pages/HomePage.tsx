@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { footerNav } from "@/lib/siteNav";
 import { useHeaderNavItems } from "@/lib/headerWords";
@@ -10,6 +10,9 @@ import {
 } from "@/lib/languageScript";
 import Wheel12, { SECTOR_COUNT } from "@/components/Wheel12";
 import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeaderFooter";
+// ⚠️ ДОБАВЛЕНО: тот же supabase-клиент, что и везде в проекте
+// (если файл лежит по другому пути — поправьте только эту строку).
+import { supabase } from "@/lib/supabase";
 
 // ⚠️ ПРАВКА: списки языков/письменностей (languageOptions/scriptOptions),
 // FIRST_LETTER/ALPHABET_LABEL, DEFAULT_LANGUAGE и оба колеса выбора
@@ -31,6 +34,30 @@ import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeade
 // initialFooterKey — ключ кнопки, которую выбрали на заставке — и при
 // монтировании выполняет тот же handleFooterClick, что и обычный клик
 // по футеру, так что переходы гарантированно совпадают.
+//
+// ⚠️ ПРАВКА (колесо «Пракрити»): сектор «Пракрити» (№3) колеса
+// «Самбандха» теперь кликабелен и открывает колесо из 12 предложений
+// (view "prakriti"), загружаемых из таблицы text_sentence_languages по
+// group_id = PRAKRITI_GROUP_ID (таблица text_sentence_languages). Клик по сектору открывает экран
+// "prakriti-sentence" с полным текстом предложения.
+
+// ⚠️ ПРАВКА (колесо «Свойства сайта»): кнопка «Свойства» в футере
+// «Свойства сайта» (ключ "site-page" — та же кнопка на заставке и
+// в футере) теперь открывает колесо из 12 секторов
+// (view "properties"). В первом секторе — кнопка «Меню».
+// Кнопка «Меню» (сектор №1) открывает колесо выбора (view
+// "properties-menu") из двух секторов: «Язык» и «Системы письменности».
+// Они вызывают openLanguageWheel() / openScriptWheel() из контекста
+// useLanguageScript() — тот же глобальный оверлей
+// LanguageScriptWheelOverlay, что и блок «Русский / Кириллица —
+// изменить», поэтому логика выбора языка не дублируется.
+
+// Фиксированные названия кнопок хедера (по ключу кнопки).
+const HEADER_LABELS: Record<string, string> = {
+  sambandha: "Родители",
+  abhidheya: "Взаимоотношения",
+  prayojana: "Дети",
+};
 
 const DICTIONARY_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
@@ -81,10 +108,59 @@ const SAMBANDHA_ITEMS: string[] = [
   "Карма",
 ];
 
+// Индекс сектора «Пракрити» в SAMBANDHA_ITEMS (кликабелен).
+const PRAKRITI_INDEX = SAMBANDHA_ITEMS.indexOf("Пракрити");
+const SAMBANDHA_CLICKABLE_INDICES = [PRAKRITI_INDEX];
+
 const SAMBANDHA_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
   (_, i) => (i < SAMBANDHA_ITEMS.length ? splitLabelIntoLines(SAMBANDHA_ITEMS[i]) : [])
 );
+
+// ─── «Пракрити»: 12 предложений из базы ────────────────────────────────────
+// Группа создана в text_sentence_groups (Материальный мир, group_number = 1),
+// 12 предложений привязаны к ней через group_id.
+const PRAKRITI_GROUP_ID = "5cf5817f-f64c-41aa-b189-aaddb5bf3e19";
+
+// Бейдж сектора в Wheel12 — круг диаметром ≈ 88 единиц, а шрифт
+// подписи жирный 12.6 (≈ 10 кириллических символов в строку, не больше
+// 4 строк — Wheel12 умеет центрировать только 1–4 строки). Поэтому
+// предложения переносим по символам, а не «по 2 слова», как короткие
+// названия разделов; если не помещается — обрезаем «…» (полный текст
+// виден после клика).
+function splitSentenceIntoLines(
+  text: string,
+  maxChars = 10,
+  maxLines = 4
+): string[] {
+  const words = text.trim().split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= maxChars || !current) {
+      current = candidate;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  if (lines.length > maxLines) {
+    const kept = lines.slice(0, maxLines);
+    kept[maxLines - 1] = kept[maxLines - 1].slice(0, maxChars - 1) + "…";
+    return kept;
+  }
+  return lines;
+}
+
+// Предложения лежат в text_sentence_languages (а не в
+// sentences_and_phrases — там нет group_id).
+interface PrakritiSentence {
+  id: string;
+  sentence_number: number | null;
+  sentence_text: string;
+}
 
 // "Абхидхея" — 9 секторов (девять видов бхакти)
 const ABHIDHEYA_ITEMS: string[] = [
@@ -152,6 +228,34 @@ const GUIDE_WHEEL_LABELS: string[][] = Array.from(
   (_, i) => (i === 0 ? splitGuideLabel() : [])
 );
 
+// "Свойства сайта" — колесо, которое открывает кнопка «Свойства» в
+// футере. Пока заполнен только сектор №1 («Меню»), остальные 11 —
+// пустые заглушки, видимые, но некликабельные.
+// Ключ кнопки «Свойства сайта»: на заставке (SplashScreen) это третья
+// кнопка, в футере — тоже третья. Оба места используют один ключ
+// "site-page", поэтому колесо открывается из обоих. «Домашняя
+// страница» ("your-page") остаётся без действия, как раньше.
+const PROPERTIES_FOOTER_KEY = "site-page";
+
+const PROPERTIES_ITEMS: string[] = ["Меню"];
+
+const PROPERTIES_CLICKABLE_INDICES = [0];
+
+const PROPERTIES_WHEEL_LABELS: string[][] = Array.from(
+  { length: SECTOR_COUNT },
+  (_, i) => (i < PROPERTIES_ITEMS.length ? splitLabelIntoLines(PROPERTIES_ITEMS[i]) : [])
+);
+
+// Колесо «Меню»: два сектора — выбор языка и выбор системы письменности
+// (оба открывают глобальный оверлей; текущий выбор в нём подсвечен).
+const PROPERTIES_MENU_LABELS: string[][] = Array.from(
+  { length: SECTOR_COUNT },
+  (_, i) =>
+    i === 0 ? ["Язык"] : i === 1 ? ["Системы", "письмен-", "ности"] : []
+);
+
+const PROPERTIES_MENU_CLICKABLE_INDICES = [0, 1];
+
 type GameType =
   | "alphabet-placeholder"
   | "picture-match"
@@ -188,10 +292,14 @@ type ViewState =
   | "games"
   | "dictionary"
   | "sambandha"
+  | "prakriti"
+  | "prakriti-sentence"
   | "abhidheya"
   | "prayojana"
   | "guide"
-  | "guide-info";
+  | "guide-info"
+  | "properties"
+  | "properties-menu";
 
 interface HomePageProps {
   // Ключ кнопки, выбранной на заставке SplashGate (см. комментарий
@@ -206,8 +314,18 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // (проксирует useLanguage() из "@/lib/i18n" — тот же язык, что видит
   // весь остальной сайт). Подписи кнопок хедера зависят от обоих
   // значений — см. useHeaderNavItems().
-  const { language, script } = useLanguageScript();
-  const headerItems = useHeaderNavItems(language, script);
+  const { language, script, openLanguageWheel, openScriptWheel } = useLanguageScript();
+  // ⚠️ ПРАВКА: подписи трёх кнопок хедера теперь фиксированные
+  // (раньше useHeaderNavItems подставлял слова на выбранном
+  // языке/письменности — например, санскрит на деванагари). Ключи
+  // кнопок не меняются, поэтому их действие (см. handleHeaderClick)
+  // осталось прежним: слева — "sambandha", по центру — "abhidheya",
+  // справа — "prayojana".
+  const rawHeaderItems = useHeaderNavItems(language, script);
+  const headerItems = rawHeaderItems.map((item) => ({
+    ...item,
+    label: HEADER_LABELS[item.key] ?? item.label,
+  }));
 
   const [activeNav, setActiveNav] = useState<string>("sambandha");
   const [activeFooterNav, setActiveFooterNav] = useState<string>(
@@ -224,11 +342,88 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // "main" — колесо тем (категорий), "games" — колесо с 7 играми,
   // "dictionary" — страница "Словарь используемых на сайте слов".
   // "sambandha"/"abhidheya"/"prayojana" — колёса из трёх кнопок
-  // хедера. "guide" — колесо-путеводитель (открывается вместо
-  // мгновенного /login для неавторизованного пользователя),
-  // "guide-info" — экран пояснения про благотворительность внутри
-  // сектора №1 путеводителя.
+  // хедера. "prakriti" — колесо из 12 предложений (подраздел
+  // «Пракрити» раздела «Самбандха»), "prakriti-sentence" — экран с
+  // выбранным предложением. "guide" — колесо-путеводитель
+  // (открывается вместо мгновенного /login для неавторизованного
+  // пользователя), "guide-info" — экран пояснения про
+  // благотворительность внутри сектора №1 путеводителя.
   const [view, setView] = useState<ViewState>("main");
+
+  // ─── Состояние колеса «Пракрити» ─────────────────────────────────────────
+  const [prakritiSentences, setPrakritiSentences] = useState<PrakritiSentence[]>([]);
+  const [prakritiLoading, setPrakritiLoading] = useState(false);
+  const [prakritiError, setPrakritiError] = useState<string | null>(null);
+  // Флаг «запрос уже отправлен» — ref, а не state: его изменение не
+  // перезапускает эффект и не отменяет ответ (см. эффект ниже).
+  const prakritiRequestedRef = useRef(false);
+  const [selectedSentenceIndex, setSelectedSentenceIndex] = useState<number | null>(null);
+
+  // Загружаем предложения один раз — при первом открытии колеса.
+  // ⚠️ Зависимость только [view]: если включить сюда prakritiLoading,
+  // то setPrakritiLoading(true) перезапускает эффект, cleanup помечает
+  // запрос как отменённый, и «Загрузка…» висит вечно.
+  useEffect(() => {
+    if (view !== "prakriti" || prakritiRequestedRef.current) return;
+    prakritiRequestedRef.current = true;
+
+    const load = async () => {
+      setPrakritiLoading(true);
+      setPrakritiError(null);
+      try {
+        const { data, error } = await supabase
+          .from("text_sentence_languages")
+          .select("id, sentence_number, sentence_text")
+          .eq("group_id", PRAKRITI_GROUP_ID)
+          .order("sort_order", { ascending: true })
+          .order("sentence_number", { ascending: true })
+          .limit(SECTOR_COUNT);
+        if (error) {
+          setPrakritiError(error.message);
+          prakritiRequestedRef.current = false; // разрешаем повторную попытку
+        } else {
+          setPrakritiSentences((data ?? []) as PrakritiSentence[]);
+        }
+      } catch (e) {
+        setPrakritiError(e instanceof Error ? e.message : String(e));
+        prakritiRequestedRef.current = false;
+      } finally {
+        setPrakritiLoading(false);
+      }
+    };
+    load();
+  }, [view]);
+
+  // Подписи секторов: само предложение, перенесённое так, чтобы
+  // помещаться в круглый бейдж Wheel12 (см. splitSentenceIntoLines).
+  // Полный текст — на экране "prakriti-sentence".
+  const prakritiWheelLabels: string[][] = useMemo(
+    () =>
+      Array.from({ length: SECTOR_COUNT }, (_, i) =>
+        i < prakritiSentences.length
+          ? splitSentenceIntoLines(prakritiSentences[i].sentence_text)
+          : []
+      ),
+    [prakritiSentences]
+  );
+
+  const prakritiClickableIndices = useMemo(
+    () => prakritiSentences.map((_, i) => i),
+    [prakritiSentences]
+  );
+
+  const handleSambandhaSectorClick = (index: number) => {
+    if (index === PRAKRITI_INDEX) {
+      setView("prakriti");
+    }
+  };
+
+  const handlePrakritiSectorClick = (index: number) => {
+    if (prakritiSentences[index]) {
+      setSelectedSentenceIndex(index);
+      setView("prakriti-sentence");
+    }
+  };
 
   const handleSelectCategory = (index: number) => {
     if (index === 0) {
@@ -240,6 +435,27 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     const game = games[index];
     if (game) {
       setLocation(`/game?game=${game.type}`);
+    }
+  };
+
+  // Кнопка «Меню» (сектор №1 колеса «Свойства сайта») → колесо с
+  // выбором языка / системы письменности.
+  const handleMenuClick = () => {
+    setView("properties-menu");
+  };
+
+  const handlePropertiesSectorClick = (index: number) => {
+    if (index === 0) {
+      handleMenuClick();
+    }
+  };
+
+  // Колесо «Меню»: сектор 0 — язык, сектор 1 — система письменности.
+  const handlePropertiesMenuSectorClick = (index: number) => {
+    if (index === 0) {
+      openLanguageWheel();
+    } else if (index === 1) {
+      openScriptWheel();
     }
   };
 
@@ -261,15 +477,41 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     }
   };
 
+  // Является ли ключ кнопкой «Свойства сайта». На заставке это
+  // "site-page", а у третьей кнопки футера ключ может быть другим
+  // (его задаёт footerNav в "@/lib/siteNav") — поэтому дополнительно
+  // считаем «Свойствами сайта» третий элемент footerNav (порядок на
+  // экране: Предмет изучения / Домашняя страница / Свойства сайта).
+  const isPropertiesKey = (key: string) => {
+    if (key === PROPERTIES_FOOTER_KEY) return true;
+    const thirdKey = footerNav[2]?.key;
+    return (
+      thirdKey !== undefined &&
+      key === thirdKey &&
+      !["languages", "all-data", "your-page"].includes(key)
+    );
+  };
+
+  // Является ли ключ кнопкой «Домашняя страница». В footerNav.ts это
+  // "home", а заставка (SplashScreen.tsx) до сих пор шлёт свой старый
+  // захардкоженный ключ "your-page" — принимаем оба, чтобы кнопка
+  // работала одинаково из обоих мест.
+  const isHomeKey = (key: string) => key === "home" || key === "your-page";
+
   const handleFooterClick = (key: string) => {
+    // Отладка: какой ключ пришёл от кнопки футера (можно убрать).
+    console.debug("[footer] key =", key, "| footerNav:", footerNav.map((i) => i.key));
     setActiveFooterNav(key);
     if (key === "languages") {
       // Открытие/закрытие выпадашки теперь целиком внутри WheelFooter
       // (см. SiteHeaderFooter.tsx) — здесь ничего дополнительно делать
       // не нужно, onSelect используется только для подсветки activeKey.
       return;
-    } else if (key === "site-page") {
-      setView("dictionary");
+    } else if (isPropertiesKey(key)) {
+      // «Свойства сайта» (заставка и футер) → колесо с кнопкой «Меню».
+      // (Раньше здесь открывалось колесо "dictionary" — код этого
+      // колеса оставлен ниже, но сейчас оно ни из чего не открывается.)
+      setView("properties");
     } else if (key === "all-data") {
       if (!isAuthenticated) {
         // Было: setLocation("/login") — мгновенный редирект.
@@ -280,8 +522,11 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       } else {
         setLocation("/payments");
       }
-    } else if (key === "your-page") {
-      // Пока без действия.
+    } else if (isHomeKey(key)) {
+      // «Домашняя страница» → главное колесо тем (то же, что открывается
+      // по умолчанию и с приветственной страницы). Принимаем оба ключа:
+      // "home" (footerNav.ts) и "your-page" (захардкожен в SplashScreen.tsx).
+      setView("main");
     }
   };
 
@@ -309,17 +554,27 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   );
 
   // "← Назад" на любом колесе, кроме колеса тем ("main"), обычно
-  // возвращает на колесо тем (домашний экран). Единственное
-  // исключение — экран "guide-info": оттуда возврат ведёт на
-  // колесо-путеводитель ("guide"), а не сразу на главное колесо,
-  // чтобы не терять контекст путеводителя.
+  // возвращает на колесо тем (домашний экран). Исключения:
+  //  • "guide-info" → "guide" (не теряем контекст путеводителя);
+  //  • "properties-menu" → "properties" (обратно в «Свойства сайта»);
+  //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
+  //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений).
   const handleBack = () => {
     if (view === "guide-info") {
       setView("guide");
+    } else if (view === "properties-menu") {
+      setView("properties");
+    } else if (view === "prakriti") {
+      setView("sambandha");
+    } else if (view === "prakriti-sentence") {
+      setView("prakriti");
     } else {
       setView("main");
     }
   };
+
+  const selectedSentence =
+    selectedSentenceIndex !== null ? prakritiSentences[selectedSentenceIndex] : null;
 
   return (
     <WheelPageShell
@@ -370,7 +625,61 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
         )}
 
         {view === "sambandha" && (
-          <Wheel12 labels={SAMBANDHA_WHEEL_LABELS} centerLabel="Самбандха" />
+          <Wheel12
+            labels={SAMBANDHA_WHEEL_LABELS}
+            centerLabel="Самбандха"
+            clickableIndices={SAMBANDHA_CLICKABLE_INDICES}
+            onSectorClick={handleSambandhaSectorClick}
+          />
+        )}
+
+        {view === "prakriti" && (
+          <>
+            {prakritiLoading && (
+              <p className="text-lg" style={{ color: "#FFD700" }}>
+                Загрузка…
+              </p>
+            )}
+            {prakritiError && (
+              <p className="text-lg text-center px-4" style={{ color: "#FFD700" }} role="alert">
+                Не удалось загрузить предложения: {prakritiError}
+              </p>
+            )}
+            {!prakritiLoading && !prakritiError && (
+              <Wheel12
+                labels={prakritiWheelLabels}
+                centerLabel="Пракрити"
+                clickableIndices={prakritiClickableIndices}
+                onSectorClick={handlePrakritiSectorClick}
+              />
+            )}
+          </>
+        )}
+
+        {view === "prakriti-sentence" && selectedSentence && (
+          <div className="flex flex-col items-center justify-center gap-4 max-w-lg text-center px-4">
+            <p className="text-2xl font-bold" style={{ color: "#FFD700" }}>
+              {selectedSentence.sentence_text}
+            </p>
+          </div>
+        )}
+
+        {view === "properties" && (
+          <Wheel12
+            labels={PROPERTIES_WHEEL_LABELS}
+            centerLabel="Свойства сайта"
+            clickableIndices={PROPERTIES_CLICKABLE_INDICES}
+            onSectorClick={handlePropertiesSectorClick}
+          />
+        )}
+
+        {view === "properties-menu" && (
+          <Wheel12
+            labels={PROPERTIES_MENU_LABELS}
+            centerLabel="Меню"
+            clickableIndices={PROPERTIES_MENU_CLICKABLE_INDICES}
+            onSectorClick={handlePropertiesMenuSectorClick}
+          />
         )}
 
         {view === "abhidheya" && (
@@ -393,7 +702,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
         {view === "guide-info" && (
           <div className="flex flex-col items-center justify-center gap-6 max-w-lg text-center px-4">
             <p className="text-lg" style={{ color: "#FFD700" }}>
-              Этот сайт поддерживается благодаря Верховной Личности Бога, и всем Его последователям.
+              Примите благодарность за поддержку служения сайта
             </p>
             <button
               onClick={() => setLocation("/payments")}
