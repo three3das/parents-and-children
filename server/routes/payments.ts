@@ -68,7 +68,9 @@ router.post("/create-invoice", async (req: Request, res: Response) => {
 // GET /api/payments/status
 router.get("/status", async (req: Request, res: Response) => {
   try {
-    const userId = (req.query.userId as string) || (req.session as any)?.userId;
+    // ⚠️ ИСПРАВЛЕНО (TS2339): у типа Request нет поля "session", поэтому
+    // приводим к any сразу у req, а не у req.session. Поведение то же.
+    const userId = (req.query.userId as string) || (req as any).session?.userId;
     if (!userId) {
       return res.status(401).json({ error: "Необходима авторизация" });
     }

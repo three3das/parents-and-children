@@ -1,4 +1,7 @@
 import { useState, useEffect, type ReactNode } from "react";
+// ⚠️ ДОБАВЛЕНО: QR-код адреса кошелька. Нужна установка пакета:
+//   npm install qrcode.react
+import { QRCodeSVG } from "qrcode.react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { headerNav, footerNav } from "@/lib/siteNav";
@@ -61,6 +64,16 @@ const BADGE_RADIUS = R - BADGE_R - GAP;
 
 const LABEL_FONT_SIZE = 8.4;
 
+// --- ЦВЕТ QR-КОДОВ ---
+// ⚠️ ДОБАВЛЕНО: один общий цвет для всех QR-кодов на странице — тот же
+// золотой (#FFD700), что и фон кнопки «Оплачено». Чтобы поменять цвет
+// всех QR сразу, достаточно изменить это значение.
+// ⚠️ Контраст золотого на белом низкий (≈1,4 : 1) — часть камер и
+// банковских приложений может не распознать такой QR. ОБЯЗАТЕЛЬНО
+// проверьте сканирование на телефоне. Если не читается — поставьте
+// более тёмное золото, например "#B8860B", или чёрный "#000000".
+const QR_COLOR = "#FFD700";
+
 // --- реквизиты карты Приватбанка — заданы один раз, используются в
 //     секторе 3 («Оплата на карту «ПриватБанк» из любой страны»),
 //     чтобы номер карты не дублировался в нескольких местах вручную.
@@ -71,6 +84,16 @@ const PRIVATBANK_HOLDER = "Урiзко Олександр Леонiдович";
 // карта → «Реквізити»). Если оставить строку пустой, поле IBAN на
 // странице не показывается.
 const PRIVATBANK_IBAN = "UA47 305299 0262 0964 0093 3899078";
+// ⚠️ ДОБАВЛЕНО: что зашифровано в QR-коде карты ПриватБанка.
+// Как заполнить: в Приват24 откройте карту → «Поширити» → QR-код,
+// отсканируйте его камерой другого телефона и скопируйте ссылку,
+// которую он показывает. Вставьте эту ссылку между кавычками ниже —
+// тогда QR на сайте будет нарисован золотым цветом, но откроет то же,
+// что и официальный QR из Приват24.
+// Если оставить строку пустой, в QR будет только номер карты (простой
+// текст без пробелов): при сканировании телефон покажет цифры, но
+// платёжную страницу не откроет.
+const PRIVATBANK_QR_VALUE = "";
 // Реквизиты для SWIFT-перевода из-за границы (Приват24 → карта → «Реквізити» →
 // SWIFT → «Інша валюта — для зарахування в гривні»). Адрес получателя
 // НЕ указываем намеренно (личные данные; на странице показываются только
@@ -104,6 +127,9 @@ type PaymentMethod = {
   holder?: string; // получатель
   iban?: string; // IBAN счёта (для переводов из-за границы)
   swift?: SwiftDetails; // реквизиты SWIFT (для переводов из-за границы)
+  showQr?: boolean; // показать QR-код рядом с реквизитами
+  qrValue?: string; // ДОБАВЛЕНО: что зашифровать в QR (если пусто — значение card без пробелов)
+  qrHint?: string; // ДОБАВЛЕНО: подсказка под QR-кодом
   note?: string; // дополнительное примечание
 };
 
@@ -115,6 +141,9 @@ const PAYMENT_METHODS: (PaymentMethod | null)[] = [
     title: "Оплата криптовалютой USDT (сеть TRON / TRC20)",
     card: "TNVoTnr2VyX4mSDrRjgPqp2Tcw6QiQe3dZ",
     cardFieldLabel: "Адрес кошелька (TRC20)",
+    showQr: true, // QR-код этого адреса показывается рядом со строкой с адресом
+    qrHint:
+      "Отсканируйте QR-код в приложении кошелька. Выбирайте только сеть TRON (TRC20) и монету USDT — иначе деньги будут потеряны.",
     note: "Переведите сумму на адрес выше — подойдёт любая карта, украинская или иностранная. После перевода нажмите «Оплачено» — мы проверим поступление и откроем доступ.",
   },
   null, // сектор 2 — компания с электронными деньгами (пока не подключена)
@@ -132,6 +161,11 @@ const PAYMENT_METHODS: (PaymentMethod | null)[] = [
     holder: PRIVATBANK_HOLDER,
     iban: PRIVATBANK_IBAN || undefined,
     swift: PRIVATBANK_SWIFT,
+    // ДОБАВЛЕНО: QR-код карты ПриватБанка (золотого цвета, см. QR_COLOR)
+    showQr: true,
+    qrValue: PRIVATBANK_QR_VALUE || undefined,
+    qrHint:
+      "Для переводов по Украине отсканируйте QR-код камерой телефона или в приложении банка.",
     note: "По Украине — переведите сумму в гривне на номер карты. Из-за границы — переведите сумму на IBAN, реквизиты SWIFT указаны выше. Курс обмена и комиссии определяют банки. После перевода нажмите «Оплачено» — мы проверим поступление и откроем доступ.",
   },
   null, // сектор 4 — освободился (криптовалюта переехала в сектор 1)
@@ -257,20 +291,19 @@ function Wheel12({
 }
 
 // --- Строка «подпись + значение + кнопка Копировать» ---
-// ⚠️ ПРАВКА: optionalHint — короткая пометка под подписью (для необязательных
-// строк банка-корреспондента); copyValue — что реально копируется (например,
-// номер карты / IBAN без пробелов), если отличается от показанного значения;
-// large — крупный шрифт (для номера карты и адреса кошелька).
+// ⚠️ ПРАВКА (без прокрутки): значение и кнопка «Копировать» стоят в
+// одной строке (значение слева, кнопка справа) — так каждая строка
+// занимает меньше высоты. copyValue — что реально копируется (например,
+// номер карты / IBAN без пробелов), если отличается от показанного
+// значения; large — крупнее шрифт (для номера карты и адреса кошелька).
 function CopyRow({
   label,
   value,
-  optionalHint,
   copyValue,
   large,
 }: {
   label: string;
   value: string;
-  optionalHint?: string;
   copyValue?: string;
   large?: boolean;
 }) {
@@ -287,25 +320,20 @@ function CopyRow({
   };
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-0.5">
       <span className="text-xs text-[#FFD700] font-bold">{label}</span>
-      {optionalHint && (
-        <span className="text-xs italic" style={{ color: "#FFD700", opacity: 0.8 }}>
-          {optionalHint}
-        </span>
-      )}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2">
         <span
           className={`${
-            large ? "text-lg tracking-wider" : "text-sm"
-          } font-mono font-bold break-all min-w-0`}
+            large ? "text-base sm:text-lg tracking-wider" : "text-sm"
+          } font-mono font-bold break-all min-w-0 flex-1 leading-snug`}
           style={{ color: "#FFD700" }}
         >
           {value}
         </span>
         <button
           onClick={handle}
-          className="px-3 py-1.5 rounded-full border-2 text-xs font-bold shrink-0"
+          className="px-2.5 py-1 rounded-full border-2 text-xs font-bold shrink-0"
           style={{ color: "#FFD700", borderColor: "#FFD700" }}
         >
           {done ? "Скопировано" : "Копировать"}
@@ -316,13 +344,18 @@ function CopyRow({
 }
 
 // --- Золотая рамка с заголовком (одна «карточка» реквизитов) ---
+// ⚠️ ПРАВКА (без прокрутки): flex-1 + min-h-0 — рамка занимает всё
+// оставшееся место между заголовком и нижними кнопками и при нехватке
+// высоты сжимается, а не выталкивает кнопки «Далее» и «Оплачено» за
+// экран. overflow-y-auto — только запасной вариант для очень маленьких
+// экранов: на обычном телефоне и на компьютере прокрутки не будет.
 function DetailFrame({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div
-      className="rounded-2xl border-2 bg-white p-4 flex flex-col gap-3"
+      className="rounded-2xl border-2 bg-white p-3 flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto"
       style={{ borderColor: "#FFD700", boxShadow: "0 4px 14px rgba(255, 215, 0, 0.35)" }}
     >
-      <h3 className="text-base font-bold" style={{ color: "#FFD700" }}>
+      <h3 className="text-sm font-bold shrink-0" style={{ color: "#FFD700" }}>
         {title}
       </h3>
       {children}
@@ -330,14 +363,15 @@ function DetailFrame({ title, children }: { title: string; children: ReactNode }
   );
 }
 
-const OPTIONAL_HINT = "Необязательная строка: указывайте, только если банк отправителя запросит.";
-
 // --- Панель деталей выбранного способа оплаты ---
-// ⚠️ ПРАВКА: все реквизиты разбиты на отдельные золотые рамки, которые
-// показываются ПО ОДНОЙ (кнопки «Назад» / «Далее» и точки-индикаторы),
-// чтобы на телефоне не нужно было прокручивать длинную страницу.
-// У каждой строки есть своя кнопка «Копировать». Кнопка «Оплачено»
-// всегда видна под рамкой.
+// ⚠️ ПРАВКА (без прокрутки, компьютер и телефон): панель занимает ровно
+// доступную высоту (h-full) и состоит из четырёх частей: заголовок,
+// золотая рамка с реквизитами (flex-1, сжимается), переключатель рамок
+// и блок «Оплачено». Все реквизиты по-прежнему разбиты на рамки,
+// показываемые по одной («Назад» / «Далее» и точки-индикаторы).
+// На компьютере (от ширины sm) реквизиты и QR-код стоят в одной
+// строке; QR подстраивается под высоту экрана (не выше 200 px и не
+// выше 30% высоты окна).
 function PaymentDetailsPanel({
   method,
   onBack,
@@ -360,13 +394,54 @@ function PaymentDetailsPanel({
       title: method.iban ? "Оплата по Украине" : "Реквизиты для оплаты",
       content: (
         <>
-          <CopyRow
-            label={method.cardFieldLabel ?? "Номер карты"}
-            value={method.card}
-            copyValue={method.card.replace(/\s+/g, "")}
-            large
-          />
-          {method.holder && <CopyRow label="Получатель" value={method.holder} />}
+          <div className="flex flex-col sm:flex-row gap-3 items-center sm:items-start">
+            <div className="flex-1 min-w-0 w-full flex flex-col gap-2">
+              <CopyRow
+                label={method.cardFieldLabel ?? "Номер карты"}
+                value={method.card}
+                copyValue={method.card.replace(/\s+/g, "")}
+                large
+              />
+              {method.holder && <CopyRow label="Получатель" value={method.holder} />}
+            </div>
+
+            {method.showQr && (
+              // ⚠️ ПРАВКА: QR-код цвета QR_COLOR (золотой, как фон кнопки
+              // «Оплачено», #FFD700) на белом фоне. Рамка вокруг —
+              // золотая, как у остальных. Размер задаётся через CSS
+              // (min(200px, 30vh)), поэтому QR уменьшается на невысоких
+              // экранах.
+              // ⚠️ ДОБАВЛЕНО: значение QR берётся из method.qrValue (ссылка
+              // из Приват24), а если его нет — из номера карты / адреса
+              // кошелька без пробелов.
+              // ⚠️ Контраст золотого на белом низкий (≈1,4 : 1) — часть
+              // камер может не распознать такой QR. Если сканирование
+              // будет сбоить, измените QR_COLOR в начале файла.
+              <div
+                className="rounded-xl border-2 bg-white p-2 shrink-0"
+                style={{
+                  borderColor: "#FFD700",
+                  width: "min(200px, 30vh)",
+                  height: "min(200px, 30vh)",
+                }}
+              >
+                <QRCodeSVG
+                  value={method.qrValue || method.card.replace(/\s+/g, "")}
+                  size={200}
+                  level="M"
+                  fgColor={QR_COLOR}
+                  bgColor="#FFFFFF"
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </div>
+            )}
+          </div>
+
+          {method.showQr && method.qrHint && (
+            <p className="text-xs text-center font-bold leading-snug" style={{ color: "#FFD700" }}>
+              {method.qrHint}
+            </p>
+          )}
         </>
       ),
     });
@@ -406,23 +481,14 @@ function PaymentDetailsPanel({
       title: "Банк-корреспондент (необязательно)",
       content: (
         <>
-          <p className="text-xs italic" style={{ color: "#FFD700", opacity: 0.8 }}>
+          <p className="text-xs italic leading-snug" style={{ color: "#FFD700", opacity: 0.8 }}>
             Три строки ниже — необязательные: указывайте их, только если банк
             отправителя запросит банк-корреспондент.
           </p>
-          <CopyRow
-            label="Банк-корреспондент (Correspondent bank)"
-            optionalHint={OPTIONAL_HINT}
-            value={method.swift.correspondentBank}
-          />
-          <CopyRow
-            label="SWIFT / BIC банка-корреспондента"
-            optionalHint={OPTIONAL_HINT}
-            value={method.swift.correspondentBic}
-          />
+          <CopyRow label="Банк-корреспондент (Correspondent bank)" value={method.swift.correspondentBank} />
+          <CopyRow label="SWIFT / BIC банка-корреспондента" value={method.swift.correspondentBic} />
           <CopyRow
             label="Корреспондентский счёт (Correspondent account)"
-            optionalHint={OPTIONAL_HINT}
             value={method.swift.correspondentAccount}
           />
         </>
@@ -443,29 +509,33 @@ function PaymentDetailsPanel({
   const last = frames.length - 1;
   const current = frames[Math.min(step, last)];
 
+  // На телефоне (≈ 414 px) панель занимает всю ширину экрана (поля по
+  // 8 px); от ширины sm (640 px) — до max-w-2xl по центру.
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col gap-3 px-4">
-      <button
-        onClick={onBack}
-        className="self-start px-4 py-2 rounded-full border-2 font-bold text-sm bg-white"
-        style={{ color: "#FFD700", borderColor: "#FFD700" }}
-      >
-        ← Назад к способам оплаты
-      </button>
+    <div className="w-full max-w-none sm:max-w-2xl mx-auto h-full flex flex-col gap-2 px-2 sm:px-4 py-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 shrink-0">
+        <button
+          onClick={onBack}
+          className="self-start px-3 py-1.5 rounded-full border-2 font-bold text-xs bg-white shrink-0"
+          style={{ color: "#FFD700", borderColor: "#FFD700" }}
+        >
+          ← Назад к способам оплаты
+        </button>
 
-      <h2 className="text-lg font-bold leading-tight" style={{ color: "#FFD700" }}>
-        {method.title}
-      </h2>
+        <h2 className="text-base font-bold leading-tight" style={{ color: "#FFD700" }}>
+          {method.title}
+        </h2>
+      </div>
 
       {current && <DetailFrame title={current.title}>{current.content}</DetailFrame>}
 
       {/* Переключатель рамок: «Назад» / точки / «Далее» */}
       {frames.length > 1 && (
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 shrink-0">
           <button
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
-            className="px-4 py-2 rounded-full border-2 text-sm font-bold bg-white disabled:opacity-40"
+            className="px-3 py-1.5 rounded-full border-2 text-xs font-bold bg-white disabled:opacity-40"
             style={{ color: "#FFD700", borderColor: "#FFD700" }}
           >
             ← Назад
@@ -477,7 +547,7 @@ function PaymentDetailsPanel({
                 key={f.key}
                 onClick={() => setStep(i)}
                 aria-label={`Перейти к шагу ${i + 1}`}
-                className="w-3 h-3 rounded-full border-2"
+                className="w-2.5 h-2.5 rounded-full border-2"
                 style={{
                   borderColor: "#FFD700",
                   backgroundColor: i === step ? "#FFD700" : "#FFFFFF",
@@ -489,7 +559,7 @@ function PaymentDetailsPanel({
           <button
             onClick={() => setStep((s) => Math.min(last, s + 1))}
             disabled={step === last}
-            className="px-4 py-2 rounded-full border-2 text-sm font-bold bg-white disabled:opacity-40"
+            className="px-3 py-1.5 rounded-full border-2 text-xs font-bold bg-white disabled:opacity-40"
             style={{ color: "#FFD700", borderColor: "#FFD700" }}
           >
             Далее →
@@ -498,17 +568,17 @@ function PaymentDetailsPanel({
       )}
 
       <div
-        className="rounded-2xl border-2 bg-white p-3 flex flex-col gap-2"
+        className="rounded-2xl border-2 bg-white p-2 flex flex-col sm:flex-row sm:items-center gap-2 shrink-0"
         style={{ borderColor: "#FFD700" }}
       >
-        <p className="text-xs text-[#FFD700] font-bold">
-          После перевода нажмите кнопку ниже — заявка уйдёт администратору
+        <p className="text-xs text-[#FFD700] font-bold leading-snug flex-1">
+          После перевода нажмите кнопку — заявка уйдёт администратору
           на проверку поступления средств.
         </p>
         <button
           onClick={onConfirmPaid}
           disabled={submitting}
-          className="px-6 py-3 rounded-full font-bold text-white disabled:opacity-50"
+          className="px-5 py-2 rounded-full text-sm font-bold text-white disabled:opacity-50 shrink-0"
           style={{ backgroundColor: "#FFD700" }}
         >
           {submitting ? "Отправка…" : "Оплачено"}
@@ -663,13 +733,16 @@ export default function PaymentsPage() {
           />
         }
       >
-
-        <div className="flex-1 min-h-0 w-full flex items-start justify-center overflow-y-auto py-4">
+        {/* ⚠️ ПРАВКА (без прокрутки): контейнер снова items-center +
+            overflow-hidden (как у остальных колёс сайта) — внешней
+            прокрутки нет. Панель реквизитов сама занимает h-full и
+            сжимает свою золотую рамку, а не выходит за экран. */}
+        <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
           {confirmedPending ? (
             // ⚠️ ДОБАВЛЕНО: короткое сообщение вместо мгновенного
             // редиректа — показывается на 1.5с, пока не сработает
             // setTimeout(() => navigate("/"), ...) в useEffect выше.
-            <div className="flex flex-col items-center justify-center gap-4 pt-20">
+            <div className="flex flex-col items-center justify-center gap-4">
               <p className="text-xl font-bold" style={{ color: "#FFD700" }}>
                 Оплата подтверждена! Переходим...
               </p>
