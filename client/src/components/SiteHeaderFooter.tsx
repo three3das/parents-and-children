@@ -486,13 +486,13 @@ export function WheelHeader({
   onSelect: (key: string) => void;
 }) {
   return (
-    <header className="flex-shrink-0 w-full px-6 py-2 border-b border-yellow-200">
-      <nav className="flex w-full gap-[0.5cm]">
+    <header className="flex-shrink-0 w-full px-2 sm:px-6 py-2 border-b border-yellow-200">
+      <nav className="flex w-full gap-1.5 sm:gap-[0.5cm]">
         {items.map((item) => (
           <button
             key={item.key}
             onClick={() => onSelect(item.key)}
-            className="flex-1 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
+            className="flex-1 min-w-0 px-2 sm:px-4 py-2 rounded-full border-2 font-bold text-xs sm:text-base leading-tight transition bg-white"
             style={{
               color: GOLD_ACTIVE,
               borderColor: activeKey === item.key ? GOLD_ACTIVE : GOLD_INACTIVE,
@@ -537,8 +537,11 @@ export function WheelFooter({
   }, [isMenuOpen]);
 
   return (
-    <footer className="flex-shrink-0 w-full px-6 py-2 border-t border-yellow-200">
-      <nav className="flex w-full gap-[0.5cm]">
+    <footer
+      className="flex-shrink-0 w-full px-2 sm:px-6 py-2 border-t border-yellow-200"
+      style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+    >
+      <nav className="flex w-full gap-1.5 sm:gap-[0.5cm]">
         {items.map((item) => {
           const isMenuButton = item.key === "languages";
           return (
@@ -554,7 +557,7 @@ export function WheelFooter({
                   }
                   onSelect(item.key);
                 }}
-                className="w-full px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
+                className="w-full min-w-0 px-2 sm:px-4 py-2 rounded-full border-2 font-bold text-xs sm:text-base leading-tight transition bg-white"
                 style={{
                   color: GOLD_ACTIVE,
                   borderColor:
@@ -591,7 +594,7 @@ export function WheelPageShell({
 }) {
   return (
     <div
-      className="h-screen w-screen flex flex-col bg-white overflow-hidden"
+      className="fixed inset-0 flex flex-col bg-white overflow-hidden"
       style={{ fontFamily: "ui-sans-serif, system-ui, sans-serif" }}
     >
       {header}
