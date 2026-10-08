@@ -45,13 +45,17 @@ import { supabase } from "@/lib/supabase";
 // «Свойства сайта» (ключ "site-page" — та же кнопка на заставке и
 // в футере) теперь открывает колесо из 12 секторов
 // (view "properties"). В первом секторе — кнопка «Меню», в
-// двенадцатом — кнопка «Хочу поддержать проект».
+// одиннадцатом — «Регистрация и авторизация» (только для неавторизованных),
+// в двенадцатом — кнопка «Хочу поддержать проект».
 // Кнопка «Меню» (сектор №1) открывает колесо выбора (view
 // "properties-menu") из двух секторов: «Язык» и «Системы письменности».
 // Они вызывают openLanguageWheel() / openScriptWheel() из контекста
 // useLanguageScript() — тот же глобальный оверлей
 // LanguageScriptWheelOverlay, что и блок «Русский / Кириллица —
 // изменить», поэтому логика выбора языка не дублируется.
+// Кнопка «Регистрация и авторизация» (сектор №11) открывает колесо
+// (view "properties-auth") из двух секторов: «Вход» и «Регистрация» —
+// они ведут на страницы AUTH_LOGIN_PATH / AUTH_REGISTER_PATH.
 // Кнопка «Хочу поддержать проект» (сектор №12) открывает экран
 // "guide-info" (благодарность + «Перейти к оплате»), а кнопка «Назад»
 // возвращает обратно в «Свойства сайта» (см. guideInfoOrigin).
@@ -233,27 +237,33 @@ const GUIDE_WHEEL_LABELS: string[][] = Array.from(
 );
 
 // "Свойства сайта" — колесо, которое открывает кнопка «Свойства» в
-// футере. Заполнены два сектора: №1 («Меню») и №12 («Хочу поддержать
-// проект»); остальные 10 — пустые заглушки, видимые, но некликабельные.
+// футере. Заполнены три сектора: №1 («Меню»), №11 («Регистрация и
+// авторизация») и №12 («Хочу поддержать проект»); остальные — пустые
+// заглушки, видимые, но некликабельные.
 // Ключ кнопки «Свойства сайта»: на заставке (SplashScreen) это третья
 // кнопка, в футере — тоже третья. Оба места используют один ключ
 // "site-page", поэтому колесо открывается из обоих. «Домашняя
 // страница» ("your-page") остаётся без действия, как раньше.
 const PROPERTIES_FOOTER_KEY = "site-page";
 
-// Индексы секторов (нумерация с 0): сектор №1 → 0, сектор №12 → 11.
+// Индексы секторов (нумерация с 0): сектор №1 → 0, №11 → 10, №12 → 11.
 const PROPERTIES_MENU_INDEX = 0;
+const PROPERTIES_AUTH_INDEX = SECTOR_COUNT - 2;
 const PROPERTIES_SUPPORT_INDEX = SECTOR_COUNT - 1;
 
-const PROPERTIES_CLICKABLE_INDICES = [
-  PROPERTIES_MENU_INDEX,
-  PROPERTIES_SUPPORT_INDEX,
-];
+// Пути страниц входа и регистрации (проверьте по <Route path=...> в
+// App.tsx — если у вас другие адреса, поправьте только эти две строки).
+const AUTH_LOGIN_PATH = "/login";
+const AUTH_REGISTER_PATH = "/register";
+
+// Ручная разбивка подписей (в круг Wheel12 влезает ≈10 символов в строку).
+const PROPERTIES_AUTH_LABEL = ["Регистра-", "ция и", "авториза-", "ция"];
 
 const PROPERTIES_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
   (_, i) => {
     if (i === PROPERTIES_MENU_INDEX) return ["Меню"];
+    if (i === PROPERTIES_AUTH_INDEX) return PROPERTIES_AUTH_LABEL;
     // Ручная разбивка по одному слову на строку (3 строки) — иначе
     // "Хочу поддержать проект" не помещается в круг как нужно.
     if (i === PROPERTIES_SUPPORT_INDEX) return ["Хочу", "поддержать", "проект"];
@@ -270,6 +280,15 @@ const PROPERTIES_MENU_LABELS: string[][] = Array.from(
 );
 
 const PROPERTIES_MENU_CLICKABLE_INDICES = [0, 1];
+
+// Колесо «Регистрация и авторизация»: сектор 0 — вход, сектор 1 —
+// регистрация.
+const PROPERTIES_AUTH_WHEEL_LABELS: string[][] = Array.from(
+  { length: SECTOR_COUNT },
+  (_, i) => (i === 0 ? ["Вход"] : i === 1 ? ["Регистра-", "ция"] : [])
+);
+
+const PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES = [0, 1];
 
 type GameType =
   | "alphabet-placeholder"
@@ -314,7 +333,8 @@ type ViewState =
   | "guide"
   | "guide-info"
   | "properties"
-  | "properties-menu";
+  | "properties-menu"
+  | "properties-auth";
 
 interface HomePageProps {
   // Ключ кнопки, выбранной на заставке SplashGate (см. комментарий
@@ -353,6 +373,24 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
   const games = useMemo(() => getGamesForLanguage(language), [language]);
   const gameWheelLabels = useMemo(() => getGameWheelLabels(games), [games]);
+
+  // Колесо «Свойства сайта»: сектор №11 («Регистрация и авторизация»)
+  // показывается и кликабелен только для неавторизованных пользователей.
+  const propertiesWheelLabels = useMemo(
+    () =>
+      PROPERTIES_WHEEL_LABELS.map((lines, i) =>
+        i === PROPERTIES_AUTH_INDEX && isAuthenticated ? [] : lines
+      ),
+    [isAuthenticated]
+  );
+
+  const propertiesClickableIndices = useMemo(
+    () =>
+      isAuthenticated
+        ? [PROPERTIES_MENU_INDEX, PROPERTIES_SUPPORT_INDEX]
+        : [PROPERTIES_MENU_INDEX, PROPERTIES_AUTH_INDEX, PROPERTIES_SUPPORT_INDEX],
+    [isAuthenticated]
+  );
 
   // "main" — колесо тем (категорий), "games" — колесо с 7 играми,
   // "dictionary" — страница "Словарь используемых на сайте слов".
@@ -465,11 +503,16 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     setView("properties-menu");
   };
 
-  // Колесо «Свойства сайта»: сектор №1 — «Меню», сектор №12 —
-  // «Хочу поддержать проект» (экран с оплатой, "guide-info").
+  // Колесо «Свойства сайта»: сектор №1 — «Меню», сектор №11 —
+  // «Регистрация и авторизация», сектор №12 — «Хочу поддержать проект»
+  // (экран с оплатой, "guide-info").
   const handlePropertiesSectorClick = (index: number) => {
     if (index === PROPERTIES_MENU_INDEX) {
       handleMenuClick();
+    } else if (index === PROPERTIES_AUTH_INDEX) {
+      if (!isAuthenticated) {
+        setView("properties-auth");
+      }
     } else if (index === PROPERTIES_SUPPORT_INDEX) {
       setGuideInfoOrigin("properties");
       setView("guide-info");
@@ -482,6 +525,16 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       openLanguageWheel();
     } else if (index === 1) {
       openScriptWheel();
+    }
+  };
+
+  // Колесо «Регистрация и авторизация»: сектор 0 — вход, сектор 1 —
+  // регистрация (отдельные страницы сайта).
+  const handlePropertiesAuthSectorClick = (index: number) => {
+    if (index === 0) {
+      setLocation(AUTH_LOGIN_PATH);
+    } else if (index === 1) {
+      setLocation(AUTH_REGISTER_PATH);
     }
   };
 
@@ -584,13 +637,14 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // возвращает на колесо тем (домашний экран). Исключения:
   //  • "guide-info" → туда, откуда зашли: "guide" или "properties"
   //    (см. guideInfoOrigin);
-  //  • "properties-menu" → "properties" (обратно в «Свойства сайта»);
+  //  • "properties-menu" и "properties-auth" → "properties" (обратно
+  //    в «Свойства сайта»);
   //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
   //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений).
   const handleBack = () => {
     if (view === "guide-info") {
       setView(guideInfoOrigin);
-    } else if (view === "properties-menu") {
+    } else if (view === "properties-menu" || view === "properties-auth") {
       setView("properties");
     } else if (view === "prakriti") {
       setView("sambandha");
@@ -694,9 +748,9 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
         {view === "properties" && (
           <Wheel12
-            labels={PROPERTIES_WHEEL_LABELS}
+            labels={propertiesWheelLabels}
             centerLabel="Свойства сайта"
-            clickableIndices={PROPERTIES_CLICKABLE_INDICES}
+            clickableIndices={propertiesClickableIndices}
             onSectorClick={handlePropertiesSectorClick}
           />
         )}
@@ -707,6 +761,15 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
             centerLabel="Меню"
             clickableIndices={PROPERTIES_MENU_CLICKABLE_INDICES}
             onSectorClick={handlePropertiesMenuSectorClick}
+          />
+        )}
+
+        {view === "properties-auth" && (
+          <Wheel12
+            labels={PROPERTIES_AUTH_WHEEL_LABELS}
+            centerLabel="Аккаунт"
+            clickableIndices={PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES}
+            onSectorClick={handlePropertiesAuthSectorClick}
           />
         )}
 

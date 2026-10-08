@@ -1,32 +1,40 @@
--- Таблица для ожидающих P2P платежей
+-- migrations/003_pending_payments.sql
+--
+-- Таблицы P2P-платежей. Структура 1:1 с shared/schema.ts
+-- (pendingPayments, monthlyActivations) и с реальной базой.
+-- Безопасно запускать повторно: везде IF NOT EXISTS.
+
 CREATE TABLE IF NOT EXISTS pending_payments (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  user_email VARCHAR(255) NOT NULL,
-  amount INTEGER NOT NULL DEFAULT 100,
-  status VARCHAR(50) NOT NULL DEFAULT 'pending',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  activated_at TIMESTAMP WITH TIME ZONE,
-  activated_by VARCHAR(255),
-  notes TEXT
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id varchar NOT NULL,
+  amount numeric NOT NULL,
+  currency text DEFAULT 'UAH',
+  status text NOT NULL DEFAULT 'pending',
+  provider text,
+  provider_payment_id text,
+  metadata jsonb,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  user_email text NOT NULL,
+  activated_at timestamptz,
+  activated_by text,
+  notes text,
+  method text
 );
 
--- Индекс для быстрого поиска по статусу
-CREATE INDEX IF NOT EXISTS idx_pending_payments_status ON pending_payments(status);
+CREATE INDEX IF NOT EXISTS idx_pending_payments_status
+  ON pending_payments(status);
+CREATE INDEX IF NOT EXISTS idx_pending_payments_user_id
+  ON pending_payments(user_id);
 
--- Индекс для поиска по пользователю
-CREATE INDEX IF NOT EXISTS idx_pending_payments_user_id ON pending_payments(user_id);
-
--- Таблица для отслеживания активаций по месяцам (лимит 20/месяц)
 CREATE TABLE IF NOT EXISTS monthly_activations (
-  id SERIAL PRIMARY KEY,
-  year INTEGER NOT NULL,
-  month INTEGER NOT NULL,
-  count INTEGER NOT NULL DEFAULT 0,
-  UNIQUE(year, month)
+  year integer NOT NULL,
+  month integer NOT NULL,
+  count integer NOT NULL DEFAULT 0,
+  PRIMARY KEY (year, month)
 );
 
--- Вставить текущий месяц
-INSERT INTO monthly_activations (year, month, count)
-VALUES (EXTRACT(YEAR FROM NOW()), EXTRACT(MONTH FROM NOW()), 0)
-ON CONFLICT (year, month) DO NOTHING;
+-- Закрываем доступ через публичный ключ Supabase (сервер ходит под
+-- ролью postgres через DATABASE_URL и RLS не затрагивается).
+ALTER TABLE pending_payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_activations ENABLE ROW LEVEL SECURITY;

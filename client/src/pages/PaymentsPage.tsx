@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { headerNav, footerNav } from "@/lib/siteNav";
@@ -9,10 +9,14 @@ import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeade
 // что и остальные колёса сайта.
 //
 // Раскладка секторов (обновлено):
-//   Сектор 1 — оплата с любой карты (украинской или иностранной) →
-//              перевод на крипто-кошелёк USDT (TRC20)
-//   Сектор 2 — оплата на карту «ПриватБанк» из любой страны
-//              (гривна — по Украине, иностранная валюта — из-за границы)
+//   Сектор 1 — крипто-кошелёк: перевод USDT (TRC20) на «Trust Wallet»
+//              (нет ни банка, ни компании-хозяина — деньги живут в блокчейне)
+//   Сектор 2 — компания с электронными деньгами (PayPal и т.п.) —
+//              пока пустая заготовка: WebMoney / QIWI в Украине запрещены,
+//              остальные сервисы ещё не подключены
+//   Сектор 3 — банк: оплата на карту «ПриватБанк» из любой страны
+//              (гривна — по Украине, иностранная валюта — из-за границы;
+//              для переводов из-за границы дополнительно показан IBAN)
 //   Остальные секторы — пустые заготовки под будущие способы оплаты.
 // ============================================================================
 
@@ -57,12 +61,38 @@ const BADGE_RADIUS = R - BADGE_R - GAP;
 
 const LABEL_FONT_SIZE = 8.4;
 
-// --- реквизиты карты Приватбанка — заданы один раз, используются
-//     и в секторе 2 (по Украине), и в секторе 3 (из-за границы),
-//     чтобы номер карты не дублировался в двух местах вручную. Если
-//     карта сменится — достаточно поменять значение здесь. ---
+// --- реквизиты карты Приватбанка — заданы один раз, используются в
+//     секторе 3 («Оплата на карту «ПриватБанк» из любой страны»),
+//     чтобы номер карты не дублировался в нескольких местах вручную.
+//     Если карта сменится — достаточно поменять значения здесь. ---
 const PRIVATBANK_CARD = "5168 7451 2747 0224";
 const PRIVATBANK_HOLDER = "Урiзко Олександр Леонiдович";
+// IBAN счёта этой карты — для переводов из-за границы (Приват24 →
+// карта → «Реквізити»). Если оставить строку пустой, поле IBAN на
+// странице не показывается.
+const PRIVATBANK_IBAN = "UA47 305299 0262 0964 0093 3899078";
+// Реквизиты для SWIFT-перевода из-за границы (Приват24 → карта → «Реквізити» →
+// SWIFT → «Інша валюта — для зарахування в гривні»). Адрес получателя
+// НЕ указываем намеренно (личные данные; на странице показываются только
+// имя латиницей, банк, SWIFT/BIC и банк-корреспондент).
+const PRIVATBANK_SWIFT = {
+  beneficiary: "URIZKO OLEKSANDR",
+  bank: "JSC CB PRIVATBANK, 1D HRUSHEVSKOHO STR., KYIV, 01001, UKRAINE",
+  bic: "PBANUA2X",
+  correspondentBank: "Citibank N.A., NEW YORK, USA",
+  correspondentBic: "CITIUS33",
+  correspondentAccount: "36445343",
+};
+
+// --- реквизиты для SWIFT-перевода из-за границы ---
+type SwiftDetails = {
+  beneficiary: string; // получатель латиницей
+  bank: string; // банк получателя (название и адрес банка)
+  bic: string; // SWIFT/BIC банка получателя
+  correspondentBank: string; // банк-корреспондент
+  correspondentBic: string; // SWIFT/BIC банка-корреспондента
+  correspondentAccount: string; // корреспондентский счёт
+};
 
 // --- данные способов оплаты ---
 type PaymentMethod = {
@@ -72,12 +102,14 @@ type PaymentMethod = {
   card?: string; // номер карты / адрес кошелька (если применимо)
   cardFieldLabel?: string; // подпись поля выше (по умолчанию «Номер карты»)
   holder?: string; // получатель
+  iban?: string; // IBAN счёта (для переводов из-за границы)
+  swift?: SwiftDetails; // реквизиты SWIFT (для переводов из-за границы)
   note?: string; // дополнительное примечание
 };
 
 const PAYMENT_METHODS: (PaymentMethod | null)[] = [
   {
-    // Сектор 1 — было в секторе 4, перенесено сюда.
+    // Сектор 1 — крипто-кошелёк (было в секторе 4, перенесено сюда).
     methodKey: "usdt_trc20",
     labelLines: ["Оплата на", "крипто-кошелёк", "«Trust Wallet»", "из любой страны"],
     title: "Оплата криптовалютой USDT (сеть TRON / TRC20)",
@@ -85,8 +117,9 @@ const PAYMENT_METHODS: (PaymentMethod | null)[] = [
     cardFieldLabel: "Адрес кошелька (TRC20)",
     note: "Переведите сумму на адрес выше — подойдёт любая карта, украинская или иностранная. После перевода нажмите «Оплачено» — мы проверим поступление и откроем доступ.",
   },
+  null, // сектор 2 — компания с электронными деньгами (пока не подключена)
   {
-    // Сектор 2 — единый способ: карта «ПриватБанк». Объединяет два
+    // Сектор 3 — банк: единый способ — карта «ПриватБанк». Объединяет два
     // прежних сектора (оплата по Украине в гривне и перевод из-за
     // границы в иностранной валюте) — реквизиты у них были одни и те же.
     // Ключ "privatbank_card" совпадает со справочником на сервере
@@ -95,10 +128,12 @@ const PAYMENT_METHODS: (PaymentMethod | null)[] = [
     labelLines: ["Оплата на карту", "«ПриватБанк»", "из любой", "страны"],
     title: "Оплата на карту «ПриватБанк» из любой страны",
     card: PRIVATBANK_CARD,
+    cardFieldLabel: "Номер карты (для переводов по Украине, в гривне)",
     holder: PRIVATBANK_HOLDER,
-    note: "Из Украины — переведите сумму в гривне с любой украинской карты. Из-за границы — переведите сумму в иностранной валюте с зарубежной карты: банк спишет её в исходной валюте, а на карту получателя она зачислится в гривне по курсу конвертации. После перевода нажмите «Оплачено» — мы проверим поступление и откроем доступ.",
+    iban: PRIVATBANK_IBAN || undefined,
+    swift: PRIVATBANK_SWIFT,
+    note: "По Украине — переведите сумму в гривне на номер карты. Из-за границы — переведите сумму на IBAN, реквизиты SWIFT указаны выше. Курс обмена и комиссии определяют банки. После перевода нажмите «Оплачено» — мы проверим поступление и откроем доступ.",
   },
-  null, // сектор 3 — освободился (объединён с сектором 2)
   null, // сектор 4 — освободился (криптовалюта переехала в сектор 1)
   null, // сектор 5 — зарезервирован
   null, // сектор 6 — зарезервирован
@@ -221,7 +256,88 @@ function Wheel12({
   );
 }
 
+// --- Строка «подпись + значение + кнопка Копировать» ---
+// ⚠️ ПРАВКА: optionalHint — короткая пометка под подписью (для необязательных
+// строк банка-корреспондента); copyValue — что реально копируется (например,
+// номер карты / IBAN без пробелов), если отличается от показанного значения;
+// large — крупный шрифт (для номера карты и адреса кошелька).
+function CopyRow({
+  label,
+  value,
+  optionalHint,
+  copyValue,
+  large,
+}: {
+  label: string;
+  value: string;
+  optionalHint?: string;
+  copyValue?: string;
+  large?: boolean;
+}) {
+  const [done, setDone] = useState(false);
+
+  const handle = async () => {
+    try {
+      await navigator.clipboard.writeText(copyValue ?? value);
+      setDone(true);
+      setTimeout(() => setDone(false), 2000);
+    } catch {
+      // clipboard недоступен — значение и так видно на экране
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs text-[#FFD700] font-bold">{label}</span>
+      {optionalHint && (
+        <span className="text-xs italic" style={{ color: "#FFD700", opacity: 0.8 }}>
+          {optionalHint}
+        </span>
+      )}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span
+          className={`${
+            large ? "text-lg tracking-wider" : "text-sm"
+          } font-mono font-bold break-all min-w-0`}
+          style={{ color: "#FFD700" }}
+        >
+          {value}
+        </span>
+        <button
+          onClick={handle}
+          className="px-3 py-1.5 rounded-full border-2 text-xs font-bold shrink-0"
+          style={{ color: "#FFD700", borderColor: "#FFD700" }}
+        >
+          {done ? "Скопировано" : "Копировать"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- Золотая рамка с заголовком (одна «карточка» реквизитов) ---
+function DetailFrame({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div
+      className="rounded-2xl border-2 bg-white p-4 flex flex-col gap-3"
+      style={{ borderColor: "#FFD700", boxShadow: "0 4px 14px rgba(255, 215, 0, 0.35)" }}
+    >
+      <h3 className="text-base font-bold" style={{ color: "#FFD700" }}>
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+const OPTIONAL_HINT = "Необязательная строка: указывайте, только если банк отправителя запросит.";
+
 // --- Панель деталей выбранного способа оплаты ---
+// ⚠️ ПРАВКА: все реквизиты разбиты на отдельные золотые рамки, которые
+// показываются ПО ОДНОЙ (кнопки «Назад» / «Далее» и точки-индикаторы),
+// чтобы на телефоне не нужно было прокручивать длинную страницу.
+// У каждой строки есть своя кнопка «Копировать». Кнопка «Оплачено»
+// всегда видна под рамкой.
 function PaymentDetailsPanel({
   method,
   onBack,
@@ -233,21 +349,102 @@ function PaymentDetailsPanel({
   onConfirmPaid: () => void;
   submitting: boolean;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [step, setStep] = useState(0);
 
-  const handleCopy = async () => {
-    if (!method.card) return;
-    try {
-      await navigator.clipboard.writeText(method.card.replace(/\s+/g, ""));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // clipboard недоступен — молча игнорируем, номер и так виден на экране
-    }
-  };
+  // Собираем рамки из тех полей, что есть у способа оплаты.
+  const frames: { key: string; title: string; content: ReactNode }[] = [];
+
+  if (method.card) {
+    frames.push({
+      key: "card",
+      title: method.iban ? "Оплата по Украине" : "Реквизиты для оплаты",
+      content: (
+        <>
+          <CopyRow
+            label={method.cardFieldLabel ?? "Номер карты"}
+            value={method.card}
+            copyValue={method.card.replace(/\s+/g, "")}
+            large
+          />
+          {method.holder && <CopyRow label="Получатель" value={method.holder} />}
+        </>
+      ),
+    });
+  }
+
+  if (method.iban) {
+    frames.push({
+      key: "iban",
+      title: "Оплата из-за границы: IBAN",
+      content: (
+        <>
+          <CopyRow
+            label="IBAN (для переводов из-за границы)"
+            value={method.iban}
+            copyValue={method.iban.replace(/\s+/g, "")}
+          />
+          {method.holder && <CopyRow label="Получатель" value={method.holder} />}
+        </>
+      ),
+    });
+  }
+
+  if (method.swift) {
+    frames.push({
+      key: "swift",
+      title: "Реквизиты SWIFT",
+      content: (
+        <>
+          <CopyRow label="Получатель (Beneficiary)" value={method.swift.beneficiary} />
+          <CopyRow label="Банк получателя (Bank of beneficiary)" value={method.swift.bank} />
+          <CopyRow label="SWIFT / BIC банка получателя" value={method.swift.bic} />
+        </>
+      ),
+    });
+    frames.push({
+      key: "correspondent",
+      title: "Банк-корреспондент (необязательно)",
+      content: (
+        <>
+          <p className="text-xs italic" style={{ color: "#FFD700", opacity: 0.8 }}>
+            Три строки ниже — необязательные: указывайте их, только если банк
+            отправителя запросит банк-корреспондент.
+          </p>
+          <CopyRow
+            label="Банк-корреспондент (Correspondent bank)"
+            optionalHint={OPTIONAL_HINT}
+            value={method.swift.correspondentBank}
+          />
+          <CopyRow
+            label="SWIFT / BIC банка-корреспондента"
+            optionalHint={OPTIONAL_HINT}
+            value={method.swift.correspondentBic}
+          />
+          <CopyRow
+            label="Корреспондентский счёт (Correspondent account)"
+            optionalHint={OPTIONAL_HINT}
+            value={method.swift.correspondentAccount}
+          />
+        </>
+      ),
+    });
+  }
+
+  if (method.note) {
+    frames.push({
+      key: "note",
+      title: "Как завершить оплату",
+      content: (
+        <p className="text-sm text-[#FFD700] font-bold leading-relaxed">{method.note}</p>
+      ),
+    });
+  }
+
+  const last = frames.length - 1;
+  const current = frames[Math.min(step, last)];
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col gap-4 px-4">
+    <div className="w-full max-w-md mx-auto flex flex-col gap-3 px-4">
       <button
         onClick={onBack}
         className="self-start px-4 py-2 rounded-full border-2 font-bold text-sm bg-white"
@@ -256,64 +453,66 @@ function PaymentDetailsPanel({
         ← Назад к способам оплаты
       </button>
 
-      <div className="rounded-2xl border-2 border-yellow-400 bg-white p-4 sm:p-6 flex flex-col gap-4">
-        <h2 className="text-xl font-bold" style={{ color: "#FFD700" }}>
-          {method.title}
-        </h2>
+      <h2 className="text-lg font-bold leading-tight" style={{ color: "#FFD700" }}>
+        {method.title}
+      </h2>
 
-        {method.card && (
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-[#FFD700] font-bold">
-              {method.cardFieldLabel ?? "Номер карты"}
-            </span>
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Само значение (номер карты / адрес кошелька) — именно
-                  этот текст был чёрным на скриншотах. Красим его тоже. */}
-              <span
-                className="text-lg font-mono font-bold tracking-wider break-all min-w-0"
-                style={{ color: "#FFD700" }}
-              >
-                {method.card}
-              </span>
-              <button
-                onClick={handleCopy}
-                className="px-3 py-1 rounded-full border-2 text-xs font-bold shrink-0"
-                style={{ color: "#FFD700", borderColor: "#FFD700" }}
-              >
-                {copied ? "Скопировано" : "Копировать"}
-              </button>
-            </div>
-          </div>
-        )}
+      {current && <DetailFrame title={current.title}>{current.content}</DetailFrame>}
 
-        {method.holder && (
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-[#FFD700] font-bold">Получатель</span>
-            {/* Само значение (ФИО получателя) — тоже было чёрным. */}
-            <span className="font-semibold" style={{ color: "#FFD700" }}>
-              {method.holder}
-            </span>
-          </div>
-        )}
-
-        {method.note && (
-          <p className="text-sm text-[#FFD700] font-bold leading-relaxed">{method.note}</p>
-        )}
-
-        <div className="flex flex-col gap-2 pt-2 border-t border-yellow-100">
-          <p className="text-xs text-[#FFD700] font-bold">
-            После перевода нажмите кнопку ниже — заявка уйдёт администратору
-            на проверку поступления средств.
-          </p>
+      {/* Переключатель рамок: «Назад» / точки / «Далее» */}
+      {frames.length > 1 && (
+        <div className="flex items-center justify-between gap-2">
           <button
-            onClick={onConfirmPaid}
-            disabled={submitting}
-            className="mt-2 px-6 py-3 rounded-full font-bold text-white disabled:opacity-50"
-            style={{ backgroundColor: "#FFD700" }}
+            onClick={() => setStep((s) => Math.max(0, s - 1))}
+            disabled={step === 0}
+            className="px-4 py-2 rounded-full border-2 text-sm font-bold bg-white disabled:opacity-40"
+            style={{ color: "#FFD700", borderColor: "#FFD700" }}
           >
-            {submitting ? "Отправка…" : "Оплачено"}
+            ← Назад
+          </button>
+
+          <div className="flex items-center gap-2" aria-label={`Шаг ${step + 1} из ${frames.length}`}>
+            {frames.map((f, i) => (
+              <button
+                key={f.key}
+                onClick={() => setStep(i)}
+                aria-label={`Перейти к шагу ${i + 1}`}
+                className="w-3 h-3 rounded-full border-2"
+                style={{
+                  borderColor: "#FFD700",
+                  backgroundColor: i === step ? "#FFD700" : "#FFFFFF",
+                }}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() => setStep((s) => Math.min(last, s + 1))}
+            disabled={step === last}
+            className="px-4 py-2 rounded-full border-2 text-sm font-bold bg-white disabled:opacity-40"
+            style={{ color: "#FFD700", borderColor: "#FFD700" }}
+          >
+            Далее →
           </button>
         </div>
+      )}
+
+      <div
+        className="rounded-2xl border-2 bg-white p-3 flex flex-col gap-2"
+        style={{ borderColor: "#FFD700" }}
+      >
+        <p className="text-xs text-[#FFD700] font-bold">
+          После перевода нажмите кнопку ниже — заявка уйдёт администратору
+          на проверку поступления средств.
+        </p>
+        <button
+          onClick={onConfirmPaid}
+          disabled={submitting}
+          className="px-6 py-3 rounded-full font-bold text-white disabled:opacity-50"
+          style={{ backgroundColor: "#FFD700" }}
+        >
+          {submitting ? "Отправка…" : "Оплачено"}
+        </button>
       </div>
     </div>
   );
@@ -515,7 +714,7 @@ export default function PaymentsPage() {
             <div className="flex gap-3 justify-end pt-2">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="px-5 py-2 rounded-full border-2 fontа-bold text-sm bg-white"
+                className="px-5 py-2 rounded-full border-2 font-bold text-sm bg-white"
                 style={{ color: "#FFD700", borderColor: "#FFE066" }}
               >
                 Отмена
