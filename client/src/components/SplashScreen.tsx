@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // пути к изображению и аудио файлу
-const SPLASH_IMAGE_SRC = "/images/krishna.jpg";
+const SPLASH_IMAGE_SRC = "/images/1. parents-and-children.png";
 const SPLASH_AUDIO_SRC = "/audio/krishna.mp3";
 
 const GOLD = "#FFD700";
