@@ -10,6 +10,14 @@ import {
 } from "@/lib/languageScript";
 import Wheel12, { SECTOR_COUNT } from "@/components/Wheel12";
 import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeaderFooter";
+// ⚠️ ДОБАВЛЕНО: общая форма «поиск по странице / сортировка по
+// запросу» (client/src/components/SortRequestForm.tsx). Из неё же
+// берём CATEGORY_ITEMS — список из 12 разделов хранится в одном месте
+// и для колеса тем, и для поля «Разделы» в форме.
+import SortRequestForm, {
+  CATEGORY_ITEMS,
+  type SortValues,
+} from "@/components/SortRequestForm";
 // ⚠️ ДОБАВЛЕНО: тот же supabase-клиент, что и везде в проекте
 // (если файл лежит по другому пути — поправьте только эту строку).
 import { supabase } from "@/lib/supabase";
@@ -44,10 +52,14 @@ import { supabase } from "@/lib/supabase";
 // ⚠️ ПРАВКА (колесо «Свойства сайта»): кнопка «Свойства» в футере
 // «Свойства сайта» (ключ "site-page" — та же кнопка на заставке и
 // в футере) теперь открывает колесо из 12 секторов
-// (view "properties"). В первом секторе — кнопка «Меню», в
-// одиннадцатом — «Регистрация и авторизация» (только для неавторизованных),
-// в двенадцатом — кнопка «Хочу поддержать проект».
-// Кнопка «Меню» (сектор №1) открывает колесо выбора (view
+// (view "properties"). В первом секторе — кнопка «Начало пути по
+// сайту» (открывает колесо обозрения из 12 секторов, view "path": в
+// его первом секторе — кнопка «Уже готово для вас», она открывает
+// экран с формой SortRequestForm, view "path-ready"), во втором —
+// кнопка «Меню», в одиннадцатом — «Регистрация и авторизация» (только
+// для неавторизованных), в двенадцатом — кнопка «Хочу поддержать
+// проект».
+// Кнопка «Меню» (сектор №2) открывает колесо выбора (view
 // "properties-menu") из двух секторов: «Язык» и «Системы письменности».
 // Они вызывают openLanguageWheel() / openScriptWheel() из контекста
 // useLanguageScript() — тот же глобальный оверлей
@@ -81,20 +93,9 @@ function splitLabelIntoLines(label: string): string[] {
   return lines;
 }
 
-const CATEGORY_ITEMS: string[] = [
-  "Игры",
-  "Природа",
-  "Кулинария",
-  "Культура",
-  "Образование",
-  "Наука",
-  "Творчество",
-  "Медицина",
-  "Обычаи",
-  "Религия",
-  "Традиция",
-  "Йога",
-];
+// ⚠️ ПРАВКА: список из 12 разделов (CATEGORY_ITEMS) больше не
+// объявляется здесь — он импортируется из SortRequestForm (см. импорт
+// выше), чтобы колесо тем и поле «Разделы» формы всегда совпадали.
 
 const CATEGORY_CLICKABLE_INDICES = [0];
 
@@ -237,7 +238,8 @@ const GUIDE_WHEEL_LABELS: string[][] = Array.from(
 );
 
 // "Свойства сайта" — колесо, которое открывает кнопка «Свойства» в
-// футере. Заполнены три сектора: №1 («Меню»), №11 («Регистрация и
+// футере. Заполнены четыре сектора: №1 («Начало пути по сайту» —
+// пока пустая кнопка), №2 («Меню»), №11 («Регистрация и
 // авторизация») и №12 («Хочу поддержать проект»); остальные — пустые
 // заглушки, видимые, но некликабельные.
 // Ключ кнопки «Свойства сайта»: на заставке (SplashScreen) это третья
@@ -246,8 +248,12 @@ const GUIDE_WHEEL_LABELS: string[][] = Array.from(
 // страница» ("your-page") остаётся без действия, как раньше.
 const PROPERTIES_FOOTER_KEY = "site-page";
 
-// Индексы секторов (нумерация с 0): сектор №1 → 0, №11 → 10, №12 → 11.
-const PROPERTIES_MENU_INDEX = 0;
+// Индексы секторов (нумерация с 0): сектор №1 → 0, №2 → 1, №11 → 10,
+// №12 → 11.
+// ⚠️ ПРАВКА: «Начало пути по сайту» — сектор №1 (индекс 0), «Меню»
+// перенесено со 1-го сектора на 2-й (индекс 1).
+const PROPERTIES_PATH_INDEX = 0;
+const PROPERTIES_MENU_INDEX = 1;
 const PROPERTIES_AUTH_INDEX = SECTOR_COUNT - 2;
 const PROPERTIES_SUPPORT_INDEX = SECTOR_COUNT - 1;
 
@@ -257,11 +263,13 @@ const AUTH_LOGIN_PATH = "/login";
 const AUTH_REGISTER_PATH = "/register";
 
 // Ручная разбивка подписей (в круг Wheel12 влезает ≈10 символов в строку).
+const PROPERTIES_PATH_LABEL = ["Начало", "пути по", "сайту"];
 const PROPERTIES_AUTH_LABEL = ["Регистра-", "ция и", "авториза-", "ция"];
 
 const PROPERTIES_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
   (_, i) => {
+    if (i === PROPERTIES_PATH_INDEX) return PROPERTIES_PATH_LABEL;
     if (i === PROPERTIES_MENU_INDEX) return ["Меню"];
     if (i === PROPERTIES_AUTH_INDEX) return PROPERTIES_AUTH_LABEL;
     // Ручная разбивка по одному слову на строку (3 строки) — иначе
@@ -289,6 +297,26 @@ const PROPERTIES_AUTH_WHEEL_LABELS: string[][] = Array.from(
 );
 
 const PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES = [0, 1];
+
+// ⚠️ ДОБАВЛЕНО: колесо «Начало пути по сайту» (view "path") — 12
+// секторов в том же стиле, что и остальные колёса сайта. Это колесо
+// обозрения: пока заполнен только сектор №1 («Уже готово для вас»),
+// остальные 11 — пустые заглушки, видимые, но некликабельные. Сектор
+// №1 открывает экран с формой (view "path-ready").
+const PATH_READY_INDEX = 0;
+
+const PATH_WHEEL_LABELS: string[][] = Array.from(
+  { length: SECTOR_COUNT },
+  (_, i) => (i === PATH_READY_INDEX ? ["Уже", "готово", "для вас"] : [])
+);
+
+const PATH_WHEEL_CLICKABLE_INDICES = [PATH_READY_INDEX];
+
+// ⚠️ ПРАВКА: экран «Уже готово для вас» (view "path-ready") строится
+// на общем компоненте SortRequestForm (поля «Возраст», «Тема»,
+// «Разделы» и кнопка «Сортировка по запросу» описаны там). Списки
+// вариантов и сам выпадающий список больше не дублируются в этом
+// файле — тот же компонент можно подключать на других страницах сайта.
 
 type GameType =
   | "alphabet-placeholder"
@@ -334,7 +362,9 @@ type ViewState =
   | "guide-info"
   | "properties"
   | "properties-menu"
-  | "properties-auth";
+  | "properties-auth"
+  | "path"
+  | "path-ready";
 
 interface HomePageProps {
   // Ключ кнопки, выбранной на заставке SplashGate (см. комментарий
@@ -384,11 +414,19 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     [isAuthenticated]
   );
 
+  // ⚠️ ПРАВКА: в список кликабельных секторов добавлен сектор №1
+  // («Начало пути по сайту»), чтобы кнопка выглядела активной, как
+  // остальные. Действия у неё пока нет (см. handlePropertiesSectorClick).
   const propertiesClickableIndices = useMemo(
     () =>
       isAuthenticated
-        ? [PROPERTIES_MENU_INDEX, PROPERTIES_SUPPORT_INDEX]
-        : [PROPERTIES_MENU_INDEX, PROPERTIES_AUTH_INDEX, PROPERTIES_SUPPORT_INDEX],
+        ? [PROPERTIES_PATH_INDEX, PROPERTIES_MENU_INDEX, PROPERTIES_SUPPORT_INDEX]
+        : [
+            PROPERTIES_PATH_INDEX,
+            PROPERTIES_MENU_INDEX,
+            PROPERTIES_AUTH_INDEX,
+            PROPERTIES_SUPPORT_INDEX,
+          ],
     [isAuthenticated]
   );
 
@@ -497,17 +535,22 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     }
   };
 
-  // Кнопка «Меню» (сектор №1 колеса «Свойства сайта») → колесо с
+  // Кнопка «Меню» (сектор №2 колеса «Свойства сайта») → колесо с
   // выбором языка / системы письменности.
   const handleMenuClick = () => {
     setView("properties-menu");
   };
 
-  // Колесо «Свойства сайта»: сектор №1 — «Меню», сектор №11 —
-  // «Регистрация и авторизация», сектор №12 — «Хочу поддержать проект»
-  // (экран с оплатой, "guide-info").
+  // Колесо «Свойства сайта»: сектор №1 — «Начало пути по сайту»
+  // (пока без действия), сектор №2 — «Меню», сектор №11 —
+  // «Регистрация и авторизация», сектор №12 — «Хочу поддержать
+  // проект» (экран с оплатой, "guide-info").
   const handlePropertiesSectorClick = (index: number) => {
-    if (index === PROPERTIES_MENU_INDEX) {
+    if (index === PROPERTIES_PATH_INDEX) {
+      // ⚠️ ПРАВКА: кнопка «Начало пути по сайту» открывает колесо
+      // обозрения из 12 секторов (view "path").
+      setView("path");
+    } else if (index === PROPERTIES_MENU_INDEX) {
       handleMenuClick();
     } else if (index === PROPERTIES_AUTH_INDEX) {
       if (!isAuthenticated) {
@@ -536,6 +579,24 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     } else if (index === 1) {
       setLocation(AUTH_REGISTER_PATH);
     }
+  };
+
+  // Колесо «Начало пути по сайту»: сектор №1 — «Уже готово для вас».
+  const handlePathSectorClick = (index: number) => {
+    if (index === PATH_READY_INDEX) {
+      // ⚠️ ПРАВКА: «Уже готово для вас» открывает экран с формой
+      // поиска (view "path-ready").
+      setView("path-ready");
+    }
+  };
+
+  // ⚠️ ЗАГОТОВКА: кнопка «Сортировка по запросу» в SortRequestForm
+  // передаёт сюда значения полей: values.age / values.topic /
+  // values.section — номера из списков ("1", "2", "3" …) или ""
+  // (если поле не выбрано). Пока она ничего не показывает — логику
+  // (какие темы выводить первыми) добавим позже.
+  const handlePathSortClick = (values: SortValues) => {
+    console.debug("[path] сортировка по запросу:", values);
   };
 
   const handleGuideSectorClick = (index: number) => {
@@ -588,7 +649,8 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       // не нужно, onSelect используется только для подсветки activeKey.
       return;
     } else if (isPropertiesKey(key)) {
-      // «Свойства сайта» (заставка и футер) → колесо с кнопкой «Меню».
+      // «Свойства сайта» (заставка и футер) → колесо с кнопками
+      // «Начало пути по сайту» и «Меню».
       // (Раньше здесь открывалось колесо "dictionary" — код этого
       // колеса оставлен ниже, но сейчас оно ни из чего не открывается.)
       setView("properties");
@@ -639,13 +701,20 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   //    (см. guideInfoOrigin);
   //  • "properties-menu" и "properties-auth" → "properties" (обратно
   //    в «Свойства сайта»);
+  //  • "path" → "properties", "path-ready" → "path";
   //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
   //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений).
   const handleBack = () => {
     if (view === "guide-info") {
       setView(guideInfoOrigin);
-    } else if (view === "properties-menu" || view === "properties-auth") {
+    } else if (
+      view === "properties-menu" ||
+      view === "properties-auth" ||
+      view === "path"
+    ) {
       setView("properties");
+    } else if (view === "path-ready") {
+      setView("path");
     } else if (view === "prakriti") {
       setView("sambandha");
     } else if (view === "prakriti-sentence") {
@@ -771,6 +840,25 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
             clickableIndices={PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES}
             onSectorClick={handlePropertiesAuthSectorClick}
           />
+        )}
+
+        {view === "path" && (
+          <Wheel12
+            labels={PATH_WHEEL_LABELS}
+            centerLabel="Начало пути по сайту"
+            clickableIndices={PATH_WHEEL_CLICKABLE_INDICES}
+            onSectorClick={handlePathSectorClick}
+          />
+        )}
+
+        {view === "path-ready" && (
+          // ⚠️ ПРАВКА: вместо собственной формы — общий компонент
+          // SortRequestForm. Белый фон, отступ сверху и положение на
+          // странице задаёт эта обёртка (сам компонент рисует только
+          // ряд полей и кнопку).
+          <div className="w-full h-full flex items-start justify-center px-4 pt-4 bg-white overflow-y-auto">
+            <SortRequestForm onSubmit={handlePathSortClick} />
+          </div>
         )}
 
         {view === "abhidheya" && (
