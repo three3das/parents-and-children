@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { Volume2 } from "lucide-react";
+import { Volume2, BookOpen, X, Pencil } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { useLanguageScript } from "@/lib/languageScript";
 import { supabase } from "@/lib/supabase";
@@ -58,6 +58,38 @@ import { supabase } from "@/lib/supabase";
 //   3. Таблица букв (order-3, внизу — по прямому запросу)
 // На sm: и выше порядок и ширины возвращаются к исходному горизонтальному
 // виду (order сбрасывается через sm:order-*).
+//
+// ⚠️ ПРАВКА (словарь по букве): верхняя зона правой панели (зона 1 —
+// "Буква" + сама буква) теперь КНОПКА. Нажатие открывает окно со
+// словами, которые начинаются на выбранную букву; нажатие на слово в
+// этом окне озвучивает его (Web Speech API, язык — из SPEECH_LOCALE).
+// Слова берутся через GET /api/words?all=true — тот же эндпоинт, что
+// используют игры (читает таблицу words; для не-русских языков отдаёт
+// ещё и translatedWord из word_translations, параметр &lang=...).
+// Озвучивание слова НЕ зависит от переключателя "Озвучивание" слева:
+// явный клик по слову — это и есть просьба его услышать.
+//
+// ⚠️ ПРАВКА (понятность кнопки и трафарета — ЭТА ВЕРСИЯ):
+//  1) Зона 1 после выбора буквы выглядит как настоящая кнопка сайта:
+//     сплошной золотой фон (как кнопки выбора игры), белая буква и
+//     белая «таблетка» с иконкой книги и подписью «Слова на эту букву».
+//     Пока человек ни разу не нажал на неё, кнопка мягко «пульсирует»
+//     золотым кольцом, привлекая внимание. После первого открытия
+//     окна пульсация прекращается (состояние dictHintSeen). Пока буква
+//     не выбрана — зона белая, с подсказкой «Сначала выберите букву».
+//  2) Большая буква на холсте теперь нарисована как ТРАФАРЕТ:
+//     пунктирный контур с бледной заливкой (SVG), а не просто
+//     бледная буква. Сверху холста — подсказка с карандашом «Обведите
+//     букву пальцем или мышью»; она исчезает, как только человек начал
+//     рисовать, и возвращается после «Очистить» или смены буквы.
+
+// ⚠️ ПРАВКА (порядок и подписи двух верхних зон — ЭТА ВЕРСИЯ):
+//  • Зоны поменялись местами: сначала (сверху) — буква в выбранной
+//    системе письма, ниже — кнопка «Слова на эту букву» с буквой
+//    языка.
+//  • Верхняя зона теперь трёхстрочная: «Буква» / символ в выбранной
+//    системе письма / «В системе письма «Кириллица»» (название берётся
+//    из scriptLabel, а не зашито в коде).
 
 // Значения посчитаны той же формулой, что и sectorColor() в
 // IshvaraPage.tsx: mix(goldPct) = GOLD*goldPct + WHITE*(1-goldPct),
@@ -83,6 +115,15 @@ interface LetterRow {
 interface LetterGroup {
   type: string;
   letters: LetterRow[];
+}
+
+// Слово из /api/words: word — русское слово из таблицы words,
+// translatedWord — его перевод на язык, переданный в параметре lang
+// (есть только если запрос был с &lang=... и перевод существует).
+interface DictionaryWord {
+  id: string;
+  word: string;
+  translatedWord?: string;
 }
 
 // Голосовой локаль для озвучки — свой для каждого из 12 языков сайта.
@@ -161,8 +202,73 @@ const NO_SCRIPT_DATA_LABEL: Record<string, string> = {
   en: 'No data for this writing system',
 };
 
+// ⚠️ ДОБАВЛЕНО: подписи окна со словами на выбранную букву.
+const DICT_TITLE_LABEL: Record<string, string> = {
+  ru: 'Слова на букву',
+  uk: 'Слова на літеру',
+  en: 'Words starting with',
+};
+const DICT_OPEN_HINT_LABEL: Record<string, string> = {
+  ru: 'Показать слова на эту букву',
+  uk: 'Показати слова на цю літеру',
+  en: 'Show words for this letter',
+};
+const DICT_LOADING_LABEL: Record<string, string> = {
+  ru: 'Загрузка слов...',
+  uk: 'Завантаження слів...',
+  en: 'Loading words...',
+};
+const DICT_EMPTY_LABEL: Record<string, string> = {
+  ru: 'На эту букву слов пока нет.',
+  uk: 'На цю літеру слів поки немає.',
+  en: 'No words for this letter yet.',
+};
+const DICT_ERROR_LABEL: Record<string, string> = {
+  ru: 'Не удалось загрузить слова. Закройте окно и попробуйте ещё раз.',
+  uk: 'Не вдалося завантажити слова. Закрийте вікно і спробуйте ще раз.',
+  en: 'Could not load words. Close this window and try again.',
+};
+const DICT_HINT_LABEL: Record<string, string> = {
+  ru: 'Нажмите на слово, чтобы его услышать',
+  uk: 'Натисніть на слово, щоб його почути',
+  en: 'Tap a word to hear it',
+};
+const DICT_CLOSE_LABEL: Record<string, string> = {
+  ru: 'Закрыть',
+  uk: 'Закрити',
+  en: 'Close',
+};
+
+// ⚠️ ДОБАВЛЕНО (эта версия): подпись-призыв на кнопке зоны 1, подсказка
+// пока буква не выбрана и подсказка над трафаретом на холсте.
+const DICT_CTA_LABEL: Record<string, string> = {
+  ru: 'Слова на эту букву',
+  uk: 'Слова на цю літеру',
+  en: 'Words for this letter',
+};
+const DICT_NEED_LETTER_LABEL: Record<string, string> = {
+  ru: 'Сначала выберите букву',
+  uk: 'Спочатку виберіть літеру',
+  en: 'Pick a letter first',
+};
+const TRACE_HINT_LABEL: Record<string, string> = {
+  ru: 'Обведите букву пальцем или мышью',
+  uk: 'Обведіть літеру пальцем або мишею',
+  en: 'Trace the letter with finger or mouse',
+};
+
 function pickLabel(dict: Record<string, string>, uiLanguage: string): string {
   return dict[uiLanguage] ?? dict.en;
+}
+
+// Остановить любое текущее произношение (безопасно, если Web Speech
+// API в браузере недоступен).
+function stopSpeech() {
+  try {
+    if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
+  } catch {
+    // ничего страшного — просто нечего останавливать
+  }
 }
 
 export function AlphabetTutor() {
@@ -184,6 +290,16 @@ export function AlphabetTutor() {
   // или системы письма.
   const [scriptText, setScriptText] = useState<string | null>(null);
 
+  // ⚠️ ДОБАВЛЕНО: состояние окна со словами на выбранную букву.
+  const [dictOpen, setDictOpen] = useState(false);
+  const [allWords, setAllWords] = useState<DictionaryWord[]>([]);
+  const [wordsLoading, setWordsLoading] = useState(false);
+  const [wordsError, setWordsError] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+  // ⚠️ ДОБАВЛЕНО (эта версия): true после первого открытия окна со
+  // словами — после этого кнопка зоны 1 перестаёт «пульсировать».
+  const [dictHintSeen, setDictHintSeen] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -191,6 +307,9 @@ export function AlphabetTutor() {
       setLoading(true);
       setActiveCategory(null);
       setSelectedId(null);
+      // ⚠️ ДОБАВЛЕНО: при смене языка окно со словами закрываем —
+      // выбранная буква сбрасывается, а слова были для другого языка.
+      setDictOpen(false);
       try {
         const { data: systems, error: sysError } = await supabase
           .from('text_languages_systems')
@@ -287,6 +406,98 @@ export function AlphabetTutor() {
     };
   }, [selectedLetter, script]);
 
+  // ⚠️ ДОБАВЛЕНО: загрузка слов для окна-словаря. Срабатывает при
+  // каждом открытии окна (сервер отдаёт /api/words с Cache-Control
+  // max-age=120, так что повторные открытия берутся из кэша браузера).
+  // Для санскрита слов в базе нет — запрос не делаем.
+  useEffect(() => {
+    if (!dictOpen) return;
+    if (language === 'sa') return;
+
+    let cancelled = false;
+
+    async function loadWords() {
+      try {
+        const url =
+          language === 'ru'
+            ? '/api/words?all=true'
+            : `/api/words?all=true&lang=${encodeURIComponent(language)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setAllWords(Array.isArray(data) ? (data as DictionaryWord[]) : []);
+          setWordsLoading(false);
+        }
+      } catch (err) {
+        console.error('Ошибка загрузки слов для словаря:', err);
+        if (!cancelled) {
+          setWordsError(true);
+          setWordsLoading(false);
+        }
+      }
+    }
+
+    loadWords();
+    return () => {
+      cancelled = true;
+    };
+  }, [dictOpen, language]);
+
+  // Слова, начинающиеся на выбранную букву. Для русского берём
+  // words.word, для остальных языков — translatedWord (слова без
+  // перевода на текущий язык пропускаем, чтобы не показывать русский
+  // текст под, например, английской буквой). Сравнение без учёта
+  // регистра; grapheme может быть и из нескольких символов, поэтому
+  // используем startsWith, а не сравнение первого символа.
+  const letterWords = useMemo(() => {
+    if (!selectedLetter) return [] as { id: string; text: string }[];
+    const locale = SPEECH_LOCALE[language] ?? 'en-US';
+    const target = selectedLetter.grapheme.normalize('NFC').toLocaleLowerCase(locale);
+    const result: { id: string; text: string }[] = [];
+    for (const w of allWords) {
+      const raw = language === 'ru' ? w.word : w.translatedWord;
+      if (!raw) continue;
+      const text = raw.trim();
+      if (text && text.normalize('NFC').toLocaleLowerCase(locale).startsWith(target)) {
+        result.push({ id: w.id, text });
+      }
+    }
+    return result.sort((a, b) => a.text.localeCompare(b.text, locale));
+  }, [allWords, selectedLetter, language]);
+
+  function openDictionary() {
+    if (!selectedLetter) return;
+    // Состояние готовим ДО показа окна, чтобы на первом кадре не мелькали
+    // слова от прошлого открытия.
+    setAllWords([]);
+    setWordsError(false);
+    setWordsLoading(language !== 'sa');
+    setDictOpen(true);
+    // ⚠️ ДОБАВЛЕНО: после первого открытия кнопка больше не пульсирует.
+    setDictHintSeen(true);
+  }
+
+  function closeDictionary() {
+    stopSpeech();
+    setSpeakingId(null);
+    setDictOpen(false);
+  }
+
+  // Закрытие окна со словами по Escape.
+  useEffect(() => {
+    if (!dictOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeDictionary();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dictOpen]);
+
+  // При уходе со страницы — остановить недосказанное слово.
+  useEffect(() => () => stopSpeech(), []);
+
   const uiLanguage = ['ru', 'uk', 'en'].includes(language) ? language : 'en';
 
   function playLetter(grapheme: string) {
@@ -295,6 +506,23 @@ export function AlphabetTutor() {
       const u = new SpeechSynthesisUtterance(grapheme);
       u.lang = SPEECH_LOCALE[language] ?? 'en-US';
       u.rate = 0.7;
+      speechSynthesis.speak(u);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Озвучивание слова из словаря: клик по слову = просьба его услышать,
+  // поэтому переключатель "Озвучивание" (audioEnabled) здесь не учитывается.
+  function speakWord(id: string, text: string) {
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = SPEECH_LOCALE[language] ?? 'en-US';
+      u.rate = 0.8;
+      u.onstart = () => setSpeakingId(id);
+      u.onend = () => setSpeakingId((cur) => (cur === id ? null : cur));
+      u.onerror = () => setSpeakingId((cur) => (cur === id ? null : cur));
       speechSynthesis.speak(u);
     } catch (e) {
       console.error(e);
@@ -325,6 +553,10 @@ export function AlphabetTutor() {
       </div>
     );
   }
+
+  // ⚠️ ДОБАВЛЕНО (эта версия): пульсация кнопки зоны 1 — только пока
+  // буква выбрана и окно со словами ещё ни разу не открывали.
+  const pulseDictButton = Boolean(selectedLetter) && !dictHintSeen;
 
   return (
     <div className="max-w-7xl mx-auto p-4 h-auto sm:h-full" style={{ backgroundColor: WHITE }}>
@@ -452,42 +684,106 @@ export function AlphabetTutor() {
             делить) и order-2 (идёт между сайдбаром и таблицей букв). На
             sm: и выше — исходные w-64/h-full/order-3. */}
         <div className="w-full sm:w-64 flex-shrink-0 h-auto sm:h-full flex flex-col gap-2 order-2 sm:order-3">
-          {/* Зона 1 — символ буквы. min-h на мобильном — чтобы flex-[0.5]
-              не схлопывался в 0 при h-auto. */}
+          {/* Зона 1 (верхняя) — буква в ВЫБРАННОЙ СИСТЕМЕ ПИСЬМА.
+              ⚠️ ПРАВКА (эта версия): зона переехала на первое место
+              (раньше была второй) и теперь состоит из трёх строк:
+                1) «Буква»;
+                2) сам символ буквы в выбранной системе письма
+                   (scriptText; «—», если буква не выбрана или для
+                   неё нет значения);
+                3) «В системе письма «<название системы>»» — название
+                   берётся из scriptLabel (колесо «Письменность»), а не
+                   зашито в коде, поэтому меняется вместе с выбором
+                   системы письма (Кириллица, Деванагари, Латиница …). */}
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="flex-[0.5] min-h-[70px] sm:min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center p-2 overflow-hidden"
+            className="flex-[0.5] min-h-[96px] sm:min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center gap-0.5 p-2 overflow-hidden"
             style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }}
           >
-            <h4 className="text-[10px] font-bold mb-1" style={{ color: GOLD_100 }}>
+            <span className="block text-[10px] font-bold" style={{ color: GOLD_100 }}>
               {pickLabel(LETTER_ZONE_LABEL, uiLanguage)}
-            </h4>
+            </span>
             <div
               className="font-bold text-center leading-none break-words"
-              style={{ color: GOLD_100, fontSize: 'clamp(20px, 4vw, 40px)' }}
-            >
-              {selectedLetter?.grapheme ?? '—'}
-            </div>
-          </motion.div>
-
-          {/* Зона 2 — тот же символ в выбранной системе письма. */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex-[0.5] min-h-[70px] sm:min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center p-2 overflow-hidden"
-            style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }}
-          >
-            <h4 className="text-[10px] font-bold mb-1 text-center" style={{ color: GOLD_100 }}>
-              {pickLabel(SCRIPT_ZONE_LABEL, uiLanguage)} «{scriptLabel}»
-            </h4>
-            <div
-              className="font-bold text-center leading-none break-words"
-              style={{ color: GOLD_100, fontSize: 'clamp(20px, 4vw, 40px)' }}
+              style={{ color: GOLD_100, fontSize: 'clamp(20px, 3.4vw, 36px)' }}
             >
               {selectedLetter ? (scriptText ?? '—') : '—'}
             </div>
+            <span className="block text-[10px] font-bold text-center leading-tight" style={{ color: GOLD_100 }}>
+              {pickLabel(SCRIPT_ZONE_LABEL, uiLanguage)} «{scriptLabel}»
+            </span>
           </motion.div>
+
+          {/* Зона 2 (вторая, ниже) — символ буквы + КНОПКА «Слова на эту букву».
+              ⚠️ ПРАВКА (эта версия): после выбора буквы зона выглядит
+              как кнопка сайта — сплошной золотой фон (как у кнопок
+              выбора игры), белая буква и белая «таблетка» с книгой и
+              подписью-призывом. Пока человек ни разу не открыл словарь,
+              вокруг кнопки мягко расходится золотое кольцо (пульсация).
+              Пока буква не выбрана — белая неактивная зона с подсказкой.
+              Внутри — span.block (div внутри button — невалидный HTML). */}
+          <motion.button
+            type="button"
+            onClick={openDictionary}
+            disabled={!selectedLetter}
+            title={pickLabel(DICT_OPEN_HINT_LABEL, uiLanguage)}
+            aria-label={pickLabel(DICT_OPEN_HINT_LABEL, uiLanguage)}
+            whileHover={selectedLetter ? { scale: 1.04 } : undefined}
+            whileTap={selectedLetter ? { scale: 0.96 } : undefined}
+            animate={
+              pulseDictButton
+                ? {
+                    boxShadow: [
+                      '0 0 0 0 rgba(255, 215, 0, 0.75)',
+                      '0 0 0 14px rgba(255, 215, 0, 0)',
+                    ],
+                  }
+                : { boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }
+            }
+            transition={
+              pulseDictButton
+                ? { duration: 1.4, repeat: Infinity, ease: 'easeOut' }
+                : { duration: 0.2 }
+            }
+            className={`relative w-full flex-[0.5] min-h-[96px] sm:min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center gap-0.5 p-2 overflow-hidden ${
+              selectedLetter ? 'cursor-pointer' : 'cursor-default'
+            }`}
+            style={
+              selectedLetter
+                ? { backgroundColor: GOLD_100, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }
+                : { backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }
+            }
+          >
+            <span
+              className="block text-[10px] font-bold"
+              style={{ color: selectedLetter ? WHITE : GOLD_100 }}
+            >
+              {pickLabel(LETTER_ZONE_LABEL, uiLanguage)}
+            </span>
+            <span
+              className="block font-bold text-center leading-none break-words"
+              style={{
+                color: selectedLetter ? WHITE : GOLD_100,
+                fontSize: 'clamp(20px, 3.4vw, 36px)',
+              }}
+            >
+              {selectedLetter?.grapheme ?? '—'}
+            </span>
+            {selectedLetter ? (
+              <span
+                className="mt-0.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-bold"
+                style={{ color: GOLD_100 }}
+              >
+                <BookOpen className="w-3 h-3" strokeWidth={2.5} />
+                {pickLabel(DICT_CTA_LABEL, uiLanguage)}
+              </span>
+            ) : (
+              <span className="block text-[10px] font-bold" style={{ color: GOLD_67 }}>
+                {pickLabel(DICT_NEED_LETTER_LABEL, uiLanguage)}
+              </span>
+            )}
+          </motion.button>
 
           {/* Зона 3 — холст для письма от руки. Уменьшена на 30%
               относительно предыдущей версии (flex-[2] → flex-[1.4]).
@@ -501,6 +797,86 @@ export function AlphabetTutor() {
           </div>
         </div>
       </div>
+
+      {/* ⚠️ ДОБАВЛЕНО: окно со словами на выбранную букву — в стиле
+          остальных окон сайта (белый фон, золотая рамка, золотой текст).
+          position: fixed, поэтому на раскладку страницы не влияет.
+          Клик по затемнению, кнопка ✕ и клавиша Escape закрывают окно. */}
+      {dictOpen && selectedLetter && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[9998]" onClick={closeDictionary} />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${pickLabel(DICT_TITLE_LABEL, uiLanguage)} ${selectedLetter.grapheme}`}
+            className="fixed top-1/2 left-1/2 w-[92%] max-w-xl max-h-[80vh] bg-white rounded-2xl border-2 shadow-2xl z-[9999] p-4 flex flex-col gap-3"
+            style={{ transform: 'translate(-50%, -50%)', borderColor: GOLD_100 }}
+          >
+            <div className="flex items-center justify-between gap-2 flex-shrink-0">
+              <h3 className="text-lg font-bold" style={{ color: GOLD_100 }}>
+                {pickLabel(DICT_TITLE_LABEL, uiLanguage)} «{selectedLetter.grapheme}»
+              </h3>
+              <button
+                type="button"
+                onClick={closeDictionary}
+                aria-label={pickLabel(DICT_CLOSE_LABEL, uiLanguage)}
+                title={pickLabel(DICT_CLOSE_LABEL, uiLanguage)}
+                className="rounded-full p-1 border-2 bg-white hover:bg-[#FFF2AB] transition-colors"
+                style={{ color: GOLD_100, borderColor: GOLD_100 }}
+              >
+                <X className="w-4 h-4" strokeWidth={3} />
+              </button>
+            </div>
+
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              {wordsLoading ? (
+                <p className="text-sm font-bold" style={{ color: GOLD_100 }}>
+                  {pickLabel(DICT_LOADING_LABEL, uiLanguage)}
+                </p>
+              ) : wordsError ? (
+                <p className="text-sm font-bold" style={{ color: GOLD_100 }} role="alert">
+                  {pickLabel(DICT_ERROR_LABEL, uiLanguage)}
+                </p>
+              ) : letterWords.length === 0 ? (
+                <p className="text-sm font-bold" style={{ color: GOLD_100 }}>
+                  {pickLabel(DICT_EMPTY_LABEL, uiLanguage)}
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {letterWords.map((w) => {
+                    const speaking = speakingId === w.id;
+                    return (
+                      <button
+                        key={w.id}
+                        type="button"
+                        onClick={() => speakWord(w.id, w.text)}
+                        className={`px-3 py-1.5 rounded-full text-sm font-bold transition-colors ${
+                          speaking ? '' : 'bg-white hover:bg-[#FFF2AB]'
+                        }`}
+                        style={
+                          speaking
+                            ? { backgroundColor: GOLD_100, color: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_100}` }
+                            : { color: GOLD_100, border: `${BORDER_WIDTH}px solid ${GOLD_33}` }
+                        }
+                      >
+                        <Volume2
+                          className="inline-block w-3.5 h-3.5 mr-1 align-text-bottom"
+                          strokeWidth={2.5}
+                        />
+                        {w.text}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <p className="text-[11px] font-bold flex-shrink-0" style={{ color: GOLD_67 }}>
+              {pickLabel(DICT_HINT_LABEL, uiLanguage)}
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -578,9 +954,17 @@ function LetterCard({
 //
 // ⚠️ ДОБАВЛЕНО: переключатель режима "Буква / Письмо" (две кнопки над
 // холстом) — определяет, letterSymbol или scriptSymbol сейчас
-// используется как трафарет-водяной знак для обводки. По умолчанию —
-// режим "Буква". Смена буквы, системы письма или режима — холст
-// очищается (как и раньше при смене буквы).
+// используется как трафарет для обводки. По умолчанию — режим
+// "Буква". Смена буквы, системы письма или режима — холст очищается
+// (как и раньше при смене буквы).
+//
+// ⚠️ ПРАВКА (эта версия): трафарет теперь рисуется как SVG-текст с
+// ПУНКТИРНЫМ контуром и бледной заливкой — так он выглядит как
+// «шаблон для обводки», а не как обычная бледная буква. Над
+// трафаретом — подсказка с карандашом «Обведите букву пальцем или
+// мышью»; пока человек не начал рисовать, она видна, после первого
+// штриха прячется (hasDrawn). «Очистить» или смена буквы/режима
+// возвращают подсказку.
 interface DrawingPadProps {
   letterSymbol: string | null;
   scriptSymbol: string | null;
@@ -589,6 +973,8 @@ interface DrawingPadProps {
 
 function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPadProps) {
   const [mode, setMode] = useState<'letter' | 'script'>('letter');
+  // ⚠️ ДОБАВЛЕНО: true после первого штриха — прячет подсказку.
+  const [hasDrawn, setHasDrawn] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDrawingRef = useRef(false);
@@ -634,6 +1020,8 @@ function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPadProps)
   function clearCanvas() {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
+    // Подсказка «Обведите букву» возвращается после очистки.
+    setHasDrawn(false);
     if (!canvas || !ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
@@ -649,6 +1037,7 @@ function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPadProps)
     e.currentTarget.setPointerCapture(e.pointerId);
     isDrawingRef.current = true;
     lastPointRef.current = getRelativePoint(e);
+    setHasDrawn(true);
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -721,17 +1110,52 @@ function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPadProps)
             </p>
           </div>
         ) : guideSymbol ? (
-          <div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-            style={{ fontSize: 'min(30vw, 220px)', color: GOLD_33, fontWeight: 900 }}
+          // ⚠️ ПРАВКА: трафарет — SVG-текст с пунктирным контуром и
+          // бледной заливкой. viewBox 100×100 масштабируется под размер
+          // холста (preserveAspectRatio="xMidYMid meet"), поэтому буква
+          // всегда целиком помещается. Для длинных значений (3+ символа)
+          // шрифт меньше.
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none select-none"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="xMidYMid meet"
+            aria-hidden="true"
           >
-            {guideSymbol}
-          </div>
+            <text
+              x="50"
+              y="54"
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={guideSymbol.length > 2 ? 40 : 72}
+              fontWeight={900}
+              fill={GOLD_33}
+              fillOpacity={0.5}
+              stroke={GOLD_67}
+              strokeWidth={0.8}
+              strokeDasharray="2 1.5"
+              strokeLinejoin="round"
+            >
+              {guideSymbol}
+            </text>
+          </svg>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none px-4 text-center">
             <p className="text-xs font-bold" style={{ color: GOLD_67 }}>
               {pickLabel(NO_SCRIPT_DATA_LABEL, uiLanguage)}
             </p>
+          </div>
+        )}
+
+        {/* ⚠️ ДОБАВЛЕНО: подсказка над трафаретом — видна, пока человек
+            не начал рисовать. pointer-events-none, чтобы не мешать
+            рисованию. */}
+        {hasSelection && guideSymbol && !hasDrawn && (
+          <div
+            className="absolute top-1.5 left-1/2 -translate-x-1/2 max-w-[92%] inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-bold text-center leading-tight pointer-events-none select-none"
+            style={{ color: GOLD_100, border: `${BORDER_WIDTH}px solid ${GOLD_67}` }}
+          >
+            <Pencil className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
+            <span>{pickLabel(TRACE_HINT_LABEL, uiLanguage)}</span>
           </div>
         )}
 
