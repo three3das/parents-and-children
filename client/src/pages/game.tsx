@@ -15,7 +15,7 @@ import { SyllablesGame } from "@/components/SyllablesGame";
 import { SentenceGame } from "@/components/SentenceGame";
 import { AudioPictureGame } from "@/components/AudioPictureGame";
 import { AudioSentenceGame } from "@/components/AudioSentenceGame";
-import { AlphabetTutor } from "@/components/AlphabetTutor";
+import { AlphabetTutor } from "@/components/alphabet-tutor/AlphabetTutor";
 import { motion } from "framer-motion";
 // ⚠️ УБРАНО (мусор после переноса Settings/Login/CreateAccount/Progress
 // в футер IshvaraPage.tsx): импорты LoginModal, CreateAccountModal,
