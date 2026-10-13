@@ -12,6 +12,7 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isSyncing: boolean; // идёт сверка статуса подписки с сервером
 }
 
 // Имя для приветствия в шапке/футере страниц-«колёс» (например,

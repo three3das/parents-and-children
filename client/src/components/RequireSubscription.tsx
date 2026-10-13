@@ -6,16 +6,21 @@ import { useAuth } from "@/lib/auth";
 //  - не залогинен             → редирект на /login
 //  - залогинен, но не оплатил → редирект на /payments
 //  - залогинен и оплатил      → показываем страницу как есть
+//
+// Решение принимается только когда AuthContext прочитал localStorage
+// (isLoading) и сверил статус подписки с сервером (isSyncing).
 export default function RequireSubscription({
   component: Component,
 }: {
   component: React.ComponentType;
 }) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, isSyncing } = useAuth();
   const [, navigate] = useLocation();
 
+  const isPending = isLoading || isSyncing;
+
   useEffect(() => {
-    if (isLoading) return; // ждём, пока AuthContext прочитает localStorage
+    if (isPending) return;
 
     if (!isAuthenticated) {
       navigate("/login");
@@ -24,11 +29,11 @@ export default function RequireSubscription({
     if (!user?.hasSubscription) {
       navigate("/payments");
     }
-  }, [isLoading, isAuthenticated, user, navigate]);
+  }, [isPending, isAuthenticated, user, navigate]);
 
   // Пока идёт загрузка или редирект ещё не сработал — ничего не рисуем,
-  // чтобы на долю секунды не мигал защищённый контент.
-  if (isLoading || !isAuthenticated || !user?.hasSubscription) {
+  // чтобы защищённый контент не мелькал.
+  if (isPending || !isAuthenticated || !user?.hasSubscription) {
     return null;
   }
 
