@@ -14,7 +14,7 @@ import type { LetterGroup } from './types';
 
 // Общие классы зон 1 и 2 правой панели. Обе — золотые, с белым текстом.
 const ZONE_CLASS =
-  'flex-[0.5] min-h-[96px] sm:min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center gap-0.5 p-2 overflow-hidden';
+  'flex-[0.5] min-h-[72px] sm:min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center gap-0.5 p-2 overflow-hidden';
 const ZONE_STYLE = { backgroundColor: GOLD_100, border: `${BORDER_WIDTH}px solid ${GOLD_100}` };
 const ZONE_SYMBOL_SIZE = 'clamp(20px, 3.4vw, 36px)';
 
@@ -92,19 +92,19 @@ export function AlphabetTutor() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto p-4 h-auto sm:h-full" style={{ backgroundColor: WHITE }}>
+    <div className="max-w-7xl mx-auto p-2 sm:p-4 h-auto sm:h-full" style={{ backgroundColor: WHITE }}>
       {/* Мобильный: колонка, страница растёт по контенту.
           sm и выше: ряд. Порядок на мобильном: сайдбар → правая панель → таблица. */}
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-stretch h-auto sm:h-full">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:items-stretch h-auto sm:h-full">
         {/* ЛЕВАЯ КОЛОНКА — функции и категории */}
-        <div className="w-full sm:w-40 flex-shrink-0 space-y-4 order-1">
-          <div>
-            <h4 className="text-[10px] font-bold mb-1" style={{ color: SILVER }}>
+        <div className="w-full sm:w-40 flex-shrink-0 flex flex-wrap items-center gap-1 sm:block sm:space-y-4">
+          <div className="contents sm:block">
+            <h4 className="hidden sm:block text-[10px] font-bold mb-1" style={{ color: SILVER }}>
               {pickLabel(L.functions, uiLanguage)}
             </h4>
             <button
               onClick={() => setAudioEnabled(!audioEnabled)}
-              className="w-full text-left px-2 py-1 rounded text-xs font-bold transition-colors"
+              className="sm:w-full text-left px-2 py-1 rounded text-xs font-bold transition-colors"
               style={sidebarButtonStyle(audioEnabled, GOLD_100)}
               {...sidebarHover(audioEnabled)}
             >
@@ -117,18 +117,18 @@ export function AlphabetTutor() {
             </button>
           </div>
 
-          <div>
-            <h4 className="text-[10px] font-bold mb-1" style={{ color: SILVER }}>
+          <div className="contents sm:block">
+            <h4 className="hidden sm:block text-[10px] font-bold mb-1" style={{ color: SILVER }}>
               {pickLabel(L.categories, uiLanguage)}
             </h4>
-            <div className="space-y-0.5">
+            <div className="contents sm:block sm:space-y-0.5">
               {groups.map((group) => {
                 const isActive = activeCategory === group.type;
                 return (
                   <button
                     key={group.type}
                     onClick={() => setActiveCategory(isActive ? null : group.type)}
-                    className="w-full text-left px-2 py-1 rounded text-xs font-bold transition-colors"
+                    className="sm:w-full text-left px-2 py-1 rounded text-xs font-bold transition-colors"
                     style={sidebarButtonStyle(isActive, GOLD_67)}
                     {...sidebarHover(isActive)}
                   >
@@ -141,9 +141,9 @@ export function AlphabetTutor() {
         </div>
 
         {/* ЦЕНТР — таблица букв */}
-        <div className="w-full sm:flex-1 min-w-0 overflow-visible sm:overflow-auto order-3 sm:order-2">
+        <div className="w-full sm:flex-1 min-w-0 overflow-visible sm:overflow-auto">
           <div
-            className="p-3 rounded space-y-2"
+            className="p-2 sm:p-3 rounded space-y-2"
             style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_33}` }}
           >
             {groups.map((group) => (
@@ -168,7 +168,7 @@ export function AlphabetTutor() {
         </div>
 
         {/* ПРАВАЯ ПАНЕЛЬ — три зоны (высота 0.5 / 0.5 / 1.4) */}
-        <div className="w-full sm:w-64 flex-shrink-0 h-auto sm:h-full flex flex-col gap-2 order-2 sm:order-3">
+        <div className="w-full sm:w-64 flex-shrink-0 h-auto sm:h-full grid grid-cols-2 gap-2 sm:flex sm:flex-col">
           {/* Зона 1 — буква в выбранной системе письма (золотая, белый текст) */}
           <div className={ZONE_CLASS} style={ZONE_STYLE}>
             <span className="block text-[10px] font-bold" style={{ color: WHITE }}>
@@ -237,7 +237,7 @@ export function AlphabetTutor() {
           </motion.button>
 
           {/* Зона 3 — холст (тоже золотой) */}
-          <div className="flex-[1.4] min-h-[220px] sm:min-h-0">
+          <div className="col-span-2 h-[200px] sm:h-auto sm:flex-[1.4] sm:min-h-0">
             <DrawingPad
               letterSymbol={selectedLetter?.grapheme ?? null}
               scriptSymbol={scriptText}

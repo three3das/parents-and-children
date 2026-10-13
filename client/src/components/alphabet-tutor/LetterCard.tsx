@@ -27,7 +27,7 @@ export function LetterCard({ letter, isHighlighted, isSelected, onClick }: Lette
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className="relative w-10 h-10 flex flex-col items-center justify-center transition-colors flex-shrink-0"
+      className="relative w-9 h-9 sm:w-10 sm:h-10 flex flex-col items-center justify-center transition-colors flex-shrink-0"
       style={{ backgroundColor: background, border: `${borderWidth}px solid ${borderColor}` }}
     >
       {letter.sort_order != null && (
