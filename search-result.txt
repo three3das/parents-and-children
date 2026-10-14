@@ -1,0 +1,85 @@
+﻿
+Path                                                                                      LineNumber Line                                                        
+----                                                                                      ---------- ----                                                        
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                   6 import { useIsMobile } from "@/hooks/use-mobile"            
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                  39   isMobile: boolean                                         
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                  74     const isMobile = useIsMobile()                          
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                  98       return isMobile                                       
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                 101     }, [isMobile, setOpen, setOpenMobile])                  
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                 128         isMobile,                                           
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                 133       [state, open, setOpen, isMobile, openMobile, setOpe...
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                 182     const { isMobile, state, openMobile, setOpenMobile } ...
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                 199     if (isMobile) {                                         
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                 565     const { isMobile, state } = useSidebar()                
+C:\Users\smost\Desktop\parents-and-children\client\src\components\ui\sidebar.tsx                 594           hidden={state !== "collapsed" || isMobile}        
+C:\Users\smost\Desktop\parents-and-children\client\src\components\CategoryPage.tsx                40           onClick={() => navigate("/")}                     
+C:\Users\smost\Desktop\parents-and-children\client\src\components\CelebrationOverlay.tsx          57         left: Math.random() * window.innerWidth,            
+C:\Users\smost\Desktop\parents-and-children\client\src\components\CelebrationOverlay.tsx          94       x: Math.random() * (typeof window !== 'undefined' ?...
+C:\Users\smost\Desktop\parents-and-children\client\src\components\LanguageSwitcher.tsx            28         right: window.innerWidth - rect.right,              
+C:\Users\smost\Desktop\parents-and-children\client\src\components\RequireSubscription.tsx         10 // Решение принимается только когда AuthContext прочитал ...
+C:\Users\smost\Desktop\parents-and-children\client\src\components\RequireSubscription.tsx         26       navigate("/login");                                   
+C:\Users\smost\Desktop\parents-and-children\client\src\components\RequireSubscription.tsx         30       navigate("/payments");                                
+C:\Users\smost\Desktop\parents-and-children\client\src\components\SiteHeaderFooter.tsx            64           window.location.href = targetUrl;                 
+C:\Users\smost\Desktop\parents-and-children\client\src\hooks\use-mobile.tsx                        5 export function useIsMobile() {                             
+C:\Users\smost\Desktop\parents-and-children\client\src\hooks\use-mobile.tsx                        6   const [isMobile, setIsMobile] = React.useState<boolean ...
+C:\Users\smost\Desktop\parents-and-children\client\src\hooks\use-mobile.tsx                       11       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)    
+C:\Users\smost\Desktop\parents-and-children\client\src\hooks\use-mobile.tsx                       14     setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)      
+C:\Users\smost\Desktop\parents-and-children\client\src\hooks\use-mobile.tsx                       18   return !!isMobile                                         
+C:\Users\smost\Desktop\parents-and-children\client\src\lib\auth\AuthContext.tsx                   26   // При открытии сайта: читаем пользователя из localStor...
+C:\Users\smost\Desktop\parents-and-children\client\src\lib\auth\AuthContext.tsx                   35         const raw = localStorage.getItem(STORAGE_KEY);      
+C:\Users\smost\Desktop\parents-and-children\client\src\lib\auth\AuthContext.tsx                   57             localStorage.setItem(STORAGE_KEY, JSON.string...
+C:\Users\smost\Desktop\parents-and-children\client\src\lib\auth\AuthContext.tsx                   74     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+C:\Users\smost\Desktop\parents-and-children\client\src\lib\auth\AuthContext.tsx                   83     localStorage.removeItem(STORAGE_KEY);                   
+C:\Users\smost\Desktop\parents-and-children\client\src\lib\i18n\LanguageContext.tsx               25     const stored = localStorage.getItem(STORAGE_KEY);       
+C:\Users\smost\Desktop\parents-and-children\client\src\lib\i18n\LanguageContext.tsx               41     localStorage.setItem(STORAGE_KEY, lang);                
+C:\Users\smost\Desktop\parents-and-children\client\src\lib\i18n\types.ts                           5 // перечтении из localStorage — именно поэтому игра "Алфа...
+C:\Users\smost\Desktop\parents-and-children\client\src\lib\i18n\types.ts                          23 // localStorage. Если в будущем добавляется новый язык, е...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\AlphabetPage.tsx                    104       <SiteHeader onBack={() => navigate("/reading")} />    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\ColorsPage.tsx                       51       <SiteHeader onBack={() => navigate("/reading")} />    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\ElementsPage.tsx                     38       <SiteHeader onBack={() => navigate("/reading")} />    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\game.tsx                             28   const params = new URLSearchParams(window.location.sear...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\game.tsx                             53     // Check if we have a session ID in localStorage        
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\game.tsx                             54     const stored = localStorage.getItem('russian-game-ses...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\game.tsx                             60     localStorage.setItem('russian-game-session', newSessi...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\game.tsx                            187     const newUrl = `${window.location.pathname}?${params....
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\home.tsx                             19       navigate(cat.path);                                   
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\home.tsx                             31     navigate(cat.path);                                     
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\home.tsx                            453                     onClick={() => { setModalType(null); ...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\home.tsx                            469                     onClick={() => { setModalType(null); ...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\home.tsx                            509                   onClick={() => { setModalType(null); na...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\HomePage.tsx                        400   const [, setLocation] = useLocation();                    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\HomePage.tsx                        534       setLocation(`/game?game=${game.type}`);               
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\HomePage.tsx                        578       setLocation(AUTH_LOGIN_PATH);                         
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\HomePage.tsx                        580       setLocation(AUTH_REGISTER_PATH);                      
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\HomePage.tsx                        659         // Было: setLocation("/login") — мгновенный редир...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\HomePage.tsx                        665         setLocation("/payments");                           
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\HomePage.tsx                        887               onClick={() => setLocation("/payments")}      
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\LivingWorldPage.tsx                  18       <SiteHeader onBack={() => navigate("/reading")} />    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\login.tsx                            72       navigate('/');                                        
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\login.tsx                            98         navigate('/');                                      
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\login.tsx                           338                 onClick={() => navigate("/register")}       
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\NotesPage.tsx                       125       <SiteHeader onBack={() => navigate("/reading")} />    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\NumbersPage.tsx                      45       <SiteHeader onBack={() => navigate("/reading")} />    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\PaymentsPage.tsx                    548   // общем контексте (через login(), это же обновит local...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\PaymentsPage.tsx                    562             navigate("/?skipSplash=true");                  
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\PaymentsPage.tsx                    643     navigate("/home");                                      
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\PaymentsPage.tsx                    671             // setTimeout(() => navigate("/"), ...) в use...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\PaymentsPage.tsx                    726                   navigate("/home");                        
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\PunctuationPage.tsx                  44       <SiteHeader onBack={() => navigate("/reading")} />    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\ReadingPage.tsx                      57           onClick={() => navigate("/")}                     
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\ReadingPage.tsx                      96               onClick={() => (icon.images || icon.path) ?...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\register.tsx                         78       navigate('/');                                        
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\register.tsx                        116         navigate('/');                                      
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\register.tsx                        430                 onClick={() => navigate("/login")}          
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\reset-password.tsx                   14   const [, setLocation] = useLocation();                    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\reset-password.tsx                   23   const urlParams = new URLSearchParams(window.location.s...
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\reset-password.tsx                  119             onClick={() => setLocation('/')}                
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\reset-password.tsx                  143             onClick={() => setLocation('/')}                
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\reset-password.tsx                  250             onClick={() => setLocation('/')}                
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\ShapesPage.tsx                       49       <SiteHeader onBack={() => navigate("/reading")} />    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\subscription.tsx                     54             onClick={() => navigate("/")}                   
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\SvarupaBhagavanaPage.tsx             54   const [, setLocation] = useLocation();                    
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\SvarupaBhagavanaPage.tsx             65             setLocation("/");                               
+C:\Users\smost\Desktop\parents-and-children\client\src\pages\WelcomeScreen.tsx                    52     const timer = setTimeout(() => navigate("/choose-acce...
+
+

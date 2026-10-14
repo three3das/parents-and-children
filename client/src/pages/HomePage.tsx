@@ -256,6 +256,8 @@ const PROPERTIES_PATH_INDEX = 0;
 const PROPERTIES_MENU_INDEX = 1;
 const PROPERTIES_AUTH_INDEX = SECTOR_COUNT - 2;
 const PROPERTIES_SUPPORT_INDEX = SECTOR_COUNT - 1;
+const PROPERTIES_FEATURES_INDEX = 2;
+const PROPERTIES_FEATURES_LABEL = ["Узнать", "возможно-", "сти сайта"];
 
 // Пути страниц входа и регистрации (проверьте по <Route path=...> в
 // App.tsx — если у вас другие адреса, поправьте только эти две строки).
@@ -271,6 +273,7 @@ const PROPERTIES_WHEEL_LABELS: string[][] = Array.from(
   (_, i) => {
     if (i === PROPERTIES_PATH_INDEX) return PROPERTIES_PATH_LABEL;
     if (i === PROPERTIES_MENU_INDEX) return ["Меню"];
+    if (i === PROPERTIES_FEATURES_INDEX) return PROPERTIES_FEATURES_LABEL;
     if (i === PROPERTIES_AUTH_INDEX) return PROPERTIES_AUTH_LABEL;
     // Ручная разбивка по одному слову на строку (3 строки) — иначе
     // "Хочу поддержать проект" не помещается в круг как нужно.
@@ -364,7 +367,8 @@ type ViewState =
   | "properties-menu"
   | "properties-auth"
   | "path"
-  | "path-ready";
+  | "path-ready"
+  | "features";
 
 interface HomePageProps {
   // Ключ кнопки, выбранной на заставке SplashGate (см. комментарий
@@ -417,19 +421,25 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // ⚠️ ПРАВКА: в список кликабельных секторов добавлен сектор №1
   // («Начало пути по сайту»), чтобы кнопка выглядела активной, как
   // остальные. Действия у неё пока нет (см. handlePropertiesSectorClick).
-  const propertiesClickableIndices = useMemo(
+    const propertiesClickableIndices = useMemo(
     () =>
       isAuthenticated
-        ? [PROPERTIES_PATH_INDEX, PROPERTIES_MENU_INDEX, PROPERTIES_SUPPORT_INDEX]
+        ? [
+            PROPERTIES_PATH_INDEX,
+            PROPERTIES_MENU_INDEX,
+            PROPERTIES_FEATURES_INDEX,
+            PROPERTIES_SUPPORT_INDEX,
+          ]
         : [
             PROPERTIES_PATH_INDEX,
             PROPERTIES_MENU_INDEX,
+            PROPERTIES_FEATURES_INDEX,
             PROPERTIES_AUTH_INDEX,
             PROPERTIES_SUPPORT_INDEX,
           ],
     [isAuthenticated]
   );
-
+  
   // "main" — колесо тем (категорий), "games" — колесо с 7 играми,
   // "dictionary" — страница "Словарь используемых на сайте слов".
   // "sambandha"/"abhidheya"/"prayojana" — колёса из трёх кнопок
@@ -545,6 +555,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // (пока без действия), сектор №2 — «Меню», сектор №11 —
   // «Регистрация и авторизация», сектор №12 — «Хочу поддержать
   // проект» (экран с оплатой, "guide-info").
+  
   const handlePropertiesSectorClick = (index: number) => {
     if (index === PROPERTIES_PATH_INDEX) {
       // ⚠️ ПРАВКА: кнопка «Начало пути по сайту» открывает колесо
@@ -552,6 +563,9 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       setView("path");
     } else if (index === PROPERTIES_MENU_INDEX) {
       handleMenuClick();
+    }
+    else if (index === PROPERTIES_FEATURES_INDEX) {
+      setView("features");
     } else if (index === PROPERTIES_AUTH_INDEX) {
       if (!isAuthenticated) {
         setView("properties-auth");
@@ -704,13 +718,15 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   //  • "path" → "properties", "path-ready" → "path";
   //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
   //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений).
+
   const handleBack = () => {
     if (view === "guide-info") {
       setView(guideInfoOrigin);
     } else if (
       view === "properties-menu" ||
       view === "properties-auth" ||
-      view === "path"
+      view === "path" ||
+      view === "features"
     ) {
       setView("properties");
     } else if (view === "path-ready") {
@@ -882,6 +898,24 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
           <div className="flex flex-col items-center justify-center gap-6 max-w-lg text-center px-4">
             <p className="text-lg" style={{ color: "#FFD700" }}>
               Примите благодарность за поддержку служения сайта
+            </p>
+            <button
+              onClick={() => setLocation("/payments")}
+              className="px-6 py-3 rounded-full border-2 font-bold text-base transition bg-white"
+              style={{ color: "#FFD700", borderColor: "#FFD700" }}
+            >
+              Перейти к оплате
+            </button>
+          </div>
+        )}
+                {view === "features" && (
+          <div className="flex flex-col items-center justify-center gap-5 max-w-lg text-center px-4">
+            <p className="text-lg font-bold" style={{ color: "#FFD700" }}>
+              Пользование сервисом сайта предоставляется с момента оплаты
+            </p>
+            <p className="text-base" style={{ color: "#FFD700" }}>
+              Нажмите «Перейти к оплате», выберите способ и следуйте подсказкам.
+              После подтверждения платежа все разделы и игры откроются.
             </p>
             <button
               onClick={() => setLocation("/payments")}

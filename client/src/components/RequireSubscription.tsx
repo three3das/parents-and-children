@@ -1,14 +1,12 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { PaymentRequiredNotice } from "@/components/PaymentRequiredNotice";
 
 // Оборачивает защищённые страницы:
 //  - не залогинен             → редирект на /login
-//  - залогинен, но не оплатил → редирект на /payments
+//  - залогинен, но не оплатил → окно-уведомление с подсказкой
 //  - залогинен и оплатил      → показываем страницу как есть
-//
-// Решение принимается только когда AuthContext прочитал localStorage
-// (isLoading) и сверил статус подписки с сервером (isSyncing).
 export default function RequireSubscription({
   component: Component,
 }: {
@@ -21,20 +19,13 @@ export default function RequireSubscription({
 
   useEffect(() => {
     if (isPending) return;
+    if (!isAuthenticated) navigate("/login");
+  }, [isPending, isAuthenticated, navigate]);
 
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-    if (!user?.hasSubscription) {
-      navigate("/payments");
-    }
-  }, [isPending, isAuthenticated, user, navigate]);
+  if (isPending || !isAuthenticated) return null;
 
-  // Пока идёт загрузка или редирект ещё не сработал — ничего не рисуем,
-  // чтобы защищённый контент не мелькал.
-  if (isPending || !isAuthenticated || !user?.hasSubscription) {
-    return null;
+  if (!user?.hasSubscription) {
+    return <PaymentRequiredNotice onClose={() => navigate("/")} />;
   }
 
   return <Component />;
