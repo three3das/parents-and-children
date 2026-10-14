@@ -8,6 +8,7 @@ import {
   FIRST_LETTER,
   ALPHABET_LABEL,
 } from "@/lib/languageScript";
+import { WHEEL_TEXT_COLOR } from "@/lib/colors";
 import Wheel12, { SECTOR_COUNT } from "@/components/Wheel12";
 import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeaderFooter";
 // ⚠️ ДОБАВЛЕНО: общая форма «поиск по странице / сортировка по
@@ -56,9 +57,10 @@ import { supabase } from "@/lib/supabase";
 // сайту» (открывает колесо обозрения из 12 секторов, view "path": в
 // его первом секторе — кнопка «Уже готово для вас», она открывает
 // экран с формой SortRequestForm, view "path-ready"), во втором —
-// кнопка «Меню», в одиннадцатом — «Регистрация и авторизация» (только
-// для неавторизованных), в двенадцатом — кнопка «Хочу поддержать
-// проект».
+// кнопка «Меню», в третьем — «Узнать возможности сайта» (view
+// "features"), в одиннадцатом — «Регистрация и авторизация» (для
+// авторизованных открывает колесо с кнопкой «Выйти»), в двенадцатом —
+// кнопка «Хочу поддержать проект».
 // Кнопка «Меню» (сектор №2) открывает колесо выбора (view
 // "properties-menu") из двух секторов: «Язык» и «Системы письменности».
 // Они вызывают openLanguageWheel() / openScriptWheel() из контекста
@@ -66,8 +68,9 @@ import { supabase } from "@/lib/supabase";
 // LanguageScriptWheelOverlay, что и блок «Русский / Кириллица —
 // изменить», поэтому логика выбора языка не дублируется.
 // Кнопка «Регистрация и авторизация» (сектор №11) открывает колесо
-// (view "properties-auth") из двух секторов: «Вход» и «Регистрация» —
-// они ведут на страницы AUTH_LOGIN_PATH / AUTH_REGISTER_PATH.
+// (view "properties-auth"): для гостя — «Вход» и «Регистрация» (ведут
+// на страницы AUTH_LOGIN_PATH / AUTH_REGISTER_PATH), для
+// авторизованного — «Выйти».
 // Кнопка «Хочу поддержать проект» (сектор №12) открывает экран
 // "guide-info" (благодарность + «Перейти к оплате»), а кнопка «Назад»
 // возвращает обратно в «Свойства сайта» (см. guideInfoOrigin).
@@ -238,8 +241,8 @@ const GUIDE_WHEEL_LABELS: string[][] = Array.from(
 );
 
 // "Свойства сайта" — колесо, которое открывает кнопка «Свойства» в
-// футере. Заполнены четыре сектора: №1 («Начало пути по сайту» —
-// пока пустая кнопка), №2 («Меню»), №11 («Регистрация и
+// футере. Заполнены сектора: №1 («Начало пути по сайту»), №2
+// («Меню»), №3 («Узнать возможности сайта»), №11 («Регистрация и
 // авторизация») и №12 («Хочу поддержать проект»); остальные — пустые
 // заглушки, видимые, но некликабельные.
 // Ключ кнопки «Свойства сайта»: на заставке (SplashScreen) это третья
@@ -248,15 +251,15 @@ const GUIDE_WHEEL_LABELS: string[][] = Array.from(
 // страница» ("your-page") остаётся без действия, как раньше.
 const PROPERTIES_FOOTER_KEY = "site-page";
 
-// Индексы секторов (нумерация с 0): сектор №1 → 0, №2 → 1, №11 → 10,
-// №12 → 11.
+// Индексы секторов (нумерация с 0): сектор №1 → 0, №2 → 1, №3 → 2,
+// №11 → 10, №12 → 11.
 // ⚠️ ПРАВКА: «Начало пути по сайту» — сектор №1 (индекс 0), «Меню»
 // перенесено со 1-го сектора на 2-й (индекс 1).
 const PROPERTIES_PATH_INDEX = 0;
 const PROPERTIES_MENU_INDEX = 1;
+const PROPERTIES_FEATURES_INDEX = 2;
 const PROPERTIES_AUTH_INDEX = SECTOR_COUNT - 2;
 const PROPERTIES_SUPPORT_INDEX = SECTOR_COUNT - 1;
-const PROPERTIES_FEATURES_INDEX = 2;
 const PROPERTIES_FEATURES_LABEL = ["Узнать", "возможно-", "сти сайта"];
 
 // Пути страниц входа и регистрации (проверьте по <Route path=...> в
@@ -299,6 +302,8 @@ const PROPERTIES_AUTH_WHEEL_LABELS: string[][] = Array.from(
   (_, i) => (i === 0 ? ["Вход"] : i === 1 ? ["Регистра-", "ция"] : [])
 );
 
+const PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES = [0, 1];
+
 // Колесо «Аккаунт» для авторизованного пользователя: один сектор — выход.
 const PROPERTIES_LOGOUT_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
@@ -306,8 +311,6 @@ const PROPERTIES_LOGOUT_WHEEL_LABELS: string[][] = Array.from(
 );
 
 const PROPERTIES_LOGOUT_WHEEL_CLICKABLE_INDICES = [0];
-
-const PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES = [0, 1];
 
 // ⚠️ ДОБАВЛЕНО: колесо «Начало пути по сайту» (view "path") — 12
 // секторов в том же стиле, что и остальные колёса сайта. Это колесо
@@ -416,13 +419,11 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   const games = useMemo(() => getGamesForLanguage(language), [language]);
   const gameWheelLabels = useMemo(() => getGameWheelLabels(games), [games]);
 
-  // Колесо «Свойства сайта»: сектор №11 («Регистрация и авторизация»)
-  // показывается и кликабелен только для неавторизованных пользователей.
+  // Колесо «Свойства сайта»: все сектора, включая №11 («Регистрация и
+  // авторизация»), показываются и кликабельны для всех пользователей —
+  // авторизованный по этой кнопке может выйти из аккаунта.
   const propertiesWheelLabels = PROPERTIES_WHEEL_LABELS;
 
-  // ⚠️ ПРАВКА: в список кликабельных секторов добавлен сектор №1
-  // («Начало пути по сайту»), чтобы кнопка выглядела активной, как
-  // остальные. Действия у неё пока нет (см. handlePropertiesSectorClick).
   const propertiesClickableIndices = [
     PROPERTIES_PATH_INDEX,
     PROPERTIES_MENU_INDEX,
@@ -430,7 +431,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     PROPERTIES_AUTH_INDEX,
     PROPERTIES_SUPPORT_INDEX,
   ];
-  
+
   // "main" — колесо тем (категорий), "games" — колесо с 7 играми,
   // "dictionary" — страница "Словарь используемых на сайте слов".
   // "sambandha"/"abhidheya"/"prayojana" — колёса из трёх кнопок
@@ -542,12 +543,11 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     setView("properties-menu");
   };
 
-  // Колесо «Свойства сайта»: сектор №1 — «Начало пути по сайту»
-  // (пока без действия), сектор №2 — «Меню», сектор №11 —
-  // «Регистрация и авторизация», сектор №12 — «Хочу поддержать
-  // проект» (экран с оплатой, "guide-info").
-
-  
+  // Колесо «Свойства сайта»: сектор №1 — «Начало пути по сайту»,
+  // сектор №2 — «Меню», сектор №3 — «Узнать возможности сайта»,
+  // сектор №11 — «Регистрация и авторизация» (для авторизованного —
+  // выход из аккаунта), сектор №12 — «Хочу поддержать проект» (экран
+  // с оплатой, "guide-info").
   const handlePropertiesSectorClick = (index: number) => {
     if (index === PROPERTIES_PATH_INDEX) {
       // ⚠️ ПРАВКА: кнопка «Начало пути по сайту» открывает колесо
@@ -555,8 +555,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       setView("path");
     } else if (index === PROPERTIES_MENU_INDEX) {
       handleMenuClick();
-    }
-    else if (index === PROPERTIES_FEATURES_INDEX) {
+    } else if (index === PROPERTIES_FEATURES_INDEX) {
       setView("features");
     } else if (index === PROPERTIES_AUTH_INDEX) {
       setView("properties-auth");
@@ -576,10 +575,10 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   };
 
   // Колесо «Регистрация и авторизация»: сектор 0 — вход, сектор 1 —
-  // регистрация (отдельные страницы сайта).
-    const handlePropertiesAuthSectorClick = (index: number) => {
+  // регистрация (отдельные страницы сайта). Для авторизованного
+  // пользователя единственный сектор — «Выйти».
+  const handlePropertiesAuthSectorClick = (index: number) => {
     if (isAuthenticated) {
-      // Для авторизованного единственный сектор — выход из аккаунта.
       if (index === 0) {
         logout();
         setView("properties");
@@ -711,12 +710,11 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // возвращает на колесо тем (домашний экран). Исключения:
   //  • "guide-info" → туда, откуда зашли: "guide" или "properties"
   //    (см. guideInfoOrigin);
-  //  • "properties-menu" и "properties-auth" → "properties" (обратно
-  //    в «Свойства сайта»);
+  //  • "properties-menu", "properties-auth", "features" → "properties"
+  //    (обратно в «Свойства сайта»);
   //  • "path" → "properties", "path-ready" → "path";
   //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
   //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений).
-
   const handleBack = () => {
     if (view === "guide-info") {
       setView(guideInfoOrigin);
@@ -759,7 +757,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
           <button
             onClick={handleBack}
             className="absolute left-6 px-4 py-2 rounded-full border-2 font-bold text-base transition bg-white"
-            style={{ color: "#FFD700", borderColor: "#FFD700" }}
+            style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
           >
             ← Назад
           </button>
@@ -801,12 +799,12 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
         {view === "prakriti" && (
           <>
             {prakritiLoading && (
-              <p className="text-lg" style={{ color: "#FFD700" }}>
+              <p className="text-lg" style={{ color: WHEEL_TEXT_COLOR }}>
                 Загрузка…
               </p>
             )}
             {prakritiError && (
-              <p className="text-lg text-center px-4" style={{ color: "#FFD700" }} role="alert">
+              <p className="text-lg text-center px-4" style={{ color: WHEEL_TEXT_COLOR }} role="alert">
                 Не удалось загрузить предложения: {prakritiError}
               </p>
             )}
@@ -823,7 +821,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
         {view === "prakriti-sentence" && selectedSentence && (
           <div className="flex flex-col items-center justify-center gap-4 max-w-lg text-center px-4">
-            <p className="text-2xl font-bold" style={{ color: "#FFD700" }}>
+            <p className="text-2xl font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
               {selectedSentence.sentence_text}
             </p>
           </div>
@@ -847,7 +845,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
           />
         )}
 
-                {view === "properties-auth" && (
+        {view === "properties-auth" && (
           <Wheel12
             labels={
               isAuthenticated
@@ -902,31 +900,32 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
         {view === "guide-info" && (
           <div className="flex flex-col items-center justify-center gap-6 max-w-lg text-center px-4">
-            <p className="text-lg" style={{ color: "#FFD700" }}>
+            <p className="text-lg" style={{ color: WHEEL_TEXT_COLOR }}>
               Примите благодарность за поддержку служения сайта
             </p>
             <button
               onClick={() => setLocation("/payments")}
               className="px-6 py-3 rounded-full border-2 font-bold text-base transition bg-white"
-              style={{ color: "#FFD700", borderColor: "#FFD700" }}
+              style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
             >
               Перейти к оплате
             </button>
           </div>
         )}
-                {view === "features" && (
+
+        {view === "features" && (
           <div className="flex flex-col items-center justify-center gap-5 max-w-lg text-center px-4">
-            <p className="text-lg font-bold" style={{ color: "#FFD700" }}>
+            <p className="text-lg font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
               Пользование сервисом сайта предоставляется с момента оплаты
             </p>
-            <p className="text-base" style={{ color: "#FFD700" }}>
+            <p className="text-base" style={{ color: WHEEL_TEXT_COLOR }}>
               Нажмите «Перейти к оплате», выберите способ и следуйте подсказкам.
               После подтверждения платежа все разделы и игры откроются.
             </p>
             <button
               onClick={() => setLocation("/payments")}
               className="px-6 py-3 rounded-full border-2 font-bold text-base transition bg-white"
-              style={{ color: "#FFD700", borderColor: "#FFD700" }}
+              style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
             >
               Перейти к оплате
             </button>

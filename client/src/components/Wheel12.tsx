@@ -1,3 +1,4 @@
+import { WHEEL_TEXT_COLOR } from "@/lib/colors";
 // Wheel12 — колесо из 12 секторов. Логика геометрии и отрисовки не
 // менялась при переносе из IshvaraPage.tsx — только вынесена в
 // отдельный файл, чтобы им могли пользоваться и IshvaraPage (колёса
@@ -131,7 +132,7 @@ export default function Wheel12({
               fontSize={LABEL_FONT_SIZE}
               fontWeight="bold"
               fontFamily="ui-sans-serif, system-ui, sans-serif"
-              fill={isActive ? "#FFFFFF" : "#FFD700"}
+              fill={WHEEL_TEXT_COLOR}
               style={clickable ? { cursor: "pointer" } : undefined}
               onClick={clickable ? () => onSectorClick!(i) : undefined}
             >
@@ -148,7 +149,7 @@ export default function Wheel12({
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
           className="px-6 py-3 rounded-full border-[3px] border-yellow-400 bg-white font-bold text-xl"
-          style={{ color: "#FFD700" }}
+          style={{ color: WHEEL_TEXT_COLOR }}
         >
           {centerLabel}
         </div>

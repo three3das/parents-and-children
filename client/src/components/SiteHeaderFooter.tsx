@@ -3,7 +3,7 @@
 // инфо-карточки — используются на большинстве страниц) и упрощённые
 // WheelHeader/WheelFooter + WheelPageShell для страниц-«колёс»
 // (PaymentsPage, IshvaraPage и т.п.).
-
+import { WHEEL_TEXT_COLOR } from "@/lib/colors";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { NavItem } from "@/lib/siteNav";
 import { LanguageScriptMenuPanel } from "@/components/LanguageScriptMenuPanel";
@@ -494,7 +494,7 @@ export function WheelHeader({
             onClick={() => onSelect(item.key)}
             className="flex-1 min-w-0 px-2 sm:px-4 py-2 rounded-full border-2 font-bold text-xs sm:text-base leading-tight transition bg-white"
             style={{
-              color: GOLD_ACTIVE,
+              color: WHEEL_TEXT_COLOR,
               borderColor: activeKey === item.key ? GOLD_ACTIVE : GOLD_INACTIVE,
             }}
           >

@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 // пути к изображению и аудио файлу
 const SPLASH_IMAGE_SRC = "/images/страница_приветствия.jpg";
 const SPLASH_AUDIO_SRC = "/audio/krishna.mp3";
-
+// Мелодия заставки временно выключена. Чтобы включить, поставьте true.
+const SPLASH_AUDIO_ENABLED = false;
 const GOLD = "#FFD700";
 
 interface SplashOption {
@@ -37,6 +38,8 @@ export function SplashScreen({ onSelect, onDismiss }: SplashScreenProps) {
   function handleTap() {
     if (tapped) return;
     setTapped(true);
+    setTapped(true);
+    if (!SPLASH_AUDIO_ENABLED) return;
     try {
       const audio = new Audio(SPLASH_AUDIO_SRC);
       audio.loop = true;

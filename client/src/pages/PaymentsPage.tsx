@@ -2,6 +2,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { headerNav, footerNav } from "@/lib/siteNav";
+import { WHEEL_TEXT_COLOR } from "@/lib/colors";
 import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeaderFooter";
 
 // ============================================================================
@@ -23,6 +24,11 @@ import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeade
 // «ПриватБанк»): телефон читает их как обычный текст и предлагает «поиск в
 // Google», а не открывает банковское приложение или кошелёк — пользы нет.
 // Номер карты, IBAN и адрес кошелька копируются кнопками «Копировать».
+//
+// ⚠️ ПРАВКА (цвет текста): весь текст (подписи секторов, надпись в центре,
+// реквизиты, кнопки, окна) теперь синий — цвет задан одной константой
+// WHEEL_TEXT_COLOR в "@/lib/colors". Золотыми остались только заливка
+// секторов, рамки и обводки кнопок.
 // ============================================================================
 
 const SECTOR_COUNT = 12;
@@ -212,7 +218,6 @@ function Wheel12({
           const lines = labels[i] || [];
           const isDisabled = disabledIndices?.has(i);
           const clickable = Boolean(onSectorClick) && !isDisabled;
-          const isActive = i === activeIndex;
 
           const firstDy =
             lines.length === 1
@@ -234,7 +239,7 @@ function Wheel12({
               fontSize={LABEL_FONT_SIZE}
               fontWeight="bold"
               fontFamily="ui-sans-serif, system-ui, sans-serif"
-              fill={isActive ? "#FFFFFF" : "#FFD700"}
+              fill={WHEEL_TEXT_COLOR}
               opacity={isDisabled ? 0.55 : 1}
               style={clickable ? { cursor: "pointer" } : undefined}
               onClick={clickable ? () => onSectorClick!(i) : undefined}
@@ -252,7 +257,7 @@ function Wheel12({
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
           className="px-6 py-3 rounded-full border-[3px] border-yellow-400 bg-white font-bold text-xl"
-          style={{ color: "#FFD700" }}
+          style={{ color: WHEEL_TEXT_COLOR }}
         >
           {centerLabel}
         </div>
@@ -292,20 +297,22 @@ function CopyRow({
 
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-xs text-[#FFD700] font-bold">{label}</span>
+      <span className="text-xs font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
+        {label}
+      </span>
       <div className="flex items-center gap-2">
         <span
           className={`${
             large ? "text-base sm:text-lg tracking-wider" : "text-sm"
           } font-mono font-bold break-all min-w-0 flex-1 leading-snug`}
-          style={{ color: "#FFD700" }}
+          style={{ color: WHEEL_TEXT_COLOR }}
         >
           {value}
         </span>
         <button
           onClick={handle}
           className="px-2.5 py-1 rounded-full border-2 text-xs font-bold shrink-0"
-          style={{ color: "#FFD700", borderColor: "#FFD700" }}
+          style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
         >
           {done ? "Скопировано" : "Копировать"}
         </button>
@@ -326,7 +333,7 @@ function DetailFrame({ title, children }: { title: string; children: ReactNode }
       className="rounded-2xl border-2 bg-white p-3 flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto"
       style={{ borderColor: "#FFD700", boxShadow: "0 4px 14px rgba(255, 215, 0, 0.35)" }}
     >
-      <h3 className="text-sm font-bold shrink-0" style={{ color: "#FFD700" }}>
+      <h3 className="text-sm font-bold shrink-0" style={{ color: WHEEL_TEXT_COLOR }}>
         {title}
       </h3>
       {children}
@@ -408,7 +415,10 @@ function PaymentDetailsPanel({
       title: "Банк-корреспондент (необязательно)",
       content: (
         <>
-          <p className="text-xs italic leading-snug" style={{ color: "#FFD700", opacity: 0.8 }}>
+          <p
+            className="text-xs italic leading-snug"
+            style={{ color: WHEEL_TEXT_COLOR, opacity: 0.8 }}
+          >
             Три строки ниже — необязательные: указывайте их, только если банк
             отправителя запросит банк-корреспондент.
           </p>
@@ -428,7 +438,12 @@ function PaymentDetailsPanel({
       key: "note",
       title: "Как завершить оплату",
       content: (
-        <p className="text-sm text-[#FFD700] font-bold leading-relaxed">{method.note}</p>
+        <p
+          className="text-sm font-bold leading-relaxed"
+          style={{ color: WHEEL_TEXT_COLOR }}
+        >
+          {method.note}
+        </p>
       ),
     });
   }
@@ -444,12 +459,12 @@ function PaymentDetailsPanel({
         <button
           onClick={onBack}
           className="self-start px-3 py-1.5 rounded-full border-2 font-bold text-xs bg-white shrink-0"
-          style={{ color: "#FFD700", borderColor: "#FFD700" }}
+          style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
         >
           ← Назад к способам оплаты
         </button>
 
-        <h2 className="text-base font-bold leading-tight" style={{ color: "#FFD700" }}>
+        <h2 className="text-base font-bold leading-tight" style={{ color: WHEEL_TEXT_COLOR }}>
           {method.title}
         </h2>
       </div>
@@ -463,7 +478,7 @@ function PaymentDetailsPanel({
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
             className="px-3 py-1.5 rounded-full border-2 text-xs font-bold bg-white disabled:opacity-40"
-            style={{ color: "#FFD700", borderColor: "#FFD700" }}
+            style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
           >
             ← Назад
           </button>
@@ -487,7 +502,7 @@ function PaymentDetailsPanel({
             onClick={() => setStep((s) => Math.min(last, s + 1))}
             disabled={step === last}
             className="px-3 py-1.5 rounded-full border-2 text-xs font-bold bg-white disabled:opacity-40"
-            style={{ color: "#FFD700", borderColor: "#FFD700" }}
+            style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
           >
             Далее →
           </button>
@@ -498,7 +513,10 @@ function PaymentDetailsPanel({
         className="rounded-2xl border-2 bg-white p-2 flex flex-col sm:flex-row sm:items-center gap-2 shrink-0"
         style={{ borderColor: "#FFD700" }}
       >
-        <p className="text-xs text-[#FFD700] font-bold leading-snug flex-1">
+        <p
+          className="text-xs font-bold leading-snug flex-1"
+          style={{ color: WHEEL_TEXT_COLOR }}
+        >
           После перевода нажмите кнопку — заявка уйдёт администратору
           на проверку поступления средств.
         </p>
@@ -521,7 +539,7 @@ export default function PaymentsPage() {
   const [activeNav, setActiveNav] = useState<string>(headerNav[0].key);
   const [activeFooterNav, setActiveFooterNav] = useState<string>("dynamic");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  // Собственное окно-уведомление в стиле сайта (золотой текст) —
+  // Собственное окно-уведомление в стиле сайта —
   // заменяет системный alert(), который браузер стилизовать не даёт.
   const [infoModal, setInfoModal] = useState<{
     title: string;
@@ -633,7 +651,6 @@ export default function PaymentsPage() {
     }
   };
 
-
   // Футер здесь общий с домашней страницей (3 кнопки: "stable" /
   // "home" / "dynamic"), но сама эта страница — не одно из тех колёс,
   // поэтому любой клик по футеру просто возвращает на домашнюю
@@ -670,7 +687,7 @@ export default function PaymentsPage() {
             // редиректа — показывается на 1.5с, пока не сработает
             // setTimeout(() => navigate("/"), ...) в useEffect выше.
             <div className="flex flex-col items-center justify-center gap-4">
-              <p className="text-xl font-bold" style={{ color: "#FFD700" }}>
+              <p className="text-xl font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
                 Оплата подтверждена! Переходим...
               </p>
             </div>
@@ -705,17 +722,17 @@ export default function PaymentsPage() {
             className="fixed top-1/2 left-1/2 w-[90%] max-w-sm bg-white rounded-2xl border-2 border-yellow-400 shadow-2xl z-[9999] p-6 flex flex-col gap-4"
             style={{ transform: "translate(-50%, -50%)" }}
           >
-            <h2 className="text-lg font-bold" style={{ color: "#FFD700" }}>
+            <h2 className="text-lg font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
               Выйти из аккаунта?
             </h2>
-            <p className="text-sm" style={{ color: "#FFD700" }}>
+            <p className="text-sm" style={{ color: WHEEL_TEXT_COLOR }}>
               Вы сможете снова войти в любой момент со своим email и паролем.
             </p>
             <div className="flex gap-3 justify-end pt-2">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
                 className="px-5 py-2 rounded-full border-2 font-bold text-sm bg-white"
-                style={{ color: "#FFD700", borderColor: "#FFE066" }}
+                style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFE066" }}
               >
                 Отмена
               </button>
@@ -737,8 +754,8 @@ export default function PaymentsPage() {
 
       {/* Собственное окно-уведомление (замена системного alert()) —
           тот же стиль, что и окно выхода из аккаунта выше: золотая
-          рамка, белый фон, золотой текст. Системный alert() браузер
-          не даёт стилизовать вообще никак, поэтому рисуем своё. */}
+          рамка, белый фон. Системный alert() браузер не даёт
+          стилизовать вообще никак, поэтому рисуем своё. */}
       {infoModal && (
         <>
           <div
@@ -749,10 +766,10 @@ export default function PaymentsPage() {
             className="fixed top-1/2 left-1/2 w-[90%] max-w-sm bg-white rounded-2xl border-2 border-yellow-400 shadow-2xl z-[9999] p-6 flex flex-col gap-4"
             style={{ transform: "translate(-50%, -50%)" }}
           >
-            <h2 className="text-lg font-bold" style={{ color: "#FFD700" }}>
+            <h2 className="text-lg font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
               {infoModal.title}
             </h2>
-            <p className="text-sm" style={{ color: "#FFD700" }}>
+            <p className="text-sm" style={{ color: WHEEL_TEXT_COLOR }}>
               {infoModal.message}
             </p>
             <div className="flex justify-end pt-2">
