@@ -1,21 +1,27 @@
 import { motion } from "framer-motion";
 import { useLocation } from "wouter";
 
-// ⚠️ Замените на реальный путь страницы «Свойства сайта»
+// Путь на главную с открытием колеса «Свойства сайта»
+// (обрабатывается в SplashGate.tsx через параметр open).
 const SITE_PROPERTIES_PATH = "/?open=site-page";
 
 export function PaymentRequiredNotice({ onClose }: { onClose: () => void }) {
   const [, navigate] = useLocation();
 
   return (
-    <>
-      <div onClick={onClose} className="fixed inset-0 bg-black/50 z-[9998]" />
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+    >
+      {/* Затемнение; клик по нему закрывает окно */}
+      <div onClick={onClose} className="absolute inset-0 bg-black/50" />
+
+      {/* Само окно: центрируется обёрткой, поэтому анимация его не сдвигает */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        role="dialog"
-        aria-modal="true"
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-white rounded-xl shadow-2xl z-[9999] p-5"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-2xl p-5"
       >
         <h2 className="text-lg font-bold text-[#FFD700] mb-2">
           Доступ открывается после оплаты
@@ -42,6 +48,6 @@ export function PaymentRequiredNotice({ onClose }: { onClose: () => void }) {
           Закрыть
         </button>
       </motion.div>
-    </>
+    </div>
   );
 }

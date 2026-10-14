@@ -299,6 +299,14 @@ const PROPERTIES_AUTH_WHEEL_LABELS: string[][] = Array.from(
   (_, i) => (i === 0 ? ["Вход"] : i === 1 ? ["Регистра-", "ция"] : [])
 );
 
+// Колесо «Аккаунт» для авторизованного пользователя: один сектор — выход.
+const PROPERTIES_LOGOUT_WHEEL_LABELS: string[][] = Array.from(
+  { length: SECTOR_COUNT },
+  (_, i) => (i === 0 ? ["Выйти"] : [])
+);
+
+const PROPERTIES_LOGOUT_WHEEL_CLICKABLE_INDICES = [0];
+
 const PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES = [0, 1];
 
 // ⚠️ ДОБАВЛЕНО: колесо «Начало пути по сайту» (view "path") — 12
@@ -403,42 +411,25 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
   const [, setLocation] = useLocation();
 
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const games = useMemo(() => getGamesForLanguage(language), [language]);
   const gameWheelLabels = useMemo(() => getGameWheelLabels(games), [games]);
 
   // Колесо «Свойства сайта»: сектор №11 («Регистрация и авторизация»)
   // показывается и кликабелен только для неавторизованных пользователей.
-  const propertiesWheelLabels = useMemo(
-    () =>
-      PROPERTIES_WHEEL_LABELS.map((lines, i) =>
-        i === PROPERTIES_AUTH_INDEX && isAuthenticated ? [] : lines
-      ),
-    [isAuthenticated]
-  );
+  const propertiesWheelLabels = PROPERTIES_WHEEL_LABELS;
 
   // ⚠️ ПРАВКА: в список кликабельных секторов добавлен сектор №1
   // («Начало пути по сайту»), чтобы кнопка выглядела активной, как
   // остальные. Действия у неё пока нет (см. handlePropertiesSectorClick).
-    const propertiesClickableIndices = useMemo(
-    () =>
-      isAuthenticated
-        ? [
-            PROPERTIES_PATH_INDEX,
-            PROPERTIES_MENU_INDEX,
-            PROPERTIES_FEATURES_INDEX,
-            PROPERTIES_SUPPORT_INDEX,
-          ]
-        : [
-            PROPERTIES_PATH_INDEX,
-            PROPERTIES_MENU_INDEX,
-            PROPERTIES_FEATURES_INDEX,
-            PROPERTIES_AUTH_INDEX,
-            PROPERTIES_SUPPORT_INDEX,
-          ],
-    [isAuthenticated]
-  );
+  const propertiesClickableIndices = [
+    PROPERTIES_PATH_INDEX,
+    PROPERTIES_MENU_INDEX,
+    PROPERTIES_FEATURES_INDEX,
+    PROPERTIES_AUTH_INDEX,
+    PROPERTIES_SUPPORT_INDEX,
+  ];
   
   // "main" — колесо тем (категорий), "games" — колесо с 7 играми,
   // "dictionary" — страница "Словарь используемых на сайте слов".
@@ -555,6 +546,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // (пока без действия), сектор №2 — «Меню», сектор №11 —
   // «Регистрация и авторизация», сектор №12 — «Хочу поддержать
   // проект» (экран с оплатой, "guide-info").
+
   
   const handlePropertiesSectorClick = (index: number) => {
     if (index === PROPERTIES_PATH_INDEX) {
@@ -567,9 +559,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     else if (index === PROPERTIES_FEATURES_INDEX) {
       setView("features");
     } else if (index === PROPERTIES_AUTH_INDEX) {
-      if (!isAuthenticated) {
-        setView("properties-auth");
-      }
+      setView("properties-auth");
     } else if (index === PROPERTIES_SUPPORT_INDEX) {
       setGuideInfoOrigin("properties");
       setView("guide-info");
@@ -587,7 +577,15 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
   // Колесо «Регистрация и авторизация»: сектор 0 — вход, сектор 1 —
   // регистрация (отдельные страницы сайта).
-  const handlePropertiesAuthSectorClick = (index: number) => {
+    const handlePropertiesAuthSectorClick = (index: number) => {
+    if (isAuthenticated) {
+      // Для авторизованного единственный сектор — выход из аккаунта.
+      if (index === 0) {
+        logout();
+        setView("properties");
+      }
+      return;
+    }
     if (index === 0) {
       setLocation(AUTH_LOGIN_PATH);
     } else if (index === 1) {
@@ -849,11 +847,19 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
           />
         )}
 
-        {view === "properties-auth" && (
+                {view === "properties-auth" && (
           <Wheel12
-            labels={PROPERTIES_AUTH_WHEEL_LABELS}
+            labels={
+              isAuthenticated
+                ? PROPERTIES_LOGOUT_WHEEL_LABELS
+                : PROPERTIES_AUTH_WHEEL_LABELS
+            }
             centerLabel="Аккаунт"
-            clickableIndices={PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES}
+            clickableIndices={
+              isAuthenticated
+                ? PROPERTIES_LOGOUT_WHEEL_CLICKABLE_INDICES
+                : PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES
+            }
             onSectorClick={handlePropertiesAuthSectorClick}
           />
         )}
