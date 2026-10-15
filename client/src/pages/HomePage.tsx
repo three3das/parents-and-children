@@ -258,7 +258,6 @@ const PROPERTIES_FOOTER_KEY = "site-page";
 const PROPERTIES_PATH_INDEX = 0;
 const PROPERTIES_MENU_INDEX = 1;
 const PROPERTIES_FEATURES_INDEX = 2;
-const PROPERTIES_AUTH_INDEX = SECTOR_COUNT - 2;
 const PROPERTIES_SUPPORT_INDEX = SECTOR_COUNT - 1;
 const PROPERTIES_FEATURES_LABEL = ["Узнать", "возможно-", "сти сайта"];
 
@@ -269,7 +268,6 @@ const AUTH_REGISTER_PATH = "/register";
 
 // Ручная разбивка подписей (в круг Wheel12 влезает ≈10 символов в строку).
 const PROPERTIES_PATH_LABEL = ["Начало", "пути по", "сайту"];
-const PROPERTIES_AUTH_LABEL = ["Регистра-", "ция и", "авториза-", "ция"];
 
 const PROPERTIES_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
@@ -277,7 +275,6 @@ const PROPERTIES_WHEEL_LABELS: string[][] = Array.from(
     if (i === PROPERTIES_PATH_INDEX) return PROPERTIES_PATH_LABEL;
     if (i === PROPERTIES_MENU_INDEX) return ["Меню"];
     if (i === PROPERTIES_FEATURES_INDEX) return PROPERTIES_FEATURES_LABEL;
-    if (i === PROPERTIES_AUTH_INDEX) return PROPERTIES_AUTH_LABEL;
     // Ручная разбивка по одному слову на строку (3 строки) — иначе
     // "Хочу поддержать проект" не помещается в круг как нужно.
     if (i === PROPERTIES_SUPPORT_INDEX) return ["Хочу", "поддержать", "проект"];
@@ -428,7 +425,6 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     PROPERTIES_PATH_INDEX,
     PROPERTIES_MENU_INDEX,
     PROPERTIES_FEATURES_INDEX,
-    PROPERTIES_AUTH_INDEX,
     PROPERTIES_SUPPORT_INDEX,
   ];
 
@@ -557,8 +553,6 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       handleMenuClick();
     } else if (index === PROPERTIES_FEATURES_INDEX) {
       setView("features");
-    } else if (index === PROPERTIES_AUTH_INDEX) {
-      setView("properties-auth");
     } else if (index === PROPERTIES_SUPPORT_INDEX) {
       setGuideInfoOrigin("properties");
       setView("guide-info");
@@ -581,7 +575,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     if (isAuthenticated) {
       if (index === 0) {
         logout();
-        setView("properties");
+        setView("main");
       }
       return;
     }
@@ -665,6 +659,10 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       // (Раньше здесь открывалось колесо "dictionary" — код этого
       // колеса оставлен ниже, но сейчас оно ни из чего не открывается.)
       setView("properties");
+    } else if (key === "auth") {
+      // «Регистрация и авторизация» (кнопка заставки) → колесо
+      // «Аккаунт»: «Вход» / «Регистрация» (для авторизованного — «Выйти»).
+      setView("properties-auth");
     } else if (key === "all-data") {
       if (!isAuthenticated) {
         // Было: setLocation("/login") — мгновенный редирект.
@@ -720,7 +718,6 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       setView(guideInfoOrigin);
     } else if (
       view === "properties-menu" ||
-      view === "properties-auth" ||
       view === "path" ||
       view === "features"
     ) {

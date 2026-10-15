@@ -33,7 +33,7 @@ const R = 250;
 const toRad = (deg: number) => (deg * Math.PI) / 180;
 
 const MM_TO_UNITS = 96 / 25.4;
-const EDGE_GAP_MM = 2;
+const EDGE_GAP_MM = 0.5;
 const GAP = EDGE_GAP_MM * MM_TO_UNITS;
 
 const HALF_ANGLE = toRad(360 / SECTOR_COUNT / 2);
@@ -42,7 +42,7 @@ const SIN_HALF = Math.sin(HALF_ANGLE);
 const BADGE_R = (R * SIN_HALF - GAP * (SIN_HALF + 1)) / (1 + SIN_HALF);
 const BADGE_RADIUS = R - BADGE_R - GAP;
 
-const LABEL_FONT_SIZE = 12.6;
+const LABEL_FONT_SIZE = 14;
 
 export default function Wheel12({
   labels,

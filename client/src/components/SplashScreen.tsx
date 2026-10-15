@@ -14,9 +14,8 @@ interface SplashOption {
 }
 
 const SPLASH_OPTIONS: SplashOption[] = [
-  { key: "all-data", label: "Предмет изучения" },
+  { key: "auth", label: "Регистрация и авторизация" },
   { key: "your-page", label: "Домашняя страница" },
-  { key: "site-page", label: "Свойства сайта" },
 ];
 
 interface SplashScreenProps {
