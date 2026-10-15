@@ -559,7 +559,7 @@ export function WheelFooter({
                 }}
                 className="w-full min-w-0 px-2 sm:px-4 py-2 rounded-full border-2 font-bold text-xs sm:text-base leading-tight transition bg-white"
                 style={{
-                  color: GOLD_ACTIVE,
+                  color: WHEEL_TEXT_COLOR,
                   borderColor:
                     activeKey === item.key ? GOLD_ACTIVE : GOLD_INACTIVE,
                 }}
