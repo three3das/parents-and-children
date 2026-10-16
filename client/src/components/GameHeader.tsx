@@ -2,6 +2,16 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { GAME_CONFIG, ANIMATION_VARIANTS } from "@/lib/constants";
 import { useLanguage } from "@/lib/i18n";
+import { useLocation } from "wouter";
+import { useAuth } from "@/lib/auth";
+import { useLanguageScript } from "@/lib/languageScript";
+import { WHEEL_TEXT_COLOR } from "@/lib/colors";
+
+// Общий вид кнопок шапки: золотая рамка, синие буквы (как на колёсах).
+const HEADER_BUTTON_CLASS =
+  "flex-shrink-0 px-2 py-1 rounded-full border-2 border-[#FFD700] bg-white " +
+  "font-bold text-[11px] sm:text-sm leading-tight whitespace-nowrap " +
+  "hover:bg-yellow-50 transition-colors";
 
 // ⚠️ Импорт LanguageSwitcher убран намеренно: раньше в шапке игры был
 // свой собственный переключатель языка ("EN English ▾"), дублирующий
@@ -27,6 +37,28 @@ interface GameHeaderProps {
 
 export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday }: GameHeaderProps) {
   const { t } = useLanguage();
+  const [, navigate] = useLocation();
+  const { isAuthenticated, logout } = useAuth();
+  const { openLanguageWheel, openScriptWheel } = useLanguageScript();
+
+  // Кнопка «Сохранить результат»: гость сначала идёт регистрироваться
+  // (/auth), вошедший — на страницу «Предмет изучения».
+  // ВРЕМЕННО: само сохранение результата и колесо «Предмет изучения»
+  // добавляются на следующих шагах.
+  const handleSaveResult = () => {
+    if (!isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
+    navigate("/?skipSplash=true&open=stable");
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("Выйти из аккаунта?")) {
+      logout();
+      navigate("/");
+    }
+  };
 
   // Calculate progress based on today's correct answers
   const targetAnswers = GAME_CONFIG.dailyGoal;
@@ -85,10 +117,24 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday }
               </svg>
             </button>
 
-            <span className="text-xl md:text-2xl flex-shrink-0">📚</span>
-            <h1 className="text-sm md:text-xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent whitespace-nowrap">
-              KidRead
-            </h1>
+            {/* 📚 и «KidRead» убраны по просьбе. Вместо них — кнопки
+                выбора языка и письменности (те же колёса, что в «Меню»). */}
+            <button
+              type="button"
+              onClick={openLanguageWheel}
+              className={HEADER_BUTTON_CLASS}
+              style={{ color: WHEEL_TEXT_COLOR }}
+            >
+              Языки
+            </button>
+            <button
+              type="button"
+              onClick={openScriptWheel}
+              className={HEADER_BUTTON_CLASS}
+              style={{ color: WHEEL_TEXT_COLOR }}
+            >
+              Письменности
+            </button>
           </motion.div>
 
           {/* Visual Progress - Icons Only */}
@@ -108,7 +154,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday }
                 <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
                 <span className="text-xs text-muted-foreground hidden sm:inline">{targetAnswers}</span>
               </div>
-              <div className="bg-muted/50 rounded-full h-1.5 md:h-2 w-8 md:w-16 overflow-hidden flex-shrink-0">
+              <div className="hidden sm:block bg-muted/50 rounded-full h-1.5 md:h-2 w-8 md:w-16 overflow-hidden flex-shrink-0">
                 <motion.div
                   className={`bg-gradient-to-r ${achievementStatus.bgColor} rounded-full h-1.5 md:h-2`}
                   initial={{ width: 0 }}
@@ -133,6 +179,43 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday }
                 </motion.span>
               )}
             </div>
+
+            {/* Сохранить личный результат (значок дискеты) */}
+            <button
+              type="button"
+              onClick={handleSaveResult}
+              aria-label="Сохранить результат"
+              title="Сохранить результат"
+              className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full border-2 border-[#FFD700] bg-white hover:bg-yellow-50 transition-colors"
+              style={{ color: WHEEL_TEXT_COLOR }}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <path d="M17 21v-8H7v8" />
+                <path d="M7 3v5h8" />
+              </svg>
+            </button>
+
+            {/* Выход из аккаунта — только для вошедшего пользователя */}
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={HEADER_BUTTON_CLASS}
+                style={{ color: WHEEL_TEXT_COLOR }}
+              >
+                Выйти
+              </button>
+            )}
 
             {/* Session Progress with Game Icons */}
             {totalWords > 0 && (
