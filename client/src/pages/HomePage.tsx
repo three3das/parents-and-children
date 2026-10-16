@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { footerNav } from "@/lib/siteNav";
 import { useHeaderNavItems } from "@/lib/headerWords";
 import { useAuth, getWelcomeName } from "@/lib/auth";
@@ -9,6 +9,7 @@ import {
   ALPHABET_LABEL,
 } from "@/lib/languageScript";
 import { WHEEL_TEXT_COLOR } from "@/lib/colors";
+import { getSavedResult } from "@/lib/gameResults";
 import Wheel12, { SECTOR_COUNT } from "@/components/Wheel12";
 import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeaderFooter";
 // ⚠️ ДОБАВЛЕНО: общая форма «поиск по странице / сортировка по
@@ -58,34 +59,24 @@ import { supabase } from "@/lib/supabase";
 // его первом секторе — кнопка «Уже готово для вас», она открывает
 // экран с формой SortRequestForm, view "path-ready"), во втором —
 // кнопка «Меню», в третьем — «Узнать возможности сайта» (view
-// "features"), в одиннадцатом — «Регистрация и авторизация» (для
-// авторизованных открывает колесо с кнопкой «Выйти»), в двенадцатом —
-// кнопка «Хочу поддержать проект».
+// (Регистрация и вход вынесены на отдельную страницу /auth, она
+// открывается кнопкой «Регистрация и авторизация» на заставке.)
 // Кнопка «Меню» (сектор №2) открывает колесо выбора (view
 // "properties-menu") из двух секторов: «Язык» и «Системы письменности».
 // Они вызывают openLanguageWheel() / openScriptWheel() из контекста
 // useLanguageScript() — тот же глобальный оверлей
 // LanguageScriptWheelOverlay, что и блок «Русский / Кириллица —
 // изменить», поэтому логика выбора языка не дублируется.
-// Кнопка «Регистрация и авторизация» (сектор №11) открывает колесо
-// (view "properties-auth"): для гостя — «Вход» и «Регистрация» (ведут
-// на страницы AUTH_LOGIN_PATH / AUTH_REGISTER_PATH), для
-// авторизованного — «Выйти».
 // Кнопка «Хочу поддержать проект» (сектор №12) открывает экран
 // "guide-info" (благодарность + «Перейти к оплате»), а кнопка «Назад»
-// возвращает обратно в «Свойства сайта» (см. guideInfoOrigin).
+// возвращает обратно в «Свойства сайта».
 
 // Фиксированные названия кнопок хедера (по ключу кнопки).
 const HEADER_LABELS: Record<string, string> = {
-  sambandha: "Родители",
-  abhidheya: "Взаимоотношения",
-  prayojana: "Дети",
+  sambandha: "Первый",
+  abhidheya: "Второй",
+  prayojana: "Третий",
 };
-
-const DICTIONARY_LABELS: string[][] = Array.from(
-  { length: SECTOR_COUNT },
-  (_, i) => (i === 0 ? ["Словарь", "используемых", "на сайте", "слов"] : [])
-);
 
 function splitLabelIntoLines(label: string): string[] {
   const words = label.split(" ");
@@ -219,27 +210,6 @@ const PRAYOJANA_WHEEL_LABELS: string[][] = Array.from(
   (_, i) => (i < PRAYOJANA_ITEMS.length ? splitLabelIntoLines(PRAYOJANA_ITEMS[i]) : [])
 );
 
-// "Путеводитель" — колесо, открывающееся вместо мгновенного редиректа
-// на /login для неавторизованного пользователя. Пока заполнен только
-// сектор №1 ("Вход и благотворительный взнос"); остальные 11 — пустые
-// заглушки, видимые, но некликабельные. Текст разбит вручную на 4
-// строки с переносом слова "благотворительный" по дефису между
-// строками 2 и 3 — иначе не помещается в круг.
-const GUIDE_ITEMS: string[] = [
-  "Вход и благотворительный взнос",
-];
-
-const GUIDE_CLICKABLE_INDICES = [0];
-
-function splitGuideLabel(): string[] {
-  return ["Вход", "и благотво-", "рительный", "взнос."];
-}
-
-const GUIDE_WHEEL_LABELS: string[][] = Array.from(
-  { length: SECTOR_COUNT },
-  (_, i) => (i === 0 ? splitGuideLabel() : [])
-);
-
 // "Свойства сайта" — колесо, которое открывает кнопка «Свойства» в
 // футере. Заполнены сектора: №1 («Начало пути по сайту»), №2
 // («Меню»), №3 («Узнать возможности сайта»), №11 («Регистрация и
@@ -261,11 +231,6 @@ const PROPERTIES_FEATURES_INDEX = 2;
 const PROPERTIES_SUPPORT_INDEX = SECTOR_COUNT - 1;
 const PROPERTIES_FEATURES_LABEL = ["Узнать", "возможно-", "сти сайта"];
 
-// Пути страниц входа и регистрации (проверьте по <Route path=...> в
-// App.tsx — если у вас другие адреса, поправьте только эти две строки).
-const AUTH_LOGIN_PATH = "/login";
-const AUTH_REGISTER_PATH = "/register";
-
 // Ручная разбивка подписей (в круг Wheel12 влезает ≈10 символов в строку).
 const PROPERTIES_PATH_LABEL = ["Начало", "пути по", "сайту"];
 
@@ -275,9 +240,10 @@ const PROPERTIES_WHEEL_LABELS: string[][] = Array.from(
     if (i === PROPERTIES_PATH_INDEX) return PROPERTIES_PATH_LABEL;
     if (i === PROPERTIES_MENU_INDEX) return ["Меню"];
     if (i === PROPERTIES_FEATURES_INDEX) return PROPERTIES_FEATURES_LABEL;
-    // Ручная разбивка по одному слову на строку (3 строки) — иначе
-    // "Хочу поддержать проект" не помещается в круг как нужно.
-    if (i === PROPERTIES_SUPPORT_INDEX) return ["Хочу", "поддержать", "проект"];
+   // Ручная разбивка на 3 строки — иначе "Оплатить и подключиться"
+   // не помещается в круг (влезает ≈10 символов в строку).
+if (i === PROPERTIES_SUPPORT_INDEX) return ["Оплатить", "и подклю-", "читься"];
+  
     return [];
   }
 );
@@ -289,25 +255,7 @@ const PROPERTIES_MENU_LABELS: string[][] = Array.from(
   (_, i) =>
     i === 0 ? ["Язык"] : i === 1 ? ["Системы", "письмен-", "ности"] : []
 );
-
 const PROPERTIES_MENU_CLICKABLE_INDICES = [0, 1];
-
-// Колесо «Регистрация и авторизация»: сектор 0 — вход, сектор 1 —
-// регистрация.
-const PROPERTIES_AUTH_WHEEL_LABELS: string[][] = Array.from(
-  { length: SECTOR_COUNT },
-  (_, i) => (i === 0 ? ["Вход"] : i === 1 ? ["Регистра-", "ция"] : [])
-);
-
-const PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES = [0, 1];
-
-// Колесо «Аккаунт» для авторизованного пользователя: один сектор — выход.
-const PROPERTIES_LOGOUT_WHEEL_LABELS: string[][] = Array.from(
-  { length: SECTOR_COUNT },
-  (_, i) => (i === 0 ? ["Выйти"] : [])
-);
-
-const PROPERTIES_LOGOUT_WHEEL_CLICKABLE_INDICES = [0];
 
 // ⚠️ ДОБАВЛЕНО: колесо «Начало пути по сайту» (view "path") — 12
 // секторов в том же стиле, что и остальные колёса сайта. Это колесо
@@ -363,24 +311,23 @@ function getGameWheelLabels(games: { icon: string; label: string }[]): string[][
 type ViewState =
   | "main"
   | "games"
-  | "dictionary"
   | "sambandha"
   | "prakriti"
   | "prakriti-sentence"
   | "abhidheya"
   | "prayojana"
-  | "guide"
   | "guide-info"
+  | "stable"
+  | "stable-game"
   | "properties"
   | "properties-menu"
-  | "properties-auth"
   | "path"
   | "path-ready"
   | "features";
 
 interface HomePageProps {
   // Ключ кнопки, выбранной на заставке SplashGate (см. комментарий
-  // выше файла) — "all-data" | "your-page" | "site-page" | "languages".
+  // выше файла) — "your-page" | "site-page" | "languages" | "stable".
   // Необязательный: при обычном заходе (не через заставку) не
   // передаётся, и HomePage ведёт себя как раньше.
   initialFooterKey?: string;
@@ -411,14 +358,25 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
   const [, setLocation] = useLocation();
 
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+
+  // Приветственное окно после входа/регистрации на странице /auth:
+  // страница отправляет сюда с параметром welcome=1. Показываем один раз
+  // и убираем параметр из адреса, чтобы окно не появлялось при обновлении.
+  const search = useSearch();
+  const [showWelcome, setShowWelcome] = useState(
+    () => new URLSearchParams(search).get("welcome") === "1"
+  );
+  const closeWelcome = () => {
+    setShowWelcome(false);
+    window.history.replaceState(null, "", "/?skipSplash=true");
+  };
 
   const games = useMemo(() => getGamesForLanguage(language), [language]);
   const gameWheelLabels = useMemo(() => getGameWheelLabels(games), [games]);
 
-  // Колесо «Свойства сайта»: все сектора, включая №11 («Регистрация и
-  // авторизация»), показываются и кликабельны для всех пользователей —
-  // авторизованный по этой кнопке может выйти из аккаунта.
+  // Колесо «Свойства сайта»: кликабельные сектора показываются всем
+  // пользователям.
   const propertiesWheelLabels = PROPERTIES_WHEEL_LABELS;
 
   const propertiesClickableIndices = [
@@ -428,22 +386,14 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     PROPERTIES_SUPPORT_INDEX,
   ];
 
-  // "main" — колесо тем (категорий), "games" — колесо с 7 играми,
-  // "dictionary" — страница "Словарь используемых на сайте слов".
+  // "main" — колесо тем (категорий), "games" — колесо с 7 играми.
   // "sambandha"/"abhidheya"/"prayojana" — колёса из трёх кнопок
   // хедера. "prakriti" — колесо из 12 предложений (подраздел
   // «Пракрити» раздела «Самбандха»), "prakriti-sentence" — экран с
-  // выбранным предложением. "guide" — колесо-путеводитель
-  // (открывается вместо мгновенного /login для неавторизованного
-  // пользователя), "guide-info" — экран пояснения про
-  // благотворительность внутри сектора №1 путеводителя.
+  // выбранным предложением. "guide-info" — экран оплаты («Хочу
+  // поддержать проект»). "stable" — колесо «Предмет изучения» (первый
+  // сектор — игра), "stable-game" — экран с личным результатом игры.
   const [view, setView] = useState<ViewState>("main");
-
-  // ⚠️ ДОБАВЛЕНО: откуда открыт экран "guide-info" — из колеса "guide"
-  // (сектор благотворительности) или из "properties" (сектор №12
-  // "Хочу поддержать проект"). Нужно, чтобы кнопка "Назад" возвращала
-  // туда, откуда реально зашли.
-  const [guideInfoOrigin, setGuideInfoOrigin] = useState<"guide" | "properties">("guide");
 
   // ─── Состояние колеса «Пракрити» ─────────────────────────────────────────
   const [prakritiSentences, setPrakritiSentences] = useState<PrakritiSentence[]>([]);
@@ -539,6 +489,21 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     setView("properties-menu");
   };
 
+  // Колесо «Предмет изучения»: первый сектор — игра (название и значок
+  // как в колесе игр), остальные пустые. Нажатие открывает экран с
+  // личным результатом игры (view "stable-game").
+  const stableGame = games[0];
+  const stableWheelLabels = useMemo(
+    () =>
+      Array.from({ length: SECTOR_COUNT }, (_, i) =>
+        i === 0 ? gameWheelLabels[0] ?? [] : []
+      ),
+    [gameWheelLabels]
+  );
+  const handleStableSectorClick = (index: number) => {
+    if (index === 0) setView("stable-game");
+  };
+
   // Колесо «Свойства сайта»: сектор №1 — «Начало пути по сайту»,
   // сектор №2 — «Меню», сектор №3 — «Узнать возможности сайта»,
   // сектор №11 — «Регистрация и авторизация» (для авторизованного —
@@ -554,7 +519,6 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     } else if (index === PROPERTIES_FEATURES_INDEX) {
       setView("features");
     } else if (index === PROPERTIES_SUPPORT_INDEX) {
-      setGuideInfoOrigin("properties");
       setView("guide-info");
     }
   };
@@ -565,24 +529,6 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       openLanguageWheel();
     } else if (index === 1) {
       openScriptWheel();
-    }
-  };
-
-  // Колесо «Регистрация и авторизация»: сектор 0 — вход, сектор 1 —
-  // регистрация (отдельные страницы сайта). Для авторизованного
-  // пользователя единственный сектор — «Выйти».
-  const handlePropertiesAuthSectorClick = (index: number) => {
-    if (isAuthenticated) {
-      if (index === 0) {
-        logout();
-        setView("main");
-      }
-      return;
-    }
-    if (index === 0) {
-      setLocation(AUTH_LOGIN_PATH);
-    } else if (index === 1) {
-      setLocation(AUTH_REGISTER_PATH);
     }
   };
 
@@ -602,13 +548,6 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // (какие темы выводить первыми) добавим позже.
   const handlePathSortClick = (values: SortValues) => {
     console.debug("[path] сортировка по запросу:", values);
-  };
-
-  const handleGuideSectorClick = (index: number) => {
-    if (index === 0) {
-      setGuideInfoOrigin("guide");
-      setView("guide-info");
-    }
   };
 
   // Клик по кнопкам хедера: каждая из трёх открывает своё колесо.
@@ -634,7 +573,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     return (
       thirdKey !== undefined &&
       key === thirdKey &&
-      !["languages", "all-data", "your-page"].includes(key)
+      !["languages", "your-page"].includes(key)
     );
   };
 
@@ -659,20 +598,9 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       // (Раньше здесь открывалось колесо "dictionary" — код этого
       // колеса оставлен ниже, но сейчас оно ни из чего не открывается.)
       setView("properties");
-    } else if (key === "auth") {
-      // «Регистрация и авторизация» (кнопка заставки) → колесо
-      // «Аккаунт»: «Вход» / «Регистрация» (для авторизованного — «Выйти»).
-      setView("properties-auth");
-    } else if (key === "all-data") {
-      if (!isAuthenticated) {
-        // Было: setLocation("/login") — мгновенный редирект.
-        // Теперь: сначала показываем колесо-путеводитель, чтобы
-        // пользователь мог осмотреться, не будучи сразу обязанным
-        // войти/оплатить.
-        setView("guide");
-      } else {
-        setLocation("/payments");
-      }
+    } else if (key === "stable") {
+      // «Предмет изучения» → колесо, в первом секторе которого игра.
+      setView("stable");
     } else if (isHomeKey(key)) {
       // «Домашняя страница» → главное колесо тем (то же, что открывается
       // по умолчанию и с приветственной страницы). Принимаем оба ключа:
@@ -693,29 +621,23 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const footerItems = footerNav.map((item) =>
-    item.key === "all-data"
-      ? {
-          ...item,
-          label: isAuthenticated
-            ? `Добро пожаловать, ${getWelcomeName(user)}!`
-            : "Начальная страница сайта",
-        }
-      : item
-  );
+  const footerItems = footerNav;
 
   // "← Назад" на любом колесе, кроме колеса тем ("main"), обычно
   // возвращает на колесо тем (домашний экран). Исключения:
-  //  • "guide-info" → туда, откуда зашли: "guide" или "properties"
-  //    (см. guideInfoOrigin);
-  //  • "properties-menu", "properties-auth", "features" → "properties"
+  //  • "guide-info" → "properties" (экран оплаты открывается из
+  //    сектора «Хочу поддержать проект»);
+  //  • "stable-game" → "stable" (обратно в «Предмет изучения»);
+  //  • "properties-menu", "features" → "properties"
   //    (обратно в «Свойства сайта»);
   //  • "path" → "properties", "path-ready" → "path";
   //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
   //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений).
   const handleBack = () => {
     if (view === "guide-info") {
-      setView(guideInfoOrigin);
+      setView("properties");
+    } else if (view === "stable-game") {
+      setView("stable");
     } else if (
       view === "properties-menu" ||
       view === "path" ||
@@ -780,10 +702,6 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
           />
         )}
 
-        {view === "dictionary" && (
-          <Wheel12 labels={DICTIONARY_LABELS} centerLabel="Все страницы сайта" />
-        )}
-
         {view === "sambandha" && (
           <Wheel12
             labels={SAMBANDHA_WHEEL_LABELS}
@@ -842,23 +760,6 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
           />
         )}
 
-        {view === "properties-auth" && (
-          <Wheel12
-            labels={
-              isAuthenticated
-                ? PROPERTIES_LOGOUT_WHEEL_LABELS
-                : PROPERTIES_AUTH_WHEEL_LABELS
-            }
-            centerLabel="Аккаунт"
-            clickableIndices={
-              isAuthenticated
-                ? PROPERTIES_LOGOUT_WHEEL_CLICKABLE_INDICES
-                : PROPERTIES_AUTH_WHEEL_CLICKABLE_INDICES
-            }
-            onSectorClick={handlePropertiesAuthSectorClick}
-          />
-        )}
-
         {view === "path" && (
           <Wheel12
             labels={PATH_WHEEL_LABELS}
@@ -886,13 +787,61 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
           <Wheel12 labels={PRAYOJANA_WHEEL_LABELS} centerLabel="Прайоджана" />
         )}
 
-        {view === "guide" && (
+        {view === "stable" && (
           <Wheel12
-            labels={GUIDE_WHEEL_LABELS}
-            centerLabel="Начальная страница сайта"
-            clickableIndices={GUIDE_CLICKABLE_INDICES}
-            onSectorClick={handleGuideSectorClick}
+            labels={stableWheelLabels}
+            centerLabel="Предмет изучения"
+            clickableIndices={[0]}
+            onSectorClick={handleStableSectorClick}
           />
+        )}
+
+        {view === "stable-game" && (
+          <div className="flex flex-col items-center justify-center gap-5 max-w-lg text-center px-4">
+            <p className="text-xl font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
+              {stableGame.icon} {stableGame.label}
+            </p>
+            {!isAuthenticated ? (
+              <>
+                <p className="text-base" style={{ color: WHEEL_TEXT_COLOR }}>
+                  Войдите или зарегистрируйтесь, чтобы сохранять личные
+                  результаты игры.
+                </p>
+                <button
+                  onClick={() => setLocation("/auth")}
+                  className="px-6 py-3 rounded-full border-2 font-bold text-base transition bg-white"
+                  style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+                >
+                  Регистрация и авторизация
+                </button>
+              </>
+            ) : (
+              (() => {
+                const saved = getSavedResult(user?.id, stableGame.type);
+                return saved ? (
+                  <p className="text-base" style={{ color: WHEEL_TEXT_COLOR }}>
+                    Ваш личный результат: {saved.score}
+                    <br />
+                    <span className="text-sm">
+                      сохранён {new Date(saved.savedAt).toLocaleDateString("ru-RU")}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="text-base" style={{ color: WHEEL_TEXT_COLOR }}>
+                    Личный результат ещё не сохранён. Сыграйте и нажмите
+                    значок дискеты в шапке игры.
+                  </p>
+                );
+              })()
+            )}
+            <button
+              onClick={() => setLocation(`/game?game=${stableGame.type}`)}
+              className="px-6 py-3 rounded-full border-2 font-bold text-base transition bg-white"
+              style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+            >
+              Играть
+            </button>
+          </div>
         )}
 
         {view === "guide-info" && (
@@ -929,6 +878,39 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
           </div>
         )}
       </div>
+
+      {showWelcome && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.45)" }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="bg-white rounded-3xl border-4 p-6 w-full max-w-md text-center flex flex-col gap-4"
+            style={{ borderColor: "#FFD700" }}
+          >
+            <p className="text-xl font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
+              Добро пожаловать{isAuthenticated ? `, ${getWelcomeName(user)}` : ""}!
+            </p>
+            <p className="text-base" style={{ color: WHEEL_TEXT_COLOR }}>
+              Чтобы продолжить увлекательное путешествие по сайту, выберите в
+              шапке раздел, который вас заинтересует.
+            </p>
+            <p className="text-base" style={{ color: WHEEL_TEXT_COLOR }}>
+              После оплаты на колесе «Свойства сайта» откроются все сервисы
+              сайта.
+            </p>
+            <button
+              onClick={closeWelcome}
+              className="px-6 py-3 rounded-full border-2 font-bold text-base transition bg-white"
+              style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+            >
+              Понятно
+            </button>
+          </div>
+        </div>
+      )}
     </WheelPageShell>
   );
 }

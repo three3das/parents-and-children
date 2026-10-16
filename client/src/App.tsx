@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ToastProvider } from "@/components/ui/toast";
 import RequireSubscription from "@/components/RequireSubscription";
 import SplashGate from "@/pages/SplashGate";
+import AuthPage from "@/pages/auth";
 import LoginPage from "@/pages/login";
 import RegisterPage from "@/pages/register";
 import SubscriptionPage from "@/pages/subscription";
@@ -65,6 +66,7 @@ export default function App() {
                     маршруты (/game, /reading и т.д.) остаются
                     защищёнными RequireSubscription без изменений. */}
                 <Route path="/" component={SplashGate} />
+                <Route path="/auth" component={AuthPage} />
                 <Route path="/login" component={LoginPage} />
                 <Route path="/register" component={RegisterPage} />
                 <Route path="/subscription" component={SubscriptionPage} />

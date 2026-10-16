@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearch } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { SplashScreen } from "@/components/SplashScreen";
 import HomePage from "@/pages/HomePage";
 
@@ -17,6 +17,7 @@ import HomePage from "@/pages/HomePage";
 // тот же handleFooterClick, что и при обычном клике, поэтому
 // открывается нужное колесо («Свойства сайта»).
 export default function SplashGate() {
+  const [, navigate] = useLocation();
   const search = useSearch();
   const params = new URLSearchParams(search);
   const skipSplash = params.get("skipSplash") === "true";
@@ -28,7 +29,15 @@ export default function SplashGate() {
   if (!dismissed) {
     return (
       <SplashScreen
-        onSelect={(key) => setPendingKey(key)}
+        onSelect={(key) => {
+          // «Регистрация и авторизация» ведёт на отдельную страницу /auth
+          // (формы регистрации и входа), а не на колесо.
+          if (key === "auth") {
+            navigate("/auth");
+            return;
+          }
+          setPendingKey(key);
+        }}
         onDismiss={() => setDismissed(true)}
       />
     );

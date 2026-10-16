@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { PAYMENT_PRICES } from "@shared/pricing";
 
 interface P2PPaymentModalProps {
   isOpen: boolean;
@@ -9,7 +10,7 @@ interface P2PPaymentModalProps {
 export function P2PPaymentModal({ isOpen, onClose, userEmail }: P2PPaymentModalProps) {
   const cardNumber = "5168 7451 2747 0224";
   const recipient = "Урiзко Олександр Леонiдович";
-  const amount = "100";
+  const amount = String(PAYMENT_PRICES.privatbank_card.amount);
   const contactEmail = "parents-and-children@outlook.com";
 
   const copyToClipboard = (text: string) => {

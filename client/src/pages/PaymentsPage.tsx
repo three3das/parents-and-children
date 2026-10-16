@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { headerNav, footerNav } from "@/lib/siteNav";
 import { WHEEL_TEXT_COLOR } from "@/lib/colors";
+import { getPaymentPrice, formatPrice } from "@shared/pricing";
 import { WheelHeader, WheelFooter, WheelPageShell } from "@/components/SiteHeaderFooter";
 
 // ============================================================================
@@ -362,6 +363,18 @@ function PaymentDetailsPanel({
 
   // Собираем рамки из тех полей, что есть у способа оплаты.
   const frames: { key: string; title: string; content: ReactNode }[] = [];
+
+  // Сумма к оплате — берётся из shared/pricing.ts по ключу способа оплаты.
+  const price = getPaymentPrice(method.methodKey);
+  frames.push({
+    key: "price",
+    title: "Сумма к оплате",
+    content: (
+      <p className="text-2xl font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
+        {formatPrice(price.amount, price.currency)}
+      </p>
+    ),
+  });
 
   if (method.card) {
     frames.push({

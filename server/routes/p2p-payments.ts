@@ -13,6 +13,7 @@ import {
   sendRegistrationNotification,
   sendPaymentClaimNotification,
 } from "../telegram";
+import { getPaymentPrice } from "../../shared/pricing";
 
 const router = Router();
 
@@ -40,9 +41,12 @@ const router = Router();
 export async function createPendingPayment(
   userId: string,
   userEmail: string,
-  amount: number = 1,
   method?: string
 ): Promise<{ created: boolean; reason?: string }> {
+  // Сумма и валюта зависят от способа оплаты (см. shared/pricing.ts):
+  // карта ПриватБанка — 45 грн, крипто-кошелёк — 1 USDT.
+  const price = getPaymentPrice(method);
+  const amount = price.amount;
   // Уже есть активная подписка — платёж не нужен
   const existingSub = await db.execute(
     sql`SELECT * FROM subscriptions WHERE user_id = ${userId} AND status = 'active' LIMIT 1`
@@ -65,8 +69,11 @@ export async function createPendingPayment(
     const methodChanged = method && method !== pendingRow.method;
 
     if (methodChanged) {
+      // Сумма и валюта пересчитываются под выбранный способ оплаты.
       await db.execute(
-        sql`UPDATE pending_payments SET method = ${method} WHERE id = ${pendingRow.id}`
+        sql`UPDATE pending_payments
+            SET method = ${method}, amount = ${amount}, currency = ${price.currency}
+            WHERE id = ${pendingRow.id}`
       );
 
       // Метод только что появился/поменялся на существующей заявке —
@@ -74,13 +81,14 @@ export async function createPendingPayment(
       // получил только уведомление о регистрации (без суммы и ID
       // заявки), поэтому здесь шлём полноценное письмо о заявке на
       // оплату + Telegram с кнопками.
-      const claimAmount = Number(pendingRow.amount) || amount;
+      const claimAmount = amount;
 
       sendPaymentNotificationEmail(
         userEmail,
         claimAmount,
         String(pendingRow.id),
-        method
+        method,
+        price.currency
       ).catch((err) =>
         console.error("[P2P] Failed to send email notification:", err)
       );
@@ -89,7 +97,8 @@ export async function createPendingPayment(
         String(pendingRow.id),
         userEmail,
         claimAmount,
-        method
+        method,
+        price.currency
       ).catch((err) =>
         console.error("[P2P] Failed to send Telegram claim notification:", err)
       );
@@ -100,7 +109,7 @@ export async function createPendingPayment(
 
   const insertResult = await db.execute(
     sql`INSERT INTO pending_payments (user_id, user_email, amount, currency, status, method)
-        VALUES (${userId}, ${userEmail}, ${amount}, 'UAH', 'pending', ${method ?? null})
+        VALUES (${userId}, ${userEmail}, ${amount}, ${price.currency}, 'pending', ${method ?? null})
         RETURNING id`
   );
 
@@ -113,10 +122,10 @@ export async function createPendingPayment(
     // (например, если /request вызван напрямую, минуя обычный сценарий
     // "сначала регистрация, потом выбор способа оплаты"). Это реальная
     // заявка на оплату — уведомляем админа письмом и Telegram с кнопками.
-    sendPaymentNotificationEmail(userEmail, amount, String(paymentId), method).catch((err) =>
+    sendPaymentNotificationEmail(userEmail, amount, String(paymentId), method, price.currency).catch((err) =>
       console.error("[P2P] Failed to send email notification:", err)
     );
-    sendPaymentClaimNotification(String(paymentId), userEmail, amount, method).catch(
+    sendPaymentClaimNotification(String(paymentId), userEmail, amount, method, price.currency).catch(
       (err) => console.error("[P2P] Failed to send Telegram claim notification:", err)
     );
   } else {
@@ -255,7 +264,7 @@ router.post("/request", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "userId и userEmail обязательны" });
     }
 
-    const result = await createPendingPayment(userId, userEmail, 1, method);
+    const result = await createPendingPayment(userId, userEmail, method);
 
     if (!result.created) {
       const status = result.reason === "already_subscribed" ? 409 : 200;

@@ -1,4 +1,5 @@
 import sgMail from '@sendgrid/mail';
+import { formatPrice } from "../shared/pricing";
 
 interface EmailOptions {
   to: string;
@@ -430,20 +431,21 @@ export async function sendPaymentNotificationEmail(
   userEmail: string,
   amount: number,
   paymentId: string,
-  method?: string | null
+  method?: string | null,
+  currency: string = "UAH"
 ): Promise<boolean> {
   const config = getConfig();
   const adminEmail = process.env.ADMIN_EMAIL || config.fromEmail;
   const details = getPaymentMethodDetails(method);
   const cardFieldLabel = details.cardFieldLabel ?? "Реквизит";
 
-  const subject = `Новая заявка на оплату — ${amount} грн`;
+  const subject = `Новая заявка на оплату — ${formatPrice(amount, currency)}`;
 
   const text = `
 Новая заявка на P2P-оплату!
 
 Пользователь: ${userEmail}
-Сумма: ${amount} грн
+Сумма: ${formatPrice(amount, currency)}
 Способ оплаты: ${details.label}${
     details.card ? `\n${cardFieldLabel}: ${details.card}` : ""
   }${details.holder ? `\nПолучатель: ${details.holder}` : ""}
@@ -524,7 +526,7 @@ ID заявки: ${paymentId}
 
     <div class="details">
       <p><span class="label">Пользователь:</span> <span class="value">${userEmail}</span></p>
-      <p><span class="label">Сумма:</span> <span class="value">${amount} грн</span></p>
+      <p><span class="label">Сумма:</span> <span class="value">${formatPrice(amount, currency)}</span></p>
       <p><span class="label">Способ оплаты:</span> <span class="value">${details.label}</span></p>
       ${
         details.card

@@ -78,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // (см. createPendingPayment → sendPaymentNotificationEmail).
       // Ошибка здесь не должна ломать саму регистрацию — только логируем.
       try {
-        await createPendingPayment(user.id, user.email, 1);
+        await createPendingPayment(user.id, user.email);
       } catch (pendingErr) {
         console.error("Error creating pending payment on register:", pendingErr);
       }
@@ -200,7 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Тот же самый шаг, что и при обычной регистрации: создаём
         // заготовку заявки на оплату и уведомляем администратора.
         try {
-          await createPendingPayment(user.id, user.email, 1);
+          await createPendingPayment(user.id, user.email);
         } catch (pendingErr) {
           console.error("Error creating pending payment on Google register:", pendingErr);
         }

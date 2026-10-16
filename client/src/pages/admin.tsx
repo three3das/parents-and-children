@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { formatPrice } from "@shared/pricing";
 
 interface PendingPayment {
   id: number;
   user_email: string;
   amount: number;
+  currency?: string;
   created_at: string;
   status: string;
 }
@@ -179,7 +181,7 @@ export default function AdminPanel() {
                         {payment.user_email}
                       </p>
                       <p className="text-sm text-[#FFD700] font-bold">
-                        Сумма: {payment.amount} грн
+                        Сумма: {formatPrice(payment.amount, payment.currency)}
                       </p>
                       <p className="text-xs text-[#FFD700] font-bold">
                         Создано: {new Date(payment.created_at).toLocaleString("ru-RU")}

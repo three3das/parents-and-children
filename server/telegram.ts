@@ -18,6 +18,7 @@
 
 import TelegramBot from "node-telegram-bot-api";
 import { activatePayment, rejectPayment } from "./routes/p2p-payments";
+import { formatPrice } from "../shared/pricing";
 
 let bot: TelegramBot | null = null;
 
@@ -144,7 +145,8 @@ export async function sendPaymentClaimNotification(
   paymentId: string,
   userEmail: string,
   amount: number,
-  method: string | null
+  method: string | null,
+  currency: string = "UAH"
 ): Promise<void> {
   const { adminChatId } = getConfig();
   if (!bot || !adminChatId) return;
@@ -152,7 +154,7 @@ export async function sendPaymentClaimNotification(
   const text =
     `💰 Пользователь нажал "Оплачено"\n\n` +
     `Email: <b>${escapeHtml(userEmail)}</b>\n` +
-    `Сумма: <b>${amount} грн</b>\n` +
+    `Сумма: <b>${formatPrice(amount, currency)}</b>\n` +
     `Способ оплаты: <b>${escapeHtml(method || "не указан")}</b>\n` +
     `ID заявки: <b>${escapeHtml(paymentId)}</b>\n\n` +
     `Проверьте поступление денег и подтвердите/отклоните заявку.`;
