@@ -56,7 +56,7 @@ export function HelpButton({ gameType }: HelpButtonProps) {
           подстраивается под текст (px + whitespace-nowrap), высота
           осталась как раньше. */}
       <motion.button
-        className="h-10 sm:h-16 px-3 sm:px-4 bg-amber-300 text-white rounded-xl font-bold hover:bg-amber-400 transition-colors shadow-lg whitespace-nowrap text-[10px] sm:text-sm leading-tight flex items-center justify-center"
+        className="w-full sm:w-auto min-h-10 sm:h-16 px-1 sm:px-4 bg-amber-300 text-white rounded-xl font-bold hover:bg-amber-400 transition-colors shadow-lg text-center whitespace-normal sm:whitespace-nowrap text-[10px] sm:text-sm leading-tight flex items-center justify-center"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setShowHelp(!showHelp)}

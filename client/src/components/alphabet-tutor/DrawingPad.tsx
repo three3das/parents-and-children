@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pencil } from 'lucide-react';
-import { BORDER_WIDTH, GOLD_100, GOLD_33, GOLD_67, SILVER, WHITE } from './constants';
+import { BORDER_WIDTH, ERASE_DRAWING_EVENT, GOLD_100, GOLD_33, GOLD_67, SILVER, WHITE } from './constants';
 import { L, pickLabel } from './labels';
 
 interface DrawingPadProps {
@@ -59,6 +59,15 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
     clearCanvas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guideSymbol]);
+
+  // Стиралка из панели режимов (GameMenu) очищает холст через событие.
+  useEffect(() => {
+    const onErase = () => clearCanvas();
+    window.addEventListener(ERASE_DRAWING_EVENT, onErase);
+    return () => window.removeEventListener(ERASE_DRAWING_EVENT, onErase);
+    // clearCanvas работает только через ref и setState — пересоздавать не нужно.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function clearCanvas() {
     const canvas = canvasRef.current;
@@ -142,7 +151,7 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
         className="relative flex-1 min-h-0 rounded-xl shadow-md overflow-hidden"
         style={{
           touchAction: 'none',
-          minHeight: '90px',
+          minHeight: '64px',
           backgroundColor: GOLD_100,
           border: `${BORDER_WIDTH}px solid ${GOLD_100}`,
         }}

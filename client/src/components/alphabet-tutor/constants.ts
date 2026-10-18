@@ -26,3 +26,7 @@ export const SPEECH_LOCALE: Record<string, string> = {
   fr: 'fr-FR',
   hi: 'hi-IN',
 };
+
+// Событие «стереть рисунок на холсте». Его шлёт кнопка-стиралка из панели
+// режимов (GameMenu, мобильная версия), а слушает DrawingPad.
+export const ERASE_DRAWING_EVENT = 'alphabet:erase-drawing';

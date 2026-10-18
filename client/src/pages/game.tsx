@@ -536,7 +536,7 @@ useEffect(() => {
     // экрана и обрезался без возможности прокрутки. На sm: и выше
     // поведение не изменилось — фиксированная высота, без общей
     // прокрутки страницы, как и было задумано изначально.
-    <div className="h-auto overflow-visible sm:h-screen sm:overflow-hidden flex flex-col">
+    <div className={`${gameType === 'alphabet-placeholder' ? 'fit-screen overflow-hidden' : 'h-auto overflow-visible'} sm:h-screen sm:overflow-hidden flex flex-col`}>
       {/* ⚠️ ПРАВКА: GameHeader больше не принимает onSettingsClick /
           onLoginClick / onCreateAccountClick / onProgressClick — этих
           пропсов больше нет в GameHeaderProps (см. GameHeader.tsx —
@@ -572,7 +572,7 @@ useEffect(() => {
           обрезался бы этим же свойством ещё до того, как получал бы
           шанс прокрутиться во внутренней обёртке ниже. На sm: и
           выше — прежнее поведение (overflow-hidden). */}
-      <main className="flex-1 overflow-visible sm:overflow-hidden max-w-6xl mx-auto px-4 pt-2 pb-8 w-full flex flex-col">
+      <main className={`flex-1 min-h-0 overflow-visible sm:overflow-hidden max-w-6xl mx-auto px-2 sm:px-4 pt-1 sm:pt-2 ${gameType === 'alphabet-placeholder' ? 'pb-1' : 'pb-8'} sm:pb-8 w-full flex flex-col`}>
         <div className="flex-shrink-0">
           <GameMenu
             currentGameType={gameType}
@@ -588,7 +588,7 @@ useEffect(() => {
             (см. правку на корневом div выше). На sm: и выше —
             исходное поведение: flex-1 min-h-0 overflow-y-auto,
             собственная внутренняя прокрутка в пределах main. */}
-        <div className="overflow-visible sm:flex-1 sm:min-h-0 sm:overflow-y-auto">
+        <div className={`${gameType === 'alphabet-placeholder' ? 'flex-1 min-h-0' : 'overflow-visible'} sm:flex-1 sm:min-h-0 sm:overflow-y-auto`}>
           {gameType === 'alphabet-placeholder' && (
             <AlphabetTutor />
           )}

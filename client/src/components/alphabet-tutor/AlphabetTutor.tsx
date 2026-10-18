@@ -14,9 +14,9 @@ import type { LetterGroup } from './types';
 
 // Общие классы зон 1 и 2 правой панели. Обе — золотые, с белым текстом.
 const ZONE_CLASS =
-  'flex-[0.5] min-h-[72px] sm:min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center gap-0.5 p-2 overflow-hidden';
+  'flex-[0.5] min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center gap-0 sm:gap-0.5 p-1 sm:p-2 overflow-hidden';
 const ZONE_STYLE = { backgroundColor: GOLD_100, border: `${BORDER_WIDTH}px solid ${GOLD_100}` };
-const ZONE_SYMBOL_SIZE = 'clamp(20px, 3.4vw, 36px)';
+const ZONE_SYMBOL_SIZE = 'clamp(16px, 3.4vw, 36px)';
 
 export function AlphabetTutor() {
   const { language } = useLanguage();
@@ -92,10 +92,10 @@ export function AlphabetTutor() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto p-2 sm:p-4 h-auto sm:h-full" style={{ backgroundColor: WHITE }}>
+    <div className="max-w-7xl mx-auto p-1 sm:p-4 h-full overflow-y-auto sm:overflow-visible" style={{ backgroundColor: WHITE }}>
       {/* Мобильный: колонка, страница растёт по контенту.
           sm и выше: ряд. Порядок на мобильном: сайдбар → правая панель → таблица. */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 sm:items-stretch h-auto sm:h-full">
+      <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-4 sm:items-stretch h-full">
         {/* ЛЕВАЯ КОЛОНКА — функции и категории */}
         <div className="w-full sm:w-40 flex-shrink-0 flex flex-wrap items-center gap-1 sm:block sm:space-y-4">
           <div className="contents sm:block">
@@ -104,7 +104,7 @@ export function AlphabetTutor() {
             </h4>
             <button
               onClick={() => setAudioEnabled(!audioEnabled)}
-              className="sm:w-full text-left px-2 py-1 rounded text-xs font-bold transition-colors"
+              className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
               style={sidebarButtonStyle(audioEnabled, GOLD_100)}
               {...sidebarHover(audioEnabled)}
             >
@@ -128,7 +128,7 @@ export function AlphabetTutor() {
                   <button
                     key={group.type}
                     onClick={() => setActiveCategory(isActive ? null : group.type)}
-                    className="sm:w-full text-left px-2 py-1 rounded text-xs font-bold transition-colors"
+                    className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
                     style={sidebarButtonStyle(isActive, GOLD_67)}
                     {...sidebarHover(isActive)}
                   >
@@ -141,17 +141,17 @@ export function AlphabetTutor() {
         </div>
 
         {/* ЦЕНТР — таблица букв */}
-        <div className="w-full sm:flex-1 min-w-0 overflow-visible sm:overflow-auto">
+        <div className="w-full sm:flex-1 min-w-0 flex-shrink-0 sm:flex-shrink order-1 sm:order-none overflow-visible sm:overflow-auto">
           <div
-            className="p-2 sm:p-3 rounded space-y-2"
+            className="p-1 sm:p-3 rounded space-y-1 sm:space-y-2"
             style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_33}` }}
           >
             {groups.map((group) => (
               <div key={group.type}>
-                <h3 className="text-xs font-bold mb-1" style={{ color: SILVER }}>
+                <h3 className="text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 leading-none sm:leading-normal" style={{ color: SILVER }}>
                   {getGroupLabel(group.type, uiLanguage)}
                 </h3>
-                <div className="flex gap-0.5 justify-start flex-wrap">
+                <div className="grid grid-cols-11 gap-0.5 sm:flex sm:justify-start sm:flex-wrap">
                   {group.letters.map((letter) => (
                     <LetterCard
                       key={letter.id}
@@ -168,10 +168,10 @@ export function AlphabetTutor() {
         </div>
 
         {/* ПРАВАЯ ПАНЕЛЬ — три зоны (высота 0.5 / 0.5 / 1.4) */}
-        <div className="w-full sm:w-64 flex-shrink-0 h-auto sm:h-full grid grid-cols-2 gap-2 sm:flex sm:flex-col">
+        <div className="w-full sm:w-64 sm:flex-shrink-0 flex-1 min-h-[120px] sm:flex-none sm:min-h-0 sm:h-full order-2 sm:order-none grid grid-cols-[38%_1fr] grid-rows-2 gap-1.5 sm:gap-2 sm:flex sm:flex-col">
           {/* Зона 1 — буква в выбранной системе письма (золотая, белый текст) */}
-          <div className={ZONE_CLASS} style={ZONE_STYLE}>
-            <span className="block text-[10px] font-bold" style={{ color: WHITE }}>
+          <div className={`col-start-1 row-start-1 ${ZONE_CLASS}`} style={ZONE_STYLE}>
+            <span className="block text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
               {pickLabel(L.letterZone, uiLanguage)}
             </span>
             <div
@@ -180,7 +180,7 @@ export function AlphabetTutor() {
             >
               {selectedLetter ? (scriptText ?? '—') : '—'}
             </div>
-            <span className="block text-[10px] font-bold text-center leading-tight" style={{ color: WHITE }}>
+            <span className="block text-[8px] sm:text-[10px] font-bold text-center leading-tight" style={{ color: WHITE }}>
               {pickLabel(L.scriptZone, uiLanguage)} «{scriptLabel}»
             </span>
           </div>
@@ -209,10 +209,10 @@ export function AlphabetTutor() {
                 ? { duration: 1.4, repeat: Infinity, ease: 'easeOut' }
                 : { duration: 0.2 }
             }
-            className={`relative w-full ${ZONE_CLASS} ${selectedLetter ? 'cursor-pointer' : 'cursor-default'}`}
+            className={`relative w-full col-start-1 row-start-2 ${ZONE_CLASS} ${selectedLetter ? 'cursor-pointer' : 'cursor-default'}`}
             style={ZONE_STYLE}
           >
-            <span className="block text-[10px] font-bold" style={{ color: WHITE }}>
+            <span className="block text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
               {pickLabel(L.letterZone, uiLanguage)}
             </span>
             <span
@@ -223,21 +223,21 @@ export function AlphabetTutor() {
             </span>
             {selectedLetter ? (
               <span
-                className="mt-0.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-bold"
+                className="mt-0.5 inline-flex items-center gap-1 px-1.5 sm:px-2 py-0 sm:py-0.5 rounded-full bg-white text-[8px] sm:text-[10px] font-bold"
                 style={{ color: SILVER }}
               >
                 <BookOpen className="w-3 h-3" strokeWidth={2.5} />
                 {pickLabel(L.dictCta, uiLanguage)}
               </span>
             ) : (
-              <span className="block text-[10px] font-bold" style={{ color: WHITE }}>
+              <span className="block text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
                 {pickLabel(L.dictNeedLetter, uiLanguage)}
               </span>
             )}
           </motion.button>
 
           {/* Зона 3 — холст (тоже золотой) */}
-          <div className="col-span-2 h-[200px] sm:h-auto sm:flex-[1.4] sm:min-h-0">
+          <div className="col-start-2 row-start-1 row-span-2 min-h-0 sm:row-span-1 sm:flex-[1.4]">
             <DrawingPad
               letterSymbol={selectedLetter?.grapheme ?? null}
               scriptSymbol={scriptText}

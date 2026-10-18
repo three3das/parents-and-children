@@ -9,8 +9,8 @@ import { WHEEL_TEXT_COLOR } from "@/lib/colors";
 
 // Общий вид кнопок шапки: золотая рамка, синие буквы (как на колёсах).
 const HEADER_BUTTON_CLASS =
-  "flex-shrink-0 px-2 py-1 rounded-full border-2 border-[#FFD700] bg-white " +
-  "font-bold text-[11px] sm:text-sm leading-tight whitespace-nowrap " +
+  "flex-shrink-0 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full border-2 border-[#FFD700] bg-white " +
+  "font-bold text-[10px] sm:text-sm leading-tight whitespace-nowrap " +
   "hover:bg-yellow-50 transition-colors";
 
 // ⚠️ Импорт LanguageSwitcher убран намеренно: раньше в шапке игры был
@@ -90,7 +90,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday }
 
   return (
     <motion.header
-      className="glass rounded-2xl p-2 mb-3 gpu-accelerated overflow-visible relative z-[9999]"
+      className="glass rounded-2xl p-1 sm:p-2 mb-1 sm:mb-3 gpu-accelerated overflow-visible relative z-[9999]"
       {...ANIMATION_VARIANTS.slideDown}
     >
       <div className="max-w-4xl mx-auto overflow-visible">
@@ -186,7 +186,7 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday }
               onClick={handleSaveResult}
               aria-label="Сохранить результат"
               title="Сохранить результат"
-              className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full border-2 border-[#FFD700] bg-white hover:bg-yellow-50 transition-colors"
+              className="flex-shrink-0 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-[#FFD700] bg-white hover:bg-yellow-50 transition-colors"
               style={{ color: WHEEL_TEXT_COLOR }}
             >
               <svg

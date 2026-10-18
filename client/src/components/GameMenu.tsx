@@ -9,8 +9,10 @@ import {
   NotebookPen,
   Volume2,
   Headphones,
+  Eraser,
   type LucideIcon,
 } from "lucide-react";
+import { ERASE_DRAWING_EVENT } from "./alphabet-tutor/constants";
 
 const FIRST_LETTER: Record<string, string> = {
   sa: 'अ',
@@ -54,6 +56,19 @@ const GAME_ICONS: Partial<Record<GameType, LucideIcon>> = {
 // Единый цвет для всех 7 кнопок: чистое золото #FFD700.
 const GAME_BUTTON_COLOR = 'bg-[#FFD700] hover:bg-[#E6C200]';
 
+// Мобильная (< sm) раскладка: сетка из 6 колонок для кнопок режимов + 7-я
+// колонка под «Правила игры» (ряд 1) и стиралку (ряд 2). Слот режима с
+// индексом i стоит в ряду floor(i / 6) + 1, колонке i % 6 + 1 — поэтому
+// кнопки 7–12 всегда строго под кнопками 1–6, а новые режимы, добавленные
+// в gameTypes, сами встают во 2-й ряд справа от «аудио-фразы».
+// На sm и выше сетка не используется (там обычный flex-ряд, как раньше).
+const MOBILE_COLUMNS = 6;
+const mobileSlot = (index: number) => ({
+  gridRow: Math.floor(index / MOBILE_COLUMNS) + 1,
+  gridColumn: (index % MOBILE_COLUMNS) + 1,
+});
+const HELP_COLUMN = MOBILE_COLUMNS + 1;
+
 interface GameMenuProps {
   currentGameType: GameType;
   onGameTypeChange: (gameType: GameType) => void;
@@ -75,17 +90,20 @@ export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
   ];
 
   return (
-    <div className="flex gap-1 sm:gap-2 mb-4 justify-between items-center w-full font-montserrat">
-      <div className="flex gap-0.5 sm:gap-2 flex-1 min-w-0">
-        {gameTypes.map((gameType) => {
+    <div className="grid grid-cols-[repeat(6,minmax(0,1fr))_4.5rem] gap-1 sm:flex sm:gap-2 mb-1 sm:mb-4 sm:justify-between sm:items-center w-full font-montserrat">
+      {/* contents на мобильном: кнопки становятся ячейками общей сетки;
+          sm и выше: прежний flex-ряд. */}
+      <div className="contents sm:flex sm:gap-2 sm:flex-1 sm:min-w-0">
+        {gameTypes.map((gameType, index) => {
           const Icon = GAME_ICONS[gameType];
           return (
             <motion.button
               key={gameType}
+              style={mobileSlot(index)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onGameTypeChange(gameType)}
-              className={`flex-1 min-w-0 aspect-square sm:flex-none sm:w-16 sm:h-16 rounded-xl transition-colors flex flex-col items-center justify-center shadow-md text-black ${
+              className={`min-w-0 aspect-square sm:flex-none sm:w-16 sm:h-16 rounded-xl transition-colors flex flex-col items-center justify-center shadow-md text-black ${
                 currentGameType === gameType
                   ? 'ring-4 ring-[#8B6B00]'
                   : ''
@@ -108,9 +126,28 @@ export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
         })}
       </div>
 
-      <HelpButton
-        gameType={currentGameType}
-      />
+      {/* «Правила игры»: ряд 1, 7-я колонка (на sm+ — справа в flex-ряду). */}
+      <div className="flex" style={{ gridRow: 1, gridColumn: HELP_COLUMN }}>
+        <HelpButton gameType={currentGameType} />
+      </div>
+
+      {/* Стиралка (только мобильная версия и только в алфавите, где есть
+          холст): ряд 2, та же 7-я колонка — ровно под «Правилами игры»,
+          та же ширина. Кнопки 8–12 займут колонки 2–6 этого же ряда.
+          Очищает холст DrawingPad через событие. */}
+      {currentGameType === 'alphabet-placeholder' && (
+        <motion.button
+          type="button"
+          aria-label="Стереть рисунок"
+          title="Стереть рисунок"
+          style={{ gridRow: 2, gridColumn: HELP_COLUMN }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => window.dispatchEvent(new Event(ERASE_DRAWING_EVENT))}
+          className="sm:hidden w-full min-h-10 rounded-xl bg-amber-300 hover:bg-amber-400 transition-colors shadow-lg flex items-center justify-center text-white"
+        >
+          <Eraser className="w-5 h-5" strokeWidth={2.5} />
+        </motion.button>
+      )}
     </div>
   );
 }

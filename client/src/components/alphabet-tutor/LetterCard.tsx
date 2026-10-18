@@ -27,18 +27,18 @@ export function LetterCard({ letter, isHighlighted, isSelected, onClick }: Lette
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className="relative w-9 h-9 sm:w-10 sm:h-10 flex flex-col items-center justify-center transition-colors flex-shrink-0"
+      className="relative w-full aspect-square sm:w-10 sm:h-10 sm:aspect-auto flex flex-col items-center justify-center transition-colors flex-shrink-0"
       style={{ backgroundColor: background, border: `${borderWidth}px solid ${borderColor}` }}
     >
       {letter.sort_order != null && (
         <div
-          className="absolute top-0 right-0 text-[7px] font-bold px-0.5 leading-none"
+          className="absolute top-0 right-0 text-[6px] sm:text-[7px] font-bold px-0.5 leading-none"
           style={{ color: textColor }}
         >
           {letter.sort_order}
         </div>
       )}
-      <div className="text-sm font-bold" style={{ color: textColor }}>
+      <div className="text-xs sm:text-sm font-bold leading-none" style={{ color: textColor }}>
         {letter.grapheme}
       </div>
     </motion.button>
