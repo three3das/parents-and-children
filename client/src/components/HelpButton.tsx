@@ -43,6 +43,7 @@ export function HelpButton({ gameType }: HelpButtonProps) {
     if (gameType === 'sentence-game') return t.instructions.sentences;
     if (gameType === 'audio-picture') return t.instructions.audioPicture;
     if (gameType === 'audio-sentence') return t.instructions.audioSentence;
+    if (gameType === 'calculator') return t.instructions.calculator;
 
     return t.instructions.default;
   };

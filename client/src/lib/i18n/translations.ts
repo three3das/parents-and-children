@@ -42,6 +42,7 @@ export const translations: Record<Language, Translations> = {
       sentences: 'Прочитай предложение и найди картинку, которая соответствует описанию.',
       audioPicture: 'Послушай слово и найди правильную картинку. Язык озвучки можно переключить вверху экрана.',
       audioSentence: 'Послушай предложение и найди картинку, которая соответствует описанию.',
+      calculator: 'Нажимай кнопки на вкладках «Числа», «Знаки» и «Буквы», затем «=». Углы пиши в градусах, минутах и секундах, например cos 30°30′30″ (sin, cos, tan, cot всегда считают в градусах). Названия функций можно набрать буквами: «косинус 60°». Язык и письменность букв выбираются вверху экрана. Пока не работает: сохранение на дискету. Результаты сеанса видны, пока открыта страница.',
       default: 'Следуй инструкциям на экране.',
     },
 
@@ -206,6 +207,7 @@ export const translations: Record<Language, Translations> = {
       sentences: 'Read the sentence and find the picture that matches the description.',
       audioPicture: 'Listen to the word and find the correct picture. You can switch the audio language at the top of the screen.',
       audioSentence: 'Listen to the sentence and find the picture that matches the description.',
+      calculator: 'Use the Numbers, Signs and Letters tabs, then press "=". Write angles in degrees, minutes and seconds, e.g. cos 30°30′30″ (sin, cos, tan, cot always take degrees). You can type function names with letters: "cosine 60°". Pick the language and script of the letters at the top of the screen. Not active yet: saving to the floppy disk. Session results stay visible while the page is open.',
       default: 'Follow the instructions on screen.',
     },
 

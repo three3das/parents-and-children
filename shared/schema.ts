@@ -182,7 +182,7 @@ export type InsertPendingPayment = z.infer<typeof insertPendingPaymentSchema>;
 export type PendingPayment = typeof pendingPayments.$inferSelect;
 export type MonthlyActivation = typeof monthlyActivations.$inferSelect;
 // Game types
-export type GameType = 'alphabet-placeholder' | 'picture-match' | 'spell-word' | 'syllables' | 'sentence-game' | 'audio-picture' | 'audio-sentence';
+export type GameType = 'alphabet-placeholder' | 'picture-match' | 'spell-word' | 'syllables' | 'sentence-game' | 'audio-picture' | 'audio-sentence' | 'calculator';
 // Letter audio mapping for Russian alphabet
 export const RUSSIAN_LETTERS = {
   'А': 'a', 'Б': 'b', 'В': 'v', 'Г': 'g', 'Д': 'd', 'Е': 'e', 'Ё': 'yo',

@@ -284,11 +284,15 @@ type GameType =
   | "syllables"
   | "sentence-game"
   | "audio-picture"
-  | "audio-sentence";
+  | "audio-sentence"
+  | "calculator";
 
-function getGamesForLanguage(
-  language: string
-): { type: GameType; icon: string; label: string }[] {
+// sector — необязательный номер сектора колеса (0–11). Если не задан,
+// игра стоит в секторе, равном её месту в списке. «Калькулятор» стоит
+// строго в 12-м секторе (индекс 11), секторы 8–11 остаются пустыми.
+type GameDef = { type: GameType; icon: string; label: string; sector?: number };
+
+function getGamesForLanguage(language: string): GameDef[] {
   const alphabetIcon = FIRST_LETTER[language] ?? "A";
   const alphabetLabel = ALPHABET_LABEL[language] ?? "Alphabet";
   return [
@@ -299,13 +303,18 @@ function getGamesForLanguage(
     { type: "sentence-game", icon: "📝", label: "Предложение" },
     { type: "audio-picture", icon: "🔊", label: "Аудио-картинка" },
     { type: "audio-sentence", icon: "🎧", label: "Аудио-фраза" },
+    { type: "calculator", icon: "🧮", label: "Калькулятор", sector: SECTOR_COUNT - 1 },
   ];
 }
 
-function getGameWheelLabels(games: { icon: string; label: string }[]): string[][] {
-  return Array.from({ length: SECTOR_COUNT }, (_, i) =>
-    i < games.length ? [games[i].icon, games[i].label] : []
-  );
+const gameSector = (game: GameDef, index: number) => game.sector ?? index;
+
+function getGameWheelLabels(games: GameDef[]): string[][] {
+  const labels: string[][] = Array.from({ length: SECTOR_COUNT }, () => []);
+  games.forEach((game, i) => {
+    labels[gameSector(game, i)] = [game.icon, game.label];
+  });
+  return labels;
 }
 
 type ViewState =
@@ -477,7 +486,7 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   };
 
   const handleGameSectorClick = (index: number) => {
-    const game = games[index];
+    const game = games.find((g, i) => gameSector(g, i) === index);
     if (game) {
       setLocation(`/game?game=${game.type}`);
     }

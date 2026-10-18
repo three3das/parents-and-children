@@ -33,9 +33,14 @@ interface GameHeaderProps {
   currentWordIndex: number;
   totalWords: number;
   correctAnswersToday: number;
+  // Необязательная замена действия кнопки-дискеты. В «Калькуляторе»
+  // сохранение в файл пока заглушка — game.tsx передаёт сюда обработчик,
+  // который показывает сообщение. В остальных играх не задаётся, и
+  // дискета работает как раньше (handleSaveResult).
+  onSave?: () => void;
 }
 
-export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday }: GameHeaderProps) {
+export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday, onSave }: GameHeaderProps) {
   const { t } = useLanguage();
   const [, navigate] = useLocation();
   const { isAuthenticated, logout } = useAuth();
@@ -46,6 +51,10 @@ export function GameHeader({ currentWordIndex, totalWords, correctAnswersToday }
   // ВРЕМЕННО: само сохранение результата и колесо «Предмет изучения»
   // добавляются на следующих шагах.
   const handleSaveResult = () => {
+    if (onSave) {
+      onSave();
+      return;
+    }
     if (!isAuthenticated) {
       navigate("/auth");
       return;

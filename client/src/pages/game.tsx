@@ -16,6 +16,8 @@ import { SentenceGame } from "@/components/SentenceGame";
 import { AudioPictureGame } from "@/components/AudioPictureGame";
 import { AudioSentenceGame } from "@/components/AudioSentenceGame";
 import { AlphabetTutor } from "@/components/alphabet-tutor/AlphabetTutor";
+import { Calculator } from "@/components/calculator/Calculator";
+import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 // ⚠️ УБРАНО (мусор после переноса Settings/Login/CreateAccount/Progress
 // в футер IshvaraPage.tsx): импорты LoginModal, CreateAccountModal,
@@ -34,6 +36,7 @@ function getUrlParams() {
 }
 
 export default function Game() {
+  const { toast } = useToast();
   // Initialize state from URL params
   const urlParams = getUrlParams();
 
@@ -557,6 +560,16 @@ useEffect(() => {
         currentWordIndex={currentWordIndex}
         totalWords={words.length}
         correctAnswersToday={todayProgress?.correctAnswersToday || 0}
+        onSave={
+          gameType === 'calculator'
+            ? () =>
+                toast({
+                  title: 'Сохранение пока не активно',
+                  description:
+                    'Скоро подсчёты можно будет сохранить на дискету (в файл). Сейчас результаты сеанса видны, пока открыта страница.',
+                })
+            : undefined
+        }
       />
 
       {/* ⚠️ ПРАВКА (устранение скролла в AlphabetTutor): main теперь
@@ -579,7 +592,7 @@ useEffect(() => {
           обрезался бы этим же свойством ещё до того, как получал бы
           шанс прокрутиться во внутренней обёртке ниже. На sm: и
           выше — прежнее поведение (overflow-hidden). */}
-      <main className={`flex-1 min-h-0 overflow-visible sm:overflow-hidden max-w-6xl mx-auto px-2 sm:px-4 pt-1 sm:pt-2 ${gameType === 'alphabet-placeholder' ? 'pb-1' : 'pb-8'} sm:pb-8 w-full flex flex-col`}>
+      <main className={`flex-1 min-h-0 overflow-visible sm:overflow-hidden max-w-6xl mx-auto px-2 sm:px-4 pt-1 sm:pt-2 ${gameType === 'alphabet-placeholder' || gameType === 'calculator' ? 'pb-1' : 'pb-8'} sm:pb-8 w-full flex flex-col`}>
         <div className="flex-shrink-0">
           <GameMenu
             currentGameType={gameType}
@@ -599,6 +612,8 @@ useEffect(() => {
           {gameType === 'alphabet-placeholder' && (
             <AlphabetTutor />
           )}
+
+          {gameType === 'calculator' && <Calculator />}
 
           {gameType === 'picture-match' && (
             <>

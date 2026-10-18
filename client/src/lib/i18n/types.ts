@@ -70,6 +70,7 @@ export interface Translations {
     sentences: string;
     audioPicture: string;
     audioSentence: string;
+    calculator: string;
     default: string;
   };
 

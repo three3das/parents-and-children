@@ -10,6 +10,7 @@ import {
   Volume2,
   Headphones,
   Eraser,
+  Calculator,
   type LucideIcon,
 } from "lucide-react";
 import { ERASE_DRAWING_EVENT } from "./alphabet-tutor/constants";
@@ -51,6 +52,7 @@ const GAME_ICONS: Partial<Record<GameType, LucideIcon>> = {
   'syllables': Blocks,
   'audio-picture': Volume2,
   'audio-sentence': Headphones,
+  'calculator': Calculator,
 };
 
 // Единый цвет для всех 7 кнопок: чистое золото #FFD700.
@@ -63,10 +65,16 @@ const GAME_BUTTON_COLOR = 'bg-[#FFD700] hover:bg-[#E6C200]';
 // в gameTypes, сами встают во 2-й ряд справа от «аудио-фразы».
 // На sm и выше сетка не используется (там обычный flex-ряд, как раньше).
 const MOBILE_COLUMNS = 6;
-const mobileSlot = (index: number) => ({
-  gridRow: Math.floor(index / MOBILE_COLUMNS) + 1,
-  gridColumn: (index % MOBILE_COLUMNS) + 1,
-});
+// Явные слоты: «Калькулятор» — 12-й (ряд 2, колонка 6), как 12-й сектор
+// колеса «Игры»; слоты 8–11 пока свободны.
+const FIXED_SLOT: Partial<Record<GameType, number>> = { calculator: 11 };
+const mobileSlot = (gameType: GameType, index: number) => {
+  const slot = FIXED_SLOT[gameType] ?? index;
+  return {
+    gridRow: Math.floor(slot / MOBILE_COLUMNS) + 1,
+    gridColumn: (slot % MOBILE_COLUMNS) + 1,
+  };
+};
 const HELP_COLUMN = MOBILE_COLUMNS + 1;
 
 interface GameMenuProps {
@@ -87,6 +95,7 @@ export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
     'sentence-game',
     'audio-picture',
     'audio-sentence',
+    'calculator',
   ];
 
   return (
@@ -99,7 +108,7 @@ export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
           return (
             <motion.button
               key={gameType}
-              style={mobileSlot(index)}
+              style={mobileSlot(gameType, index)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onGameTypeChange(gameType)}
