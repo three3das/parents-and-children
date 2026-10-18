@@ -587,8 +587,10 @@ export class DatabaseStorage implements IStorage {
       console.log('getMaterialWorldActivities found:', result.rows?.length || 0, 'items');
       return (result.rows || []) as MaterialWorld[];
     } catch (error) {
+      // Пробрасываем ошибку: иначе withRetry в routes.ts не срабатывает,
+      // а клиент получает 200 [] и кэширует пустой список.
       console.error('Error fetching material world activities:', error);
-      return [];
+      throw error;
     }
   }
 
@@ -624,7 +626,7 @@ export class DatabaseStorage implements IStorage {
       return (result.rows || []) as MaterialWorld[];
     } catch (error) {
       console.error('Error fetching random material world items:', error);
-      return [];
+      throw error;
     }
   }
 

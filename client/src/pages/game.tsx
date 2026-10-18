@@ -149,10 +149,17 @@ useEffect(() => {
   });
 
   // Fetch material world activities (audio-sentence mode)
-  const { data: materialWorldActivities = [], isLoading: materialWorldLoading } = useQuery<MaterialWorld[]>({
+  const {
+    data: materialWorldActivities = [],
+    isLoading: materialWorldLoading,
+    isError: materialWorldError,
+    refetch: refetchMaterialWorld,
+  } = useQuery<MaterialWorld[]>({
     queryKey: ["/api/material-world"],
     enabled: gameType === 'audio-sentence',
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,                 // Render/Supabase могут «просыпаться» долго
+    retryDelay: (attempt) => 1000 * (attempt + 1),
   });
 
   // Get current sentence for audio-sentence game
@@ -682,7 +689,19 @@ useEffect(() => {
           )}
 
           {gameType === 'audio-sentence' && (
-            materialWorldLoading || sentenceDistractorsLoading ? (
+            materialWorldError ? (
+              <div className="text-center py-8">
+                <div className="text-2xl">⚠️</div>
+                <button
+                  type="button"
+                  className="mt-3 text-2xl px-4 py-2 rounded-xl bg-[#FFD700]"
+                  onClick={() => refetchMaterialWorld()}
+                  aria-label="Retry"
+                >
+                  🔄
+                </button>
+              </div>
+            ) : materialWorldLoading || sentenceDistractorsLoading ? (
               <div className="text-center py-8">
                 <div className="text-2xl">⏳</div>
                 <p className="text-sm text-[#FFD700] font-bold">{t.loadingOptions}</p>

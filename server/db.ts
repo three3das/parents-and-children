@@ -16,6 +16,9 @@ export const pool = new Pool({
   max: 3,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000,
+  // Не даём зависшему запросу висеть бесконечно (иначе fetch в браузере остаётся (pending))
+  query_timeout: 10000,
+  statement_timeout: 10000,
 });
 
 pool.on('error', (err) => {

@@ -571,8 +571,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
  
   app.get("/api/material-world", async (req, res) => {
     try {
-      res.set('Cache-Control', 'public, max-age=300');
       const activities = await withRetry(() => storage.getMaterialWorldActivities());
+      // Кэшируем только непустой ответ, чтобы пустой список не «залипал» на 5 минут
+      if (activities.length > 0) res.set('Cache-Control', 'public, max-age=300');
       res.json(activities);
     } catch (error) {
       console.error("Error fetching material world activities:", error);
