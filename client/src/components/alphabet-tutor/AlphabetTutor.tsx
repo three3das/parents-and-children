@@ -9,7 +9,7 @@ import { DrawingPad } from './DrawingPad';
 import { useAlphabetLetters, useScriptText } from './hooks';
 import { getGroupLabel, L, pickLabel } from './labels';
 import { LetterCard } from './LetterCard';
-import { speak } from './speech';
+import { playLetterSound } from './letterAudio';
 import type { LetterGroup } from './types';
 
 // Общие классы зон 1 и 2 правой панели. Обе — золотые, с белым текстом.
@@ -56,7 +56,7 @@ export function AlphabetTutor() {
 
   function handleLetterClick(id: string, grapheme: string) {
     setSelectedId(id);
-    if (audioEnabled) speak(grapheme, language, 0.7);
+    if (audioEnabled) playLetterSound(language, grapheme);
   }
 
   function openDictionary() {
@@ -178,7 +178,7 @@ export function AlphabetTutor() {
               className="font-bold text-center leading-none break-words"
               style={{ color: WHITE, fontSize: ZONE_SYMBOL_SIZE }}
             >
-              {selectedLetter ? (scriptText ?? '—') : '—'}
+              {selectedLetter && scriptText ? scriptText.toLocaleUpperCase(uiLanguage) : '—'}
             </div>
             <span className="block text-[8px] sm:text-[10px] font-bold text-center leading-tight" style={{ color: WHITE }}>
               {pickLabel(L.scriptZone, uiLanguage)} «{scriptLabel}»
