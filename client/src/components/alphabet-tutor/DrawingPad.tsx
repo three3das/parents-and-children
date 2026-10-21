@@ -168,10 +168,10 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
           >
             <text
               x="50"
-              y="54"
+              y="49"
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize={guideSymbol.length > 2 ? 40 : 72}
+              fontSize={guideSymbol.length > 2 ? 40 : 90}
               fontWeight={900}
               fill={WHITE}
               fillOpacity={0.3}
@@ -189,7 +189,7 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
 
         {hasSelection && guideSymbol && !hasDrawn && (
           <div
-            className="absolute top-1.5 left-1/2 -translate-x-1/2 max-w-[92%] inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-bold text-center leading-tight pointer-events-none select-none"
+            className="absolute bottom-1.5 left-1/2 -translate-x-1/2 max-w-[92%] inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-bold text-center leading-tight whitespace-nowrap pointer-events-none select-none"
             style={{ color: SILVER, border: `${BORDER_WIDTH}px solid ${GOLD_67}` }}
           >
             <Pencil className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
