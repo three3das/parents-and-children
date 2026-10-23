@@ -49,12 +49,15 @@ export default function Wheel12({
   centerLabel,
   onSectorClick,
   activeIndex,
+  activeIndices,
   clickableIndices,
 }: {
   labels: string[][];
   centerLabel: string;
   onSectorClick?: (index: number) => void;
   activeIndex?: number;
+  // Для мультивыбора: подсветить сразу несколько секторов.
+  activeIndices?: number[];
   // Необязательный список индексов, которые можно кликать. Если не
   // задан — кликабелен любой сектор с подписью.
   clickableIndices?: number[];
@@ -86,7 +89,7 @@ export default function Wheel12({
           const hasLabel = (labels[i] || []).length > 0;
           const allowedByList = !clickableIndices || clickableIndices.includes(i);
           const clickable = Boolean(onSectorClick) && hasLabel && allowedByList;
-          const isActive = i === activeIndex;
+          const isActive = activeIndices ? activeIndices.includes(i) : i === activeIndex;
           return (
             <circle
               key={`badge-${i}`}
@@ -110,7 +113,7 @@ export default function Wheel12({
           const hasLabel = lines.length > 0;
           const allowedByList = !clickableIndices || clickableIndices.includes(i);
           const clickable = Boolean(onSectorClick) && hasLabel && allowedByList;
-          const isActive = i === activeIndex;
+          const isActive = activeIndices ? activeIndices.includes(i) : i === activeIndex;
 
           const firstDy =
             lines.length === 1

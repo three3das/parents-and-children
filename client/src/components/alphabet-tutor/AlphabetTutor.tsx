@@ -6,7 +6,7 @@ import { useLanguageScript } from '@/lib/languageScript';
 import { BORDER_WIDTH, GOLD_100, GOLD_33, GOLD_67, SILVER, WHITE } from './constants';
 import { DictionaryModal } from './DictionaryModal';
 import { DrawingPad } from './DrawingPad';
-import { useAlphabetLetters, useScriptText } from './hooks';
+import { useAlphabetLetters, useScriptTexts } from './hooks';
 import { getGroupLabel, L, pickLabel } from './labels';
 import { LetterCard } from './LetterCard';
 import { playLetterSound } from './letterAudio';
@@ -20,7 +20,7 @@ const ZONE_SYMBOL_SIZE = 'clamp(16px, 3.4vw, 36px)';
 
 export function AlphabetTutor() {
   const { language } = useLanguage();
-  const { script, scriptLabel } = useLanguageScript();
+  const { script, selectedScripts, scriptLabels } = useLanguageScript();
   const uiLanguage = ['ru', 'uk', 'en'].includes(language) ? language : 'en';
 
   const { letters, loading } = useAlphabetLetters(language);
@@ -28,6 +28,9 @@ export function AlphabetTutor() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [dictOpen, setDictOpen] = useState(false);
+  // Только для санскрита: 'samjna' — панель «Самгья пракаранам»
+  // (та же таблица букв, свои категории — добавим следующей задачей).
+  const [view, setView] = useState<'main' | 'samjna'>('main');
   // После первого открытия словаря кнопка перестаёт пульсировать.
   const [dictHintSeen, setDictHintSeen] = useState(false);
 
@@ -36,6 +39,7 @@ export function AlphabetTutor() {
     setSelectedId(null);
     setActiveCategory(null);
     setDictOpen(false);
+    setView('main');
   }, [language]);
 
   const groups: LetterGroup[] = useMemo(() => {
@@ -52,7 +56,10 @@ export function AlphabetTutor() {
     () => letters.find((l) => l.id === selectedId) ?? null,
     [letters, selectedId]
   );
-  const scriptText = useScriptText(selectedLetter?.id ?? null, script);
+  const scriptTexts = useScriptTexts(selectedLetter?.id ?? null, selectedScripts);
+  // Основная (первая выбранная) система письма — для холста.
+  const scriptText = scriptTexts[script] ?? null;
+  const isMultiScript = selectedScripts.length > 1;
 
   function handleLetterClick(id: string, grapheme: string) {
     setSelectedId(id);
@@ -76,6 +83,8 @@ export function AlphabetTutor() {
   }
 
   const pulseDictButton = Boolean(selectedLetter) && !dictHintSeen;
+  const isSanskrit = language === 'sa';
+  const inSamjna = isSanskrit && view === 'samjna';
 
   const sidebarButtonStyle = (active: boolean, activeColor: string) =>
     active
@@ -122,7 +131,20 @@ export function AlphabetTutor() {
               {pickLabel(L.categories, uiLanguage)}
             </h4>
             <div className="contents sm:block sm:space-y-0.5">
-              {groups.map((group) => {
+              {inSamjna && (
+                <button
+                  onClick={() => {
+                    setView('main');
+                    setActiveCategory(null);
+                  }}
+                  className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+                  style={sidebarButtonStyle(false, GOLD_67)}
+                  {...sidebarHover(false)}
+                >
+                  {pickLabel(L.backToCategories, uiLanguage)}
+                </button>
+              )}
+              {!inSamjna && groups.map((group) => {
                 const isActive = activeCategory === group.type;
                 return (
                   <button
@@ -136,6 +158,19 @@ export function AlphabetTutor() {
                   </button>
                 );
               })}
+              {isSanskrit && !inSamjna && (
+                <button
+                  onClick={() => {
+                    setView('samjna');
+                    setActiveCategory(null);
+                  }}
+                  className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+                  style={sidebarButtonStyle(false, GOLD_67)}
+                  {...sidebarHover(false)}
+                >
+                  {pickLabel(L.samjnaPrakaranam, uiLanguage)}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -156,7 +191,7 @@ export function AlphabetTutor() {
                     <LetterCard
                       key={letter.id}
                       letter={letter}
-                      isHighlighted={activeCategory === group.type}
+                      isHighlighted={!inSamjna && activeCategory === group.type}
                       isSelected={selectedId === letter.id}
                       onClick={() => handleLetterClick(letter.id, letter.grapheme)}
                     />
@@ -169,20 +204,55 @@ export function AlphabetTutor() {
 
         {/* ПРАВАЯ ПАНЕЛЬ — три зоны (высота 0.5 / 0.5 / 1.4) */}
         <div className="w-full sm:w-64 sm:flex-shrink-0 flex-1 min-h-[120px] sm:flex-none sm:min-h-0 sm:h-full order-2 sm:order-none grid grid-cols-[38%_1fr] grid-rows-2 gap-1.5 sm:gap-2 sm:flex sm:flex-col">
-          {/* Зона 1 — буква в выбранной системе письма (золотая, белый текст) */}
-          <div className={`col-start-1 row-start-1 ${ZONE_CLASS}`} style={ZONE_STYLE}>
+          {/* Зона 1 — буква в выбранных системах письма (золотая, белый текст).
+              Одна система: крупный символ. Несколько (до 12): сетка
+              «символ + название письменности». */}
+          <div
+            className={`col-start-1 row-start-1 ${ZONE_CLASS} ${isMultiScript ? 'overflow-y-auto justify-start' : ''}`}
+            style={ZONE_STYLE}
+          >
             <span className="block text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
               {pickLabel(L.letterZone, uiLanguage)}
             </span>
-            <div
-              className="font-bold text-center leading-none break-words"
-              style={{ color: WHITE, fontSize: ZONE_SYMBOL_SIZE }}
-            >
-              {selectedLetter && scriptText ? scriptText.toLocaleUpperCase(uiLanguage) : '—'}
-            </div>
-            <span className="block text-[8px] sm:text-[10px] font-bold text-center leading-tight" style={{ color: WHITE }}>
-              {pickLabel(L.scriptZone, uiLanguage)} «{scriptLabel}»
-            </span>
+            {isMultiScript ? (
+              <div className="grid grid-cols-3 gap-x-1 gap-y-0.5 w-full">
+                {selectedScripts.map((code, i) => {
+                  const value = scriptTexts[code];
+                  return (
+                    <div
+                      key={code}
+                      className="flex flex-col items-center min-w-0"
+                      title={scriptLabels[i]}
+                    >
+                      <span
+                        className="font-bold text-center leading-none break-words"
+                        style={{ color: WHITE, fontSize: 'clamp(12px, 2.2vw, 22px)' }}
+                      >
+                        {selectedLetter && value ? value.toLocaleUpperCase(uiLanguage) : '—'}
+                      </span>
+                      <span
+                        className="block text-[7px] sm:text-[8px] font-bold text-center leading-tight truncate w-full"
+                        style={{ color: WHITE }}
+                      >
+                        {scriptLabels[i]}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <>
+                <div
+                  className="font-bold text-center leading-none break-words"
+                  style={{ color: WHITE, fontSize: ZONE_SYMBOL_SIZE }}
+                >
+                  {selectedLetter && scriptText ? scriptText.toLocaleUpperCase(uiLanguage) : '—'}
+                </div>
+                <span className="block text-[8px] sm:text-[10px] font-bold text-center leading-tight" style={{ color: WHITE }}>
+                  {pickLabel(L.scriptZone, uiLanguage)} «{scriptLabels[0]}»
+                </span>
+              </>
+            )}
           </div>
 
           {/* Зона 2 — буква языка + кнопка «Слова на эту букву» */}

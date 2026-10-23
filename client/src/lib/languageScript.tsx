@@ -111,8 +111,13 @@ type WheelKind = "language" | "script" | null;
 interface LanguageScriptContextValue {
   language: string;
   languageLabel: string;
+  // Основная (первая выбранная) система письма — для всех мест, где
+  // нужна ровно одна (HomePage, Calculator, DrawingPad и т.д.).
   script: string;
   scriptLabel: string;
+  // Все выбранные системы письма (от 1 до 12), в порядке выбора.
+  selectedScripts: string[];
+  scriptLabels: string[];
   hasChosenLanguage: boolean;
   hasChosenScript: boolean;
   activeWheel: WheelKind;
@@ -121,6 +126,8 @@ interface LanguageScriptContextValue {
   closeWheel: () => void;
   selectLanguage: (code: string) => void;
   selectScript: (code: string) => void;
+  // Задать сразу несколько систем письма (кнопка «Достаточно!»).
+  selectScripts: (codes: string[]) => void;
 }
 
 const LanguageScriptContext = createContext<LanguageScriptContextValue | null>(
@@ -129,7 +136,8 @@ const LanguageScriptContext = createContext<LanguageScriptContextValue | null>(
 
 export function LanguageScriptProvider({ children }: { children: ReactNode }) {
   const { language, setLanguage } = useLanguage();
-  const [script, setScriptState] = useState<string>(DEFAULT_SCRIPT);
+  const [selectedScripts, setSelectedScripts] = useState<string[]>([DEFAULT_SCRIPT]);
+  const script = selectedScripts[0] ?? DEFAULT_SCRIPT;
   const [hasChosenLanguage, setHasChosenLanguage] = useState(false);
   const [hasChosenScript, setHasChosenScript] = useState(false);
   const [activeWheel, setActiveWheel] = useState<WheelKind>(null);
@@ -164,16 +172,26 @@ export function LanguageScriptProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const selectScript = (code: string) => {
-    setScriptState(code);
+  const selectScripts = (codes: string[]) => {
+    const known = scriptOptions.map((s) => s.code);
+    const valid = Array.from(new Set(codes)).filter((c) => known.includes(c));
+    setSelectedScripts(valid.length > 0 ? valid : [DEFAULT_SCRIPT]);
     setHasChosenScript(true);
     setActiveWheel(null);
   };
 
+  const selectScript = (code: string) => selectScripts([code]);
+
   const languageLabel =
     languageOptions.find((l) => l.code === language)?.label ?? language;
+  const scriptLabels = selectedScripts.map(
+    (code) => scriptOptions.find((s) => s.code === code)?.label ?? code
+  );
+  // В чипах и подписях: «Деванагари» или «Деванагари +2».
   const scriptLabel =
-    scriptOptions.find((s) => s.code === script)?.label ?? script;
+    scriptLabels.length > 1
+      ? `${scriptLabels[0]} +${scriptLabels.length - 1}`
+      : scriptLabels[0];
 
   return (
     <LanguageScriptContext.Provider
@@ -182,6 +200,8 @@ export function LanguageScriptProvider({ children }: { children: ReactNode }) {
         languageLabel,
         script,
         scriptLabel,
+        selectedScripts,
+        scriptLabels,
         hasChosenLanguage,
         hasChosenScript,
         activeWheel,
@@ -190,6 +210,7 @@ export function LanguageScriptProvider({ children }: { children: ReactNode }) {
         closeWheel,
         selectLanguage,
         selectScript,
+        selectScripts,
       }}
     >
       {children}

@@ -89,6 +89,52 @@ export function useScriptText(letterId: string | null, script: string) {
   return scriptText;
 }
 
+// Значения буквы сразу в нескольких системах письма: один запрос к
+// text_letter_writing_systems, затем берём нужные столбцы.
+export function useScriptTexts(letterId: string | null, scripts: string[]) {
+  const [texts, setTexts] = useState<Record<string, string | null>>({});
+  const key = scripts.join(',');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      if (!letterId) {
+        setTexts({});
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('text_letter_writing_systems')
+          .select('*')
+          .eq('letter_id', letterId)
+          .maybeSingle();
+        if (error) throw error;
+
+        if (!cancelled) {
+          const result: Record<string, string | null> = {};
+          for (const code of scripts) {
+            const value = data ? (data as any)[code] : null;
+            result[code] = typeof value === 'string' && value.length > 0 ? value : null;
+          }
+          setTexts(result);
+        }
+      } catch (err) {
+        console.error('Ошибка загрузки text_letter_writing_systems:', err);
+        if (!cancelled) setTexts({});
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [letterId, key]);
+
+  return texts;
+}
+
 // Все слова из /api/words (для санскрита слов в базе нет).
 export function useDictionaryWords(language: string) {
   const [words, setWords] = useState<DictionaryWord[]>([]);
