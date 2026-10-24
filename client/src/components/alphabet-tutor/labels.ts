@@ -43,6 +43,7 @@ export const L = {
     uk: 'Самг\'я-пракараням',
     en: 'Samkhya-prakaranam',
   },
+  back: { ru: '← Назад', uk: '← Назад', en: '← Back' },
   loading: { ru: 'Загрузка алфавита...', uk: 'Завантаження алфавіту...', en: 'Loading alphabet...' },
   noData: {
     ru: 'Для данного языка пока нет букв в базе данных.',

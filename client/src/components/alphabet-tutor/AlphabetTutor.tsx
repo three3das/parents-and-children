@@ -9,6 +9,7 @@ import { DrawingPad } from './DrawingPad';
 import { useAlphabetLetters, useScriptTexts } from './hooks';
 import { getGroupLabel, L, pickLabel } from './labels';
 import { LetterCard } from './LetterCard';
+import { SAMKHYA_ITEMS } from './samkhya';
 import { playLetterSound } from './letterAudio';
 import type { LetterGroup } from './types';
 
@@ -20,7 +21,7 @@ const ZONE_SYMBOL_SIZE = 'clamp(16px, 3.4vw, 36px)';
 
 export function AlphabetTutor() {
   const { language } = useLanguage();
-  const { script, selectedScripts, scriptLabels } = useLanguageScript();
+  const { script, scriptLabel } = useLanguageScript();
   const uiLanguage = ['ru', 'uk', 'en'].includes(language) ? language : 'en';
 
   const { letters, loading } = useAlphabetLetters(language);
@@ -28,6 +29,10 @@ export function AlphabetTutor() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [dictOpen, setDictOpen] = useState(false);
+  // true — открыт раздел «Samkhya-prakaranam»: блок Categories скрыт.
+  const [samkhyaOpen, setSamkhyaOpen] = useState(false);
+  // Выбранная кнопка внутри раздела «Samkhya-prakaranam» (id из SAMKHYA_ITEMS).
+  const [activeSamkhya, setActiveSamkhya] = useState<string | null>(null);
   // После первого открытия словаря кнопка перестаёт пульсировать.
   const [dictHintSeen, setDictHintSeen] = useState(false);
 
@@ -36,6 +41,8 @@ export function AlphabetTutor() {
     setSelectedId(null);
     setActiveCategory(null);
     setDictOpen(false);
+    setSamkhyaOpen(false);
+    setActiveSamkhya(null);
   }, [language]);
 
   const groups: LetterGroup[] = useMemo(() => {
@@ -52,10 +59,15 @@ export function AlphabetTutor() {
     () => letters.find((l) => l.id === selectedId) ?? null,
     [letters, selectedId]
   );
-  const scriptTexts = useScriptTexts(selectedLetter?.id ?? null, selectedScripts);
+  const activeSamkhyaItem = SAMKHYA_ITEMS.find((item) => item.id === activeSamkhya) ?? null;
+  const scriptTexts = useScriptTexts(selectedLetter?.id ?? null, [script]);
   // Основная (первая выбранная) система письма — для холста.
   const scriptText = scriptTexts[script] ?? null;
-  const isMultiScript = selectedScripts.length > 1;
+
+  // Для санскрита латиница (IAST) пишется строчными буквами, как в учебных
+  // материалах; для остальных языков — как раньше, заглавными.
+  const formatScript = (text: string) =>
+    language === 'sa' ? text.toLocaleLowerCase(uiLanguage) : text.toLocaleUpperCase(uiLanguage);
 
   function handleLetterClick(id: string, grapheme: string) {
     setSelectedId(id);
@@ -120,44 +132,75 @@ export function AlphabetTutor() {
             </button>
           </div>
 
-          <div className="contents sm:block">
-            <h4 className="hidden sm:block text-[10px] font-bold mb-1" style={{ color: SILVER }}>
-              {pickLabel(L.categories, uiLanguage)}
-            </h4>
-            <div className="contents sm:block sm:space-y-0.5">
-              {groups.map((group) => {
-                const isActive = activeCategory === group.type;
-                return (
-                  <button
-                    key={group.type}
-                    onClick={() => setActiveCategory(isActive ? null : group.type)}
-                    className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
-                    style={sidebarButtonStyle(isActive, GOLD_67)}
-                    {...sidebarHover(isActive)}
-                  >
-                    {getGroupLabel(group.type, uiLanguage)}
-                  </button>
-                );
-              })}
+          {!samkhyaOpen && (
+            <div className="contents sm:block">
+              <h4 className="hidden sm:block text-[10px] font-bold mb-1" style={{ color: SILVER }}>
+                {pickLabel(L.categories, uiLanguage)}
+              </h4>
+              <div className="contents sm:block sm:space-y-0.5">
+                {groups.map((group) => {
+                  const isActive = activeCategory === group.type;
+                  return (
+                    <button
+                      key={group.type}
+                      onClick={() => setActiveCategory(isActive ? null : group.type)}
+                      className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+                      style={sidebarButtonStyle(isActive, GOLD_67)}
+                      {...sidebarHover(isActive)}
+                    >
+                      {getGroupLabel(group.type, uiLanguage)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="contents sm:block">
             <h4 className="hidden sm:block text-[10px] font-bold mb-1" style={{ color: SILVER }}>
-              {pickLabel(L.harinamamrita, uiLanguage)}
+              {pickLabel(samkhyaOpen ? L.sankhyaPrakaranam : L.harinamamrita, uiLanguage)}
             </h4>
-            <button
-              onClick={() => {
-                // Пока заглушка: повторно открываем эту же страницу
-                // с алфавитом (в новой вкладке).
-                window.open(window.location.href, '_blank', 'noopener,noreferrer');
-              }}
-              className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
-              style={sidebarButtonStyle(false, GOLD_67)}
-              {...sidebarHover(false)}
-            >
-              {pickLabel(L.sankhyaPrakaranam, uiLanguage)}
-            </button>
+            {samkhyaOpen ? (
+              <div className="contents sm:block sm:space-y-0.5">
+                {SAMKHYA_ITEMS.map((item) => {
+                  const isActive = activeSamkhya === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveSamkhya(isActive ? null : item.id)}
+                      className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+                      style={sidebarButtonStyle(isActive, GOLD_67)}
+                      {...sidebarHover(isActive)}
+                    >
+                      {pickLabel(item.label, uiLanguage)}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => {
+                    setSamkhyaOpen(false);
+                    setActiveSamkhya(null);
+                  }}
+                  className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+                  style={sidebarButtonStyle(false, GOLD_67)}
+                  {...sidebarHover(false)}
+                >
+                  {pickLabel(L.back, uiLanguage)}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setSamkhyaOpen(true);
+                  setActiveCategory(null);
+                }}
+                className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+                style={sidebarButtonStyle(false, GOLD_67)}
+                {...sidebarHover(false)}
+              >
+                {pickLabel(L.sankhyaPrakaranam, uiLanguage)}
+              </button>
+            )}
           </div>
         </div>
 
@@ -177,7 +220,11 @@ export function AlphabetTutor() {
                     <LetterCard
                       key={letter.id}
                       letter={letter}
-                      isHighlighted={activeCategory === group.type}
+                      isHighlighted={
+                        samkhyaOpen
+                          ? Boolean(activeSamkhyaItem?.matches(letter))
+                          : activeCategory === group.type
+                      }
                       isSelected={selectedId === letter.id}
                       onClick={() => handleLetterClick(letter.id, letter.grapheme)}
                     />
@@ -190,55 +237,23 @@ export function AlphabetTutor() {
 
         {/* ПРАВАЯ ПАНЕЛЬ — три зоны (высота 0.5 / 0.5 / 1.4) */}
         <div className="w-full sm:w-64 sm:flex-shrink-0 flex-1 min-h-[120px] sm:flex-none sm:min-h-0 sm:h-full order-2 sm:order-none grid grid-cols-[38%_1fr] grid-rows-2 gap-1.5 sm:gap-2 sm:flex sm:flex-col">
-          {/* Зона 1 — буква в выбранных системах письма (золотая, белый текст).
-              Одна система: крупный символ. Несколько (до 12): сетка
-              «символ + название письменности». */}
+          {/* Зона 1 — буква в выбранной системе письма (золотая, белый текст). */}
           <div
-            className={`col-start-1 row-start-1 ${ZONE_CLASS} ${isMultiScript ? 'overflow-y-auto justify-start' : ''}`}
+            className={`col-start-1 row-start-1 ${ZONE_CLASS}`}
             style={ZONE_STYLE}
           >
             <span className="block text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
               {pickLabel(L.letterZone, uiLanguage)}
             </span>
-            {isMultiScript ? (
-              <div className="grid grid-cols-3 gap-x-1 gap-y-0.5 w-full">
-                {selectedScripts.map((code, i) => {
-                  const value = scriptTexts[code];
-                  return (
-                    <div
-                      key={code}
-                      className="flex flex-col items-center min-w-0"
-                      title={scriptLabels[i]}
-                    >
-                      <span
-                        className="font-bold text-center leading-none break-words"
-                        style={{ color: WHITE, fontSize: 'clamp(12px, 2.2vw, 22px)' }}
-                      >
-                        {selectedLetter && value ? value.toLocaleUpperCase(uiLanguage) : '—'}
-                      </span>
-                      <span
-                        className="block text-[7px] sm:text-[8px] font-bold text-center leading-tight truncate w-full"
-                        style={{ color: WHITE }}
-                      >
-                        {scriptLabels[i]}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <>
-                <div
-                  className="font-bold text-center leading-none break-words"
-                  style={{ color: WHITE, fontSize: ZONE_SYMBOL_SIZE }}
-                >
-                  {selectedLetter && scriptText ? scriptText.toLocaleUpperCase(uiLanguage) : '—'}
-                </div>
-                <span className="block text-[8px] sm:text-[10px] font-bold text-center leading-tight" style={{ color: WHITE }}>
-                  {pickLabel(L.scriptZone, uiLanguage)} «{scriptLabels[0]}»
-                </span>
-              </>
-            )}
+            <div
+              className="font-bold text-center leading-none break-words"
+              style={{ color: WHITE, fontSize: ZONE_SYMBOL_SIZE }}
+            >
+              {selectedLetter && scriptText ? formatScript(scriptText) : '—'}
+            </div>
+            <span className="block text-[8px] sm:text-[10px] font-bold text-center leading-tight" style={{ color: WHITE }}>
+              {pickLabel(L.scriptZone, uiLanguage)} «{scriptLabel}»
+            </span>
           </div>
 
           {/* Зона 2 — буква языка + кнопка «Слова на эту букву» */}
@@ -296,7 +311,7 @@ export function AlphabetTutor() {
           <div className="col-start-2 row-start-1 row-span-2 min-h-0 sm:row-span-1 sm:flex-[1.4]">
             <DrawingPad
               letterSymbol={selectedLetter?.grapheme ?? null}
-              scriptSymbol={scriptText}
+              scriptSymbol={scriptText ? formatScript(scriptText) : null}
               uiLanguage={uiLanguage}
             />
           </div>
