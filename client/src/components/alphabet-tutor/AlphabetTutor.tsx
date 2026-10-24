@@ -10,9 +10,9 @@ import { DrawingPad } from './DrawingPad';
 import { useAlphabetLetters, useScriptTexts } from './hooks';
 import { getGroupLabel, L, pickLabel } from './labels';
 import { LetterCard } from './LetterCard';
-import { SAMKHYA_ITEMS } from './samkhya';
+import { SAMKHYA_ITEMS, SAMKHYA_SA_ROWS } from './samkhya';
 import { playLetterSound } from './letterAudio';
-import type { LetterGroup } from './types';
+import type { LetterGroup, LetterRow } from './types';
 
 // Общие классы зон 1 и 2 правой панели. Обе — золотые, с белым текстом.
 const ZONE_CLASS =
@@ -55,6 +55,24 @@ export function AlphabetTutor() {
     }
     return [...byType.values()];
   }, [letters]);
+
+  // Только для санскрита и только на экране «Samkhya-prakaranam»: буквы
+  // раскладываются рядами как в учебной таблице (см. SAMKHYA_SA_ROWS).
+  const samkhyaRows = useMemo(() => {
+    if (language !== 'sa' || !samkhyaOpen) return null;
+    const placed = new Set<string>();
+    const rows = SAMKHYA_SA_ROWS.map((spec) => {
+      const rowLetters = letters
+        .filter((l) => l.sort_order != null && l.sort_order >= spec.from && l.sort_order <= spec.to)
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      rowLetters.forEach((l) => placed.add(l.id));
+      return { spec, letters: rowLetters };
+    }).filter((row) => row.letters.length > 0);
+    // Буквы без sort_order не теряем — отдельный ряд в конце.
+    const rest = letters.filter((l) => !placed.has(l.id));
+    if (rest.length > 0) rows.push({ spec: { from: 0, to: 0, cols: 14, gapBefore: true }, letters: rest });
+    return rows;
+  }, [language, samkhyaOpen, letters]);
 
   const selectedLetter = useMemo(
     () => letters.find((l) => l.id === selectedId) ?? null,
@@ -104,6 +122,21 @@ export function AlphabetTutor() {
     const text = formatScript(raw);
     return text !== letter.grapheme ? text : null;
   };
+
+  const renderLetterCard = (letter: LetterRow, groupType?: string) => (
+    <LetterCard
+      key={letter.id}
+      letter={letter}
+      isHighlighted={
+        samkhyaOpen
+          ? Boolean(activeSamkhyaItem?.matches(letter))
+          : activeCategory === groupType
+      }
+      isSelected={selectedId === letter.id}
+      secondSymbol={cardSecondSymbol(letter)}
+      onClick={() => handleLetterClick(letter.id, letter.grapheme)}
+    />
+  );
 
   // Та же буква в выбранной системе письма (если она отличается от буквы языка).
   const secondSymbol =
@@ -230,29 +263,26 @@ export function AlphabetTutor() {
             className="p-1 sm:p-3 rounded space-y-1 sm:space-y-2"
             style={{ backgroundColor: WHITE, border: `${BORDER_WIDTH}px solid ${GOLD_33}` }}
           >
-            {groups.map((group) => (
-              <div key={group.type}>
-                <h3 className="text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 leading-none sm:leading-normal" style={{ color: SILVER }}>
-                  {getGroupLabel(group.type, uiLanguage)}
-                </h3>
-                <div className="grid grid-cols-11 gap-0.5 sm:flex sm:justify-start sm:flex-wrap">
-                  {group.letters.map((letter) => (
-                    <LetterCard
-                      key={letter.id}
-                      letter={letter}
-                      isHighlighted={
-                        samkhyaOpen
-                          ? Boolean(activeSamkhyaItem?.matches(letter))
-                          : activeCategory === group.type
-                      }
-                      isSelected={selectedId === letter.id}
-                      secondSymbol={cardSecondSymbol(letter)}
-                      onClick={() => handleLetterClick(letter.id, letter.grapheme)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+            {samkhyaRows
+              ? samkhyaRows.map(({ spec, letters: rowLetters }) => (
+                  <div
+                    key={`${spec.from}-${spec.to}`}
+                    className={`grid gap-0.5 sm:flex sm:justify-start sm:flex-wrap ${spec.gapBefore ? 'mt-2 sm:mt-3' : ''}`}
+                    style={{ gridTemplateColumns: `repeat(${spec.cols}, minmax(0, 1fr))` }}
+                  >
+                    {rowLetters.map((letter) => renderLetterCard(letter))}
+                  </div>
+                ))
+              : groups.map((group) => (
+                  <div key={group.type}>
+                    <h3 className="text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 leading-none sm:leading-normal" style={{ color: SILVER }}>
+                      {getGroupLabel(group.type, uiLanguage)}
+                    </h3>
+                    <div className="grid grid-cols-11 gap-0.5 sm:flex sm:justify-start sm:flex-wrap">
+                      {group.letters.map((letter) => renderLetterCard(letter, group.type))}
+                    </div>
+                  </div>
+                ))}
           </div>
         </div>
 
