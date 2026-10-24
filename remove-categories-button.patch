@@ -1,0 +1,119 @@
+diff --git a/client/src/components/alphabet-tutor/AlphabetTutor.tsx b/client/src/components/alphabet-tutor/AlphabetTutor.tsx
+index 7a3c0e6..44f178f 100644
+--- a/client/src/components/alphabet-tutor/AlphabetTutor.tsx
++++ b/client/src/components/alphabet-tutor/AlphabetTutor.tsx
+@@ -28,9 +28,6 @@ export function AlphabetTutor() {
+   const [selectedId, setSelectedId] = useState<string | null>(null);
+   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+   const [dictOpen, setDictOpen] = useState(false);
+-  // Только для санскрита: 'samjna' — панель «Самгья пракаранам»
+-  // (та же таблица букв, свои категории — добавим следующей задачей).
+-  const [view, setView] = useState<'main' | 'samjna'>('main');
+   // После первого открытия словаря кнопка перестаёт пульсировать.
+   const [dictHintSeen, setDictHintSeen] = useState(false);
+ 
+@@ -39,7 +36,6 @@ export function AlphabetTutor() {
+     setSelectedId(null);
+     setActiveCategory(null);
+     setDictOpen(false);
+-    setView('main');
+   }, [language]);
+ 
+   const groups: LetterGroup[] = useMemo(() => {
+@@ -83,8 +79,6 @@ export function AlphabetTutor() {
+   }
+ 
+   const pulseDictButton = Boolean(selectedLetter) && !dictHintSeen;
+-  const isSanskrit = language === 'sa';
+-  const inSamjna = isSanskrit && view === 'samjna';
+ 
+   const sidebarButtonStyle = (active: boolean, activeColor: string) =>
+     active
+@@ -131,20 +125,7 @@ export function AlphabetTutor() {
+               {pickLabel(L.categories, uiLanguage)}
+             </h4>
+             <div className="contents sm:block sm:space-y-0.5">
+-              {inSamjna && (
+-                <button
+-                  onClick={() => {
+-                    setView('main');
+-                    setActiveCategory(null);
+-                  }}
+-                  className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+-                  style={sidebarButtonStyle(false, GOLD_67)}
+-                  {...sidebarHover(false)}
+-                >
+-                  {pickLabel(L.backToCategories, uiLanguage)}
+-                </button>
+-              )}
+-              {!inSamjna && groups.map((group) => {
++              {groups.map((group) => {
+                 const isActive = activeCategory === group.type;
+                 return (
+                   <button
+@@ -158,19 +139,6 @@ export function AlphabetTutor() {
+                   </button>
+                 );
+               })}
+-              {isSanskrit && !inSamjna && (
+-                <button
+-                  onClick={() => {
+-                    setView('samjna');
+-                    setActiveCategory(null);
+-                  }}
+-                  className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+-                  style={sidebarButtonStyle(false, GOLD_67)}
+-                  {...sidebarHover(false)}
+-                >
+-                  {pickLabel(L.samjnaPrakaranam, uiLanguage)}
+-                </button>
+-              )}
+             </div>
+           </div>
+ 
+@@ -180,7 +148,9 @@ export function AlphabetTutor() {
+             </h4>
+             <button
+               onClick={() => {
+-                /* TODO: действие кнопки «Самгья-пракаранам» */
++                // Пока заглушка: повторно открываем эту же страницу
++                // с алфавитом (в новой вкладке).
++                window.open(window.location.href, '_blank', 'noopener,noreferrer');
+               }}
+               className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+               style={sidebarButtonStyle(false, GOLD_67)}
+@@ -207,7 +177,7 @@ export function AlphabetTutor() {
+                     <LetterCard
+                       key={letter.id}
+                       letter={letter}
+-                      isHighlighted={!inSamjna && activeCategory === group.type}
++                      isHighlighted={activeCategory === group.type}
+                       isSelected={selectedId === letter.id}
+                       onClick={() => handleLetterClick(letter.id, letter.grapheme)}
+                     />
+diff --git a/client/src/components/alphabet-tutor/labels.ts b/client/src/components/alphabet-tutor/labels.ts
+index 81e09a0..6c6e9e2 100644
+--- a/client/src/components/alphabet-tutor/labels.ts
++++ b/client/src/components/alphabet-tutor/labels.ts
+@@ -32,13 +32,6 @@ export const L = {
+   functions: { ru: 'Функции', uk: 'Функції', en: 'Functions' },
+   audio: { ru: 'Озвучивание', uk: 'Озвучування', en: 'Audio' },
+   categories: { ru: 'Категории', uk: 'Категорії', en: 'Categories' },
+-  // Только для санскрита: отдельная панель для изучения грамматики.
+-  samjnaPrakaranam: {
+-    ru: 'Хари-намамрита-вьякарана',
+-    uk: 'Харі-намамріта-вьякарана',
+-    en: 'Hari-namamrita-vyakarana',
+-    sa: 'हरि-नमृत-व्याकरणम्',
+-  },
+   // Новый блок в левой колонке: заголовок + кнопка (используются в AlphabetTutor.tsx)
+   harinamamrita: {
+     ru: 'Хари-намамрита-вьякарана',
+@@ -50,7 +43,6 @@ export const L = {
+     uk: 'Самг\'я-пракараням',
+     en: 'Samkhya-prakaranam',
+   },
+-  backToCategories: { ru: '← Назад', uk: '← Назад', en: '← Back' },
+   loading: { ru: 'Загрузка алфавита...', uk: 'Завантаження алфавіту...', en: 'Loading alphabet...' },
+   noData: {
+     ru: 'Для данного языка пока нет букв в базе данных.',

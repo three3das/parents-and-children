@@ -32,13 +32,6 @@ export const L = {
   functions: { ru: 'Функции', uk: 'Функції', en: 'Functions' },
   audio: { ru: 'Озвучивание', uk: 'Озвучування', en: 'Audio' },
   categories: { ru: 'Категории', uk: 'Категорії', en: 'Categories' },
-  // Только для санскрита: отдельная панель для изучения грамматики.
-  samjnaPrakaranam: {
-    ru: 'Хари-намамрита-вьякарана',
-    uk: 'Харі-намамріта-вьякарана',
-    en: 'Hari-namamrita-vyakarana',
-    sa: 'हरि-नमृत-व्याकरणम्',
-  },
   // Новый блок в левой колонке: заголовок + кнопка (используются в AlphabetTutor.tsx)
   harinamamrita: {
     ru: 'Хари-намамрита-вьякарана',
@@ -50,7 +43,6 @@ export const L = {
     uk: 'Самг\'я-пракараням',
     en: 'Samkhya-prakaranam',
   },
-  backToCategories: { ru: '← Назад', uk: '← Назад', en: '← Back' },
   loading: { ru: 'Загрузка алфавита...', uk: 'Завантаження алфавіту...', en: 'Loading alphabet...' },
   noData: {
     ru: 'Для данного языка пока нет букв в базе данных.',
