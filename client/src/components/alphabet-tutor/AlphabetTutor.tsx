@@ -287,7 +287,7 @@ export function AlphabetTutor() {
         </div>
 
         {/* ПРАВАЯ ПАНЕЛЬ — две зоны: кнопка со словарём и холст (высота 0.5 / 1.9) */}
-        <div className="w-full sm:w-64 sm:flex-shrink-0 flex-1 min-h-[120px] sm:flex-none sm:min-h-0 sm:h-full order-2 sm:order-none grid grid-cols-[38%_1fr] grid-rows-2 gap-1.5 sm:gap-2 sm:flex sm:flex-col">
+        <div className="w-full sm:w-64 sm:flex-shrink-0 flex-1 min-h-[84px] sm:flex-none sm:min-h-0 sm:h-full order-2 sm:order-none grid grid-cols-[38%_1fr] grid-rows-2 gap-1.5 sm:gap-2 sm:flex sm:flex-col">
           {/* Зона 1 — кнопка «Слова на эту букву»: буква языка и та же буква
               в выбранной системе письма рядом (например, «आ · ā»). */}
           <motion.button

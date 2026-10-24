@@ -132,12 +132,16 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex gap-1 mb-1 flex-shrink-0">
+      {/* На телефоне переключатель «Буква / Письмо» стоит столбиком слева от
+          холста (холст сужается только по ширине); на sm и выше — как раньше,
+          горизонтально над холстом. */}
+      <div className="flex-1 min-h-0 flex flex-row sm:flex-col gap-1">
+      <div className="flex flex-col sm:flex-row gap-1 sm:mb-0 flex-shrink-0">
         {(['letter', 'script'] as const).map((m) => (
           <button
             key={m}
             onClick={() => setMode(m)}
-            className="flex-1 px-2 py-1 rounded text-[10px] font-bold transition-colors"
+            className="flex-1 px-1.5 sm:px-2 py-1 rounded text-[10px] font-bold transition-colors"
             style={toggleStyle(mode === m)}
             {...hoverHandlers(mode === m)}
           >
@@ -148,7 +152,7 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
 
       <div
         ref={containerRef}
-        className="relative flex-1 min-h-0 rounded-xl shadow-md overflow-hidden"
+        className="relative flex-1 min-h-0 min-w-0 rounded-xl shadow-md overflow-hidden"
         style={{
           touchAction: 'none',
           minHeight: '64px',
@@ -207,6 +211,7 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
           onPointerLeave={handlePointerUp}
           onPointerCancel={handlePointerUp}
         />
+      </div>
       </div>
 
       <div className="flex items-center justify-between mt-1 flex-shrink-0">
