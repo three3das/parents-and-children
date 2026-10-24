@@ -24,6 +24,8 @@ export const SAMKHYA_ITEMS: SamkhyaItem[] = [
 // таблице): гласные в один ряд, затем знаки, затем 5 вариг по 5 букв и
 // «ступеньки» из 4, 3 и 2 букв. Ряды заданы диапазоном sort_order.
 // cols — число колонок на узком экране (на широком кнопки идут в строку).
+// Везде 14: кнопки на телефоне одного размера (как в ряду гласных) и вся
+// таблица помещается на экран без прокрутки.
 export interface SamkhyaRowSpec {
   from: number;
   to: number;
@@ -34,12 +36,12 @@ export interface SamkhyaRowSpec {
 export const SAMKHYA_SA_ROWS: SamkhyaRowSpec[] = [
   { from: 1, to: 14, cols: 14 }, // гласные
   { from: 15, to: 16, cols: 14 }, // ṃ, ḥ
-  { from: 17, to: 21, cols: 5, gapBefore: true }, // क ख ग घ ङ
-  { from: 22, to: 26, cols: 5 }, // च छ ज झ ञ
-  { from: 27, to: 31, cols: 5 }, // ट ठ ड ढ ण
-  { from: 32, to: 36, cols: 5 }, // त थ द ध न
-  { from: 37, to: 41, cols: 5 }, // प फ ब भ म
-  { from: 42, to: 45, cols: 5, gapBefore: true }, // य र ल व
-  { from: 46, to: 48, cols: 5 }, // श ष स
-  { from: 49, to: 50, cols: 5 }, // ह ळ
+  { from: 17, to: 21, cols: 14, gapBefore: true }, // क ख ग घ ङ
+  { from: 22, to: 26, cols: 14 }, // च छ ज झ ञ
+  { from: 27, to: 31, cols: 14 }, // ट ठ ड ढ ण
+  { from: 32, to: 36, cols: 14 }, // त थ द ध न
+  { from: 37, to: 41, cols: 14 }, // प फ ब भ म
+  { from: 42, to: 45, cols: 14, gapBefore: true }, // य र ल व
+  { from: 46, to: 48, cols: 14 }, // श ष स
+  { from: 49, to: 50, cols: 14 }, // ह ळ
 ];
