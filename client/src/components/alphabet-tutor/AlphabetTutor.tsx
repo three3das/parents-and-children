@@ -173,6 +173,22 @@ export function AlphabetTutor() {
               )}
             </div>
           </div>
+
+          <div className="contents sm:block">
+            <h4 className="hidden sm:block text-[10px] font-bold mb-1" style={{ color: SILVER }}>
+              {pickLabel(L.harinamamrita, uiLanguage)}
+            </h4>
+            <button
+              onClick={() => {
+                /* TODO: действие кнопки «Самгья-пракаранам» */
+              }}
+              className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+              style={sidebarButtonStyle(false, GOLD_67)}
+              {...sidebarHover(false)}
+            >
+              {pickLabel(L.sankhyaPrakaranam, uiLanguage)}
+            </button>
+          </div>
         </div>
 
         {/* ЦЕНТР — таблица букв */}

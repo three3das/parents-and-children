@@ -39,6 +39,17 @@ export const L = {
     en: 'Hari-namamrita-vyakarana',
     sa: 'हरि-नमृत-व्याकरणम्',
   },
+  // Новый блок в левой колонке: заголовок + кнопка (используются в AlphabetTutor.tsx)
+  harinamamrita: {
+    ru: 'Хари-намамрита-вьякарана',
+    uk: 'Харі-намамріта-в\'якарана',
+    en: 'Hari-namamrta-vyakarana',
+  },
+  sankhyaPrakaranam: {
+    ru: 'Самгья-пракаранам',
+    uk: 'Самг\'я-пракараням',
+    en: 'Samkhya-prakaranam',
+  },
   backToCategories: { ru: '← Назад', uk: '← Назад', en: '← Back' },
   loading: { ru: 'Загрузка алфавита...', uk: 'Завантаження алфавіту...', en: 'Loading alphabet...' },
   noData: {
