@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { BookOpen, Volume2 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n';
 import { useLanguageScript } from '@/lib/languageScript';
+import { useScriptLetterMap } from '../calculator/useScriptLetterMap';
 import { BORDER_WIDTH, GOLD_100, GOLD_33, GOLD_67, SILVER, WHITE } from './constants';
 import { DictionaryModal } from './DictionaryModal';
 import { DrawingPad } from './DrawingPad';
@@ -17,11 +18,11 @@ import type { LetterGroup } from './types';
 const ZONE_CLASS =
   'flex-[0.5] min-h-0 rounded-xl shadow-md flex flex-col items-center justify-center gap-0 sm:gap-0.5 p-1 sm:p-2 overflow-hidden';
 const ZONE_STYLE = { backgroundColor: GOLD_100, border: `${BORDER_WIDTH}px solid ${GOLD_100}` };
-const ZONE_SYMBOL_SIZE = 'clamp(16px, 3.4vw, 36px)';
+const ZONE_SYMBOL_SIZE = 'clamp(20px, 4vw, 44px)';
 
 export function AlphabetTutor() {
   const { language } = useLanguage();
-  const { script, scriptLabel } = useLanguageScript();
+  const { script } = useLanguageScript();
   const uiLanguage = ['ru', 'uk', 'en'].includes(language) ? language : 'en';
 
   const { letters, loading } = useAlphabetLetters(language);
@@ -64,6 +65,11 @@ export function AlphabetTutor() {
   // Основная (первая выбранная) система письма — для холста.
   const scriptText = scriptTexts[script] ?? null;
 
+  // Вторая буква на кнопках таблицы видна сразу (по умолчанию — латиница)
+  // и меняется, когда пользователь выбирает другую письменность в колесе.
+  const cardLetterIds = useMemo(() => letters.map((l) => l.id), [letters]);
+  const { map: scriptMap } = useScriptLetterMap(cardLetterIds, script);
+
   // Для санскрита латиница (IAST) пишется строчными буквами, как в учебных
   // материалах; для остальных языков — как раньше, заглавными.
   const formatScript = (text: string) =>
@@ -90,6 +96,20 @@ export function AlphabetTutor() {
     );
   }
 
+  // Та же буква в выбранной системе письма для кнопки таблицы
+  // (не показываем, если она совпадает с буквой языка).
+  const cardSecondSymbol = (letter: { id: string; grapheme: string }) => {
+    const raw = scriptMap.get(letter.id);
+    if (!raw) return null;
+    const text = formatScript(raw);
+    return text !== letter.grapheme ? text : null;
+  };
+
+  // Та же буква в выбранной системе письма (если она отличается от буквы языка).
+  const secondSymbol =
+    selectedLetter && scriptText && formatScript(scriptText) !== selectedLetter.grapheme
+      ? formatScript(scriptText)
+      : null;
   const pulseDictButton = Boolean(selectedLetter) && !dictHintSeen;
 
   const sidebarButtonStyle = (active: boolean, activeColor: string) =>
@@ -226,6 +246,7 @@ export function AlphabetTutor() {
                           : activeCategory === group.type
                       }
                       isSelected={selectedId === letter.id}
+                      secondSymbol={cardSecondSymbol(letter)}
                       onClick={() => handleLetterClick(letter.id, letter.grapheme)}
                     />
                   ))}
@@ -235,28 +256,10 @@ export function AlphabetTutor() {
           </div>
         </div>
 
-        {/* ПРАВАЯ ПАНЕЛЬ — три зоны (высота 0.5 / 0.5 / 1.4) */}
+        {/* ПРАВАЯ ПАНЕЛЬ — две зоны: кнопка со словарём и холст (высота 0.5 / 1.9) */}
         <div className="w-full sm:w-64 sm:flex-shrink-0 flex-1 min-h-[120px] sm:flex-none sm:min-h-0 sm:h-full order-2 sm:order-none grid grid-cols-[38%_1fr] grid-rows-2 gap-1.5 sm:gap-2 sm:flex sm:flex-col">
-          {/* Зона 1 — буква в выбранной системе письма (золотая, белый текст). */}
-          <div
-            className={`col-start-1 row-start-1 ${ZONE_CLASS}`}
-            style={ZONE_STYLE}
-          >
-            <span className="block text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
-              {pickLabel(L.letterZone, uiLanguage)}
-            </span>
-            <div
-              className="font-bold text-center leading-none break-words"
-              style={{ color: WHITE, fontSize: ZONE_SYMBOL_SIZE }}
-            >
-              {selectedLetter && scriptText ? formatScript(scriptText) : '—'}
-            </div>
-            <span className="block text-[8px] sm:text-[10px] font-bold text-center leading-tight" style={{ color: WHITE }}>
-              {pickLabel(L.scriptZone, uiLanguage)} «{scriptLabel}»
-            </span>
-          </div>
-
-          {/* Зона 2 — буква языка + кнопка «Слова на эту букву» */}
+          {/* Зона 1 — кнопка «Слова на эту букву»: буква языка и та же буква
+              в выбранной системе письма рядом (например, «आ · ā»). */}
           <motion.button
             type="button"
             onClick={openDictionary}
@@ -280,17 +283,23 @@ export function AlphabetTutor() {
                 ? { duration: 1.4, repeat: Infinity, ease: 'easeOut' }
                 : { duration: 0.2 }
             }
-            className={`relative w-full col-start-1 row-start-2 ${ZONE_CLASS} ${selectedLetter ? 'cursor-pointer' : 'cursor-default'}`}
+            className={`relative w-full col-start-1 row-start-1 row-span-2 sm:row-span-1 ${ZONE_CLASS} ${selectedLetter ? 'cursor-pointer' : 'cursor-default'}`}
             style={ZONE_STYLE}
           >
             <span className="block text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
               {pickLabel(L.letterZone, uiLanguage)}
             </span>
             <span
-              className="block font-bold text-center leading-none break-words"
+              className="flex flex-wrap items-baseline justify-center gap-x-2 sm:gap-x-3 font-bold leading-none"
               style={{ color: WHITE, fontSize: ZONE_SYMBOL_SIZE }}
             >
-              {selectedLetter?.grapheme ?? '—'}
+              <span>{selectedLetter?.grapheme ?? '—'}</span>
+              {secondSymbol && (
+                <>
+                  <span aria-hidden="true" className="opacity-60">·</span>
+                  <span>{secondSymbol}</span>
+                </>
+              )}
             </span>
             {selectedLetter ? (
               <span
@@ -307,8 +316,8 @@ export function AlphabetTutor() {
             )}
           </motion.button>
 
-          {/* Зона 3 — холст (тоже золотой) */}
-          <div className="col-start-2 row-start-1 row-span-2 min-h-0 sm:row-span-1 sm:flex-[1.4]">
+          {/* Зона 2 — холст (тоже золотой) */}
+          <div className="col-start-2 row-start-1 row-span-2 min-h-0 sm:row-span-1 sm:flex-[1.9]">
             <DrawingPad
               letterSymbol={selectedLetter?.grapheme ?? null}
               scriptSymbol={scriptText ? formatScript(scriptText) : null}
