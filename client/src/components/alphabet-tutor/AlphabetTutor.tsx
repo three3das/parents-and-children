@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Volume2 } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronUp, Volume2 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n';
 import { useLanguageScript } from '@/lib/languageScript';
 import { useScriptLetterMap } from '../calculator/useScriptLetterMap';
@@ -32,6 +32,8 @@ export function AlphabetTutor() {
   const [dictOpen, setDictOpen] = useState(false);
   // true — открыт раздел «Samkhya-prakaranam»: блок Categories скрыт.
   const [samkhyaOpen, setSamkhyaOpen] = useState(false);
+  // true — раскрыт выпадающий список кнопки «Varna's» (со всеми кнопками подсветки).
+  const [varnaOpen, setVarnaOpen] = useState(false);
   // Выбранная кнопка внутри раздела «Samkhya-prakaranam» (id из SAMKHYA_ITEMS).
   const [activeSamkhya, setActiveSamkhya] = useState<string | null>(null);
   // После первого открытия словаря кнопка перестаёт пульсировать.
@@ -43,6 +45,7 @@ export function AlphabetTutor() {
     setActiveCategory(null);
     setDictOpen(false);
     setSamkhyaOpen(false);
+    setVarnaOpen(false);
     setActiveSamkhya(null);
   }, [language]);
 
@@ -215,23 +218,43 @@ export function AlphabetTutor() {
             </h4>
             {samkhyaOpen ? (
               <div className="contents sm:block sm:space-y-0.5">
-                {SAMKHYA_ITEMS.map((item) => {
-                  const isActive = activeSamkhya === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveSamkhya(isActive ? null : item.id)}
-                      className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
-                      style={sidebarButtonStyle(isActive, GOLD_67)}
-                      {...sidebarHover(isActive)}
-                    >
-                      {pickLabel(item.label, uiLanguage)}
-                    </button>
-                  );
-                })}
+                {/* Кнопка «Varna's» раскрывает выпадающий список со всеми кнопками подсветки. */}
+                <button
+                  onClick={() => setVarnaOpen(!varnaOpen)}
+                  aria-expanded={varnaOpen}
+                  className="inline-flex sm:flex items-center justify-between gap-1 sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+                  style={sidebarButtonStyle(varnaOpen, GOLD_67)}
+                  {...sidebarHover(varnaOpen)}
+                >
+                  <span>Varna's</span>
+                  {varnaOpen ? (
+                    <ChevronUp className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  )}
+                </button>
+                {varnaOpen && (
+                  <div className="w-full flex flex-wrap gap-1 sm:block sm:space-y-0.5 sm:pl-2">
+                    {SAMKHYA_ITEMS.map((item) => {
+                      const isActive = activeSamkhya === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => setActiveSamkhya(isActive ? null : item.id)}
+                          className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
+                          style={sidebarButtonStyle(isActive, GOLD_67)}
+                          {...sidebarHover(isActive)}
+                        >
+                          {pickLabel(item.label, uiLanguage)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
                 <button
                   onClick={() => {
                     setSamkhyaOpen(false);
+                    setVarnaOpen(false);
                     setActiveSamkhya(null);
                   }}
                   className="sm:w-full text-left px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-[11px] sm:text-xs font-bold transition-colors"
