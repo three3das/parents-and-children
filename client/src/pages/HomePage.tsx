@@ -50,8 +50,14 @@ import { supabase } from "@/lib/supabase";
 // (view "prakriti"), загружаемых из таблицы text_sentence_languages по
 // group_id = PRAKRITI_GROUP_ID (таблица text_sentence_languages). Клик по сектору открывает экран
 // "prakriti-sentence" с полным текстом предложения.
+//
+// ⚠️ ПРАВКА (сектор «Джива»): сектор «Джива» (№2) колеса «Самбандха»
+// теперь кликабелен и открывает тот же экран с формой SortRequestForm
+// (view "path-ready"), что и «Свойства сайта» → «Начало пути по сайту»
+// → «Уже готово для вас». Чтобы кнопка «← Назад» возвращала именно
+// туда, откуда экран открыт, запоминается источник (pathReadyOrigin):
+// "path" (из «Начала пути по сайту») или "sambandha" (из «Дживы»).
 
-// ⚠️ ПРАВКА (колесо «Свойства сайта»): кнопка «Свойства» в футере
 // «Свойства сайта» (ключ "site-page" — та же кнопка на заставке и
 // в футере) теперь открывает колесо из 12 секторов
 // (view "properties"). В первом секторе — кнопка «Начало пути по
@@ -73,9 +79,9 @@ import { supabase } from "@/lib/supabase";
 
 // Фиксированные названия кнопок хедера (по ключу кнопки).
 const HEADER_LABELS: Record<string, string> = {
-  sambandha: "Первый",
-  abhidheya: "Второй",
-  prayojana: "Третий",
+  sambandha: "Самбандха",
+  abhidheya: "Абхидхея",
+  prayojana: "Прайоджана",
 };
 
 function splitLabelIntoLines(label: string): string[] {
@@ -111,9 +117,11 @@ const SAMBANDHA_ITEMS: string[] = [
   "Карма",
 ];
 
-// Индекс сектора «Пракрити» в SAMBANDHA_ITEMS (кликабелен).
+// Индексы кликабельных секторов в SAMBANDHA_ITEMS.
+// ⚠️ ПРАВКА: добавлен сектор «Джива» (открывает экран с формой).
+const JIVA_INDEX = SAMBANDHA_ITEMS.indexOf("Джива");
 const PRAKRITI_INDEX = SAMBANDHA_ITEMS.indexOf("Пракрити");
-const SAMBANDHA_CLICKABLE_INDICES = [PRAKRITI_INDEX];
+const SAMBANDHA_CLICKABLE_INDICES = [JIVA_INDEX, PRAKRITI_INDEX];
 
 const SAMBANDHA_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
@@ -334,6 +342,12 @@ type ViewState =
   | "path-ready"
   | "features";
 
+// ⚠️ ДОБАВЛЕНО: откуда был открыт экран "path-ready" — от этого зависит,
+// куда ведёт кнопка «← Назад».
+//  • "path"      — из колеса «Начало пути по сайту» («Уже готово для вас»);
+//  • "sambandha" — из колеса «Самбандха» (сектор «Джива»).
+type PathReadyOrigin = "path" | "sambandha";
+
 interface HomePageProps {
   // Ключ кнопки, выбранной на заставке SplashGate (см. комментарий
   // выше файла) — "your-page" | "site-page" | "languages" | "stable".
@@ -404,6 +418,10 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // сектор — игра), "stable-game" — экран с личным результатом игры.
   const [view, setView] = useState<ViewState>("main");
 
+  // ⚠️ ДОБАВЛЕНО: источник, из которого открыт экран "path-ready"
+  // (см. тип PathReadyOrigin и handleBack).
+  const [pathReadyOrigin, setPathReadyOrigin] = useState<PathReadyOrigin>("path");
+
   // ─── Состояние колеса «Пракрити» ─────────────────────────────────────────
   const [prakritiSentences, setPrakritiSentences] = useState<PrakritiSentence[]>([]);
   const [prakritiLoading, setPrakritiLoading] = useState(false);
@@ -466,8 +484,15 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     [prakritiSentences]
   );
 
+  // Колесо «Самбандха»: «Джива» открывает экран с формой SortRequestForm
+  // (view "path-ready"), «Пракрити» — колесо из 12 предложений.
   const handleSambandhaSectorClick = (index: number) => {
-    if (index === PRAKRITI_INDEX) {
+    if (index === JIVA_INDEX) {
+      // ⚠️ ПРАВКА: запоминаем, что экран открыт из «Самбандхи», чтобы
+      // «← Назад» вернул на это же колесо.
+      setPathReadyOrigin("sambandha");
+      setView("path-ready");
+    } else if (index === PRAKRITI_INDEX) {
       setView("prakriti");
     }
   };
@@ -545,7 +570,8 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   const handlePathSectorClick = (index: number) => {
     if (index === PATH_READY_INDEX) {
       // ⚠️ ПРАВКА: «Уже готово для вас» открывает экран с формой
-      // поиска (view "path-ready").
+      // поиска (view "path-ready"). Источник — «Начало пути по сайту».
+      setPathReadyOrigin("path");
       setView("path-ready");
     }
   };
@@ -639,7 +665,10 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   //  • "stable-game" → "stable" (обратно в «Предмет изучения»);
   //  • "properties-menu", "features" → "properties"
   //    (обратно в «Свойства сайта»);
-  //  • "path" → "properties", "path-ready" → "path";
+  //  • "path" → "properties";
+  //  • "path-ready" → туда, откуда открыт (pathReadyOrigin):
+  //    "path" (колесо «Начало пути по сайту») или
+  //    "sambandha" (колесо «Самбандха», сектор «Джива»);
   //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
   //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений).
   const handleBack = () => {
@@ -654,7 +683,8 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     ) {
       setView("properties");
     } else if (view === "path-ready") {
-      setView("path");
+      // ⚠️ ПРАВКА: раньше всегда возвращало в "path".
+      setView(pathReadyOrigin);
     } else if (view === "prakriti") {
       setView("sambandha");
     } else if (view === "prakriti-sentence") {
