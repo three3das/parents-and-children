@@ -339,11 +339,11 @@ export function AlphabetTutor() {
             className={`relative w-full col-start-1 row-start-1 row-span-2 sm:row-span-1 ${ZONE_CLASS} ${selectedLetter ? 'cursor-pointer' : 'cursor-default'}`}
             style={ZONE_STYLE}
           >
-            <span className="block text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
+            <span className="block mb-auto text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
               {pickLabel(L.letterZone, uiLanguage)}
             </span>
             <span
-              className="flex flex-wrap items-baseline justify-center gap-x-2 sm:gap-x-3 font-bold leading-none"
+              className="flex flex-wrap items-baseline justify-center gap-x-2 sm:gap-x-3 my-auto font-bold leading-none"
               style={{ color: WHITE, fontSize: ZONE_SYMBOL_SIZE }}
             >
               <span>{selectedLetter?.grapheme ?? '—'}</span>
@@ -356,14 +356,14 @@ export function AlphabetTutor() {
             </span>
             {selectedLetter ? (
               <span
-                className="mt-0.5 inline-flex items-center gap-1 px-1.5 sm:px-2 py-0 sm:py-0.5 rounded-full bg-white text-[8px] sm:text-[10px] font-bold"
+                className="mt-auto inline-flex items-center gap-1 px-1.5 sm:px-2 py-0 sm:py-0.5 rounded-full bg-white text-[8px] sm:text-[10px] font-bold"
                 style={{ color: SILVER }}
               >
                 <BookOpen className="w-3 h-3" strokeWidth={2.5} />
                 {pickLabel(L.dictCta, uiLanguage)}
               </span>
             ) : (
-              <span className="block text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
+              <span className="block mt-auto text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
                 {pickLabel(L.dictNeedLetter, uiLanguage)}
               </span>
             )}
