@@ -310,7 +310,7 @@ export function AlphabetTutor() {
         </div>
 
         {/* ПРАВАЯ ПАНЕЛЬ — две зоны: кнопка со словарём и холст (высота 0.5 / 1.9) */}
-        <div className="w-full sm:w-64 sm:flex-shrink-0 flex-1 min-h-[84px] sm:flex-none sm:min-h-0 sm:h-full order-2 sm:order-none grid grid-cols-[38%_1fr] grid-rows-2 gap-1.5 sm:gap-2 sm:flex sm:flex-col">
+        <div className="w-full sm:w-64 sm:flex-shrink-0 flex-1 min-h-[84px] sm:flex-none sm:min-h-0 sm:h-full order-2 sm:order-none grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] grid-rows-2 gap-1.5 sm:gap-2 sm:flex sm:flex-col">
           {/* Зона 1 — кнопка «Слова на эту букву»: буква языка и та же буква
               в выбранной системе письма рядом (например, «आ · ā»). */}
           <motion.button
@@ -370,7 +370,7 @@ export function AlphabetTutor() {
           </motion.button>
 
           {/* Зона 2 — холст (тоже золотой) */}
-          <div className="col-start-2 row-start-1 row-span-2 min-h-0 sm:row-span-1 sm:flex-[1.9]">
+          <div className="contents sm:block sm:min-h-0 sm:flex-[1.9]">
             <DrawingPad
               letterSymbol={selectedLetter?.grapheme ?? null}
               scriptSymbol={scriptText ? formatScript(scriptText) : null}

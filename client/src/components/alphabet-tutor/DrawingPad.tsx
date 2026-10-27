@@ -131,12 +131,12 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
   );
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="contents sm:flex sm:flex-col sm:h-full">
       {/* На телефоне переключатель «Буква / Письмо» стоит столбиком слева от
           холста (холст сужается только по ширине); на sm и выше — как раньше,
           горизонтально над холстом. */}
-      <div className="flex-1 min-h-0 flex flex-row sm:flex-col gap-1">
-      <div className="flex flex-col sm:flex-row gap-1 sm:mb-0 flex-shrink-0">
+      <div className="contents sm:flex sm:flex-1 sm:min-h-0 sm:flex-col sm:gap-1">
+      <div className="col-start-2 row-start-1 row-span-2 flex flex-col sm:flex-row gap-1 sm:mb-0 flex-shrink-0">
         {(['letter', 'script'] as const).map((m) => (
           <button
             key={m}
@@ -148,11 +148,21 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
             {pickLabel(m === 'letter' ? L.toggleLetter : L.toggleScript, uiLanguage)}
           </button>
         ))}
+        {/* Только на телефоне: Clear — третья кнопка в центральной колонке
+            (на sm и выше он остаётся внизу рядом с подписью). */}
+        <button
+          onClick={clearCanvas}
+          className="sm:hidden flex-1 px-1.5 py-1 rounded text-[10px] font-bold transition-colors"
+          style={toggleStyle(false)}
+          {...hoverHandlers(false)}
+        >
+          {pickLabel(L.clear, uiLanguage)}
+        </button>
       </div>
 
       <div
         ref={containerRef}
-        className="relative flex-1 min-h-0 min-w-0 rounded-xl shadow-md overflow-hidden"
+        className="col-start-3 row-start-1 row-span-2 sm:col-auto sm:row-auto relative flex-1 min-h-0 min-w-0 rounded-xl shadow-md overflow-hidden"
         style={{
           touchAction: 'none',
           minHeight: '64px',
@@ -214,7 +224,7 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
       </div>
       </div>
 
-      <div className="flex items-center justify-between mt-1 flex-shrink-0">
+      <div className="hidden sm:flex items-center justify-between mt-1 flex-shrink-0">
         <h4 className="text-[10px] font-bold" style={{ color: SILVER }}>
           {pickLabel(L.write, uiLanguage)}
         </h4>
