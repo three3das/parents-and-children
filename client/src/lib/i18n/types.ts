@@ -16,7 +16,8 @@ export type Language =
   | 'uk'
   | 'ur'
   | 'fr'
-  | 'hi';
+  | 'hi'
+  | 'bg';
 
 // Единый список всех поддерживаемых кодов языка — используется в
 // LanguageContext.tsx для проверки значения, прочитанного из
@@ -25,7 +26,7 @@ export type Language =
 // кодом, что и в таблице public.letter_writing_systems в Supabase) —
 // иначе повторится тот же баг.
 export const SUPPORTED_LANGUAGE_CODES: readonly Language[] = [
-  'sa', 'en', 'ar', 'bn', 'id', 'es', 'pt', 'ru', 'uk', 'ur', 'fr', 'hi',
+  'sa', 'en', 'ar', 'bn', 'id', 'es', 'pt', 'ru', 'uk', 'ur', 'fr', 'hi', 'bg',
 ];
 
 export interface Translations {

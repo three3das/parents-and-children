@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pencil } from 'lucide-react';
-import { BORDER_WIDTH, ERASE_DRAWING_EVENT, GOLD_100, GOLD_33, GOLD_67, SILVER, WHITE } from './constants';
+import { BORDER_WIDTH, ERASE_DRAWING_EVENT, GOLD_100, GOLD_33, SILVER, WHITE } from './constants';
 import { L, pickLabel } from './labels';
+import { PILL_BASE_CLASS, PILL_STYLE, PILL_TEXT_CLASS } from './pillStyle';
 
 interface DrawingPadProps {
   letterSymbol: string | null;
@@ -202,12 +203,13 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
         )}
 
         {hasSelection && guideSymbol && !hasDrawn && (
+          // Образец пилюли: тот же PILL_BASE_CLASS использует «Words for this letter».
           <div
-            className="absolute bottom-1.5 left-1/2 -translate-x-1/2 max-w-[92%] inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[10px] font-bold text-center leading-tight whitespace-nowrap pointer-events-none select-none"
-            style={{ color: SILVER, border: `${BORDER_WIDTH}px solid ${GOLD_67}` }}
+            className={`absolute bottom-1.5 left-1/2 -translate-x-1/2 pointer-events-none ${PILL_BASE_CLASS}`}
+            style={PILL_STYLE}
           >
             <Pencil className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
-            <span>{pickLabel(L.traceHint, uiLanguage)}</span>
+            <span className={PILL_TEXT_CLASS}>{pickLabel(L.traceHint, uiLanguage)}</span>
           </div>
         )}
 

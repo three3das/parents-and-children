@@ -50,7 +50,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // отдельная задача на будущее (полный перевод UI на оставшиеся 8
   // языков), не блокирующая работу игр вроде "Алфавит", которые берут
   // данные напрямую из Supabase, а не из этого словаря.
-  const t = translations[language] ?? translations.en;
+  const t = translations[language] ?? translations.en!; 
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

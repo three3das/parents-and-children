@@ -10,6 +10,7 @@ import { DrawingPad } from './DrawingPad';
 import { useAlphabetLetters, useScriptTexts } from './hooks';
 import { getGroupLabel, L, pickLabel } from './labels';
 import { LetterCard } from './LetterCard';
+import { PILL_BASE_CLASS, PILL_STYLE, PILL_TEXT_CLASS } from './pillStyle';
 import { SAMKHYA_ITEMS, SAMKHYA_SA_ROWS } from './samkhya';
 import { playLetterSound } from './letterAudio';
 import type { LetterGroup, LetterRow } from './types';
@@ -354,16 +355,20 @@ export function AlphabetTutor() {
                 </>
               )}
             </span>
+            {/* Пилюля: те же размеры и отступ от нижнего края, что у пилюли
+                «Trace the letter…» в нижнем поле (bottom-1.5 = 6px от рамки).
+                padding зоны: p-1 на телефоне (4px) и p-2 на sm+ (8px),
+                поэтому margin +2px / -2px. */}
             {selectedLetter ? (
-              <span
-                className="mt-auto inline-flex items-center gap-1 px-1.5 sm:px-2 py-0 sm:py-0.5 rounded-full bg-white text-[8px] sm:text-[10px] font-bold"
-                style={{ color: SILVER }}
-              >
-                <BookOpen className="w-3 h-3" strokeWidth={2.5} />
-                {pickLabel(L.dictCta, uiLanguage)}
+              <span className={`mt-auto mb-0.5 sm:-mb-0.5 ${PILL_BASE_CLASS}`} style={PILL_STYLE}>
+                <BookOpen className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} />
+                <span className={PILL_TEXT_CLASS}>{pickLabel(L.dictCta, uiLanguage)}</span>
               </span>
             ) : (
-              <span className="block mt-auto text-[8px] sm:text-[10px] font-bold" style={{ color: WHITE }}>
+              <span
+                className="block mt-auto mb-0.5 sm:-mb-0.5 text-[10px] font-bold leading-tight"
+                style={{ color: WHITE }}
+              >
                 {pickLabel(L.dictNeedLetter, uiLanguage)}
               </span>
             )}

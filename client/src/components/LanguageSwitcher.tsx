@@ -3,13 +3,24 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage, LANGUAGE_FLAGS, type Language } from "@/lib/i18n";
 
-const LANGUAGES: Language[] = ['sa', 'uk', 'en', 'ru'];
+const LANGUAGES: Language[] = [
+  'sa', 'uk', 'en', 'ru', 'ar', 'bn', 'es', 'id', 'pt', 'ur', 'fr', 'hi', 'bg',
+];
 
 const LANGUAGE_NAMES: Record<Language, string> = {
   ru: 'Русский',
   en: 'English',
   uk: 'Українська',
   sa: 'संस्कृतम् (Saṃskṛtam)',
+  ar: 'العربية',
+  bn: 'বাংলা',
+  es: 'Español',
+  id: 'Bahasa Indonesia',
+  pt: 'Português',
+  ur: 'اردو',
+  fr: 'Français',
+  hi: 'हिन्दी',
+  bg: 'Български',
 };
 
 export function LanguageSwitcher() {
@@ -101,6 +112,8 @@ export function LanguageSwitcher() {
                 top: dropdownPosition.top,
                 right: dropdownPosition.right,
                 zIndex: 999999,
+                maxHeight: "70vh",
+                overflowY: "auto",
               }}
             >
               {LANGUAGES.map((lang) => (

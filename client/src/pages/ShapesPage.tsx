@@ -69,7 +69,7 @@ export default function ShapesPage() {
           }}
         >
           {SHAPES.map((shape, i) => {
-            const name = (shape as Record<string, string>)[language] ?? shape.ru;
+            const name = (shape as unknown as Record<string, string>)[language] ?? shape.ru;
             return (
               <button
                 key={i}

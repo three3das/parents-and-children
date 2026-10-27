@@ -1,6 +1,6 @@
 import type { Language, Translations } from './types';
 
-export const translations: Record<Language, Translations> = {
+export const translations: Partial<Record<Language, Translations>> = {
   ru: {
     // Header
     settings: 'Настройки',
@@ -372,6 +372,7 @@ export const translations: Record<Language, Translations> = {
       sentences: 'Прочитай речення і знайди картинку, яка відповідає опису.',
       audioPicture: 'Послухай слово і знайди правильну картинку. Мову озвучки можна переключити вгорі екрана.',
       audioSentence: 'Послухай речення і знайди картинку, яка відповідає опису.',
+      calculator: "Calculator",
       default: 'Слідуй інструкціям на екрані.',
     },
 
@@ -536,6 +537,7 @@ export const translations: Record<Language, Translations> = {
       sentences: 'वाक्यं पठ वर्णनेन सह योज्यमानं चित्रं च अन्विष्य। (Vākyaṃ paṭha varṇanena saha yojyamānaṃ citraṃ ca anviṣya.)',
       audioPicture: 'शब्दं शृणु सम्यक् चित्रं च अन्विष्य। ध्वनि-भाषां ऊर्ध्वे परिवर्तयितुं शक्यते। (Śabdaṃ śṛṇu samyak citraṃ ca anviṣya. Dhvani-bhāṣāṃ ūrdhve parivartayituṃ śakyate.)',
       audioSentence: 'वाक्यं शृणु वर्णनेन सह योज्यमानं चित्रं च अन्विष्य। (Vākyaṃ śṛṇu varṇanena saha yojyamānaṃ citraṃ ca anviṣya.)',
+      calculator: "Calculator",
       default: 'पर्दायाः निर्देशान् अनुसर। (Pardāyāḥ nirdeśān anusara.)',
     },
 
@@ -659,12 +661,21 @@ export const translations: Record<Language, Translations> = {
     },
   },
 };
-
 export const LANGUAGE_FLAGS: Record<Language, string> = {
   en: 'EN',
   ru: 'RU',
   uk: 'UA',
   sa: 'SA',
+  ar: 'AR',
+  bn: 'BN',
+  es: 'ES',
+  id: 'ID',
+  pt: 'PT',
+  ur: 'UR',
+  fr: 'FR',
+  hi: 'HI',
+  bg: 'BG',
 };
-
 export const DEFAULT_LANGUAGE: Language = 'sa';
+export const getTranslations = (lang: Language): Translations =>
+  translations[lang] ?? translations.en!;

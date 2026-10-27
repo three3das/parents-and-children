@@ -136,7 +136,7 @@ export default function ReadingPage() {
           )}
           {words.map((word, i) => {
             const color = CARD_COLORS[i % CARD_COLORS.length];
-            const text = word[language as Language];
+            const text = (word as unknown as Partial<Record<Language, string>>)[language] ?? word.ru;
             return (
               <div
                 key={word.id}

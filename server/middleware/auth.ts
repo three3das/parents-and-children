@@ -1,7 +1,7 @@
 // server/middleware/auth.ts
 import { Request, Response, NextFunction } from "express";
 import { getActiveSubscription } from "../services/subscriptions";
-
+import 'express-session';
 export async function requireAuth(
   req: Request,
   res: Response,
