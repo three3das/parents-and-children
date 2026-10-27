@@ -148,11 +148,11 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
             {pickLabel(m === 'letter' ? L.toggleLetter : L.toggleScript, uiLanguage)}
           </button>
         ))}
-        {/* Только на телефоне: Clear — третья кнопка в центральной колонке
-            (на sm и выше он остаётся внизу рядом с подписью). */}
+        {/* Clear — третья кнопка между двумя полями (на телефоне — в центральной
+            колонке, на sm и выше — в ряду под карточкой буквы). */}
         <button
           onClick={clearCanvas}
-          className="sm:hidden flex-1 px-1.5 py-1 rounded text-[10px] font-bold transition-colors"
+          className="flex-1 px-1.5 sm:px-2 py-1 rounded text-[10px] font-bold transition-colors"
           style={toggleStyle(false)}
           {...hoverHandlers(false)}
         >
@@ -228,15 +228,6 @@ export function DrawingPad({ letterSymbol, scriptSymbol, uiLanguage }: DrawingPa
         <h4 className="text-[10px] font-bold" style={{ color: SILVER }}>
           {pickLabel(L.write, uiLanguage)}
         </h4>
-        <button
-          onClick={clearCanvas}
-          className="px-2 py-1 rounded text-xs font-bold transition-colors"
-          style={{ backgroundColor: WHITE, color: SILVER, border: `${BORDER_WIDTH}px solid ${GOLD_33}` }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = GOLD_33)}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = WHITE)}
-        >
-          {pickLabel(L.clear, uiLanguage)}
-        </button>
       </div>
     </div>
   );

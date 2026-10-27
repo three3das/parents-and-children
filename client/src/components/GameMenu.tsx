@@ -9,11 +9,9 @@ import {
   NotebookPen,
   Volume2,
   Headphones,
-  Eraser,
   Calculator,
   type LucideIcon,
 } from "lucide-react";
-import { ERASE_DRAWING_EVENT } from "./alphabet-tutor/constants";
 
 const FIRST_LETTER: Record<string, string> = {
   sa: 'अ',
@@ -43,23 +41,6 @@ const ALPHABET_LABEL: Record<string, string> = {
   ar: 'الأبجدية',
   ur: 'حروف تہجی',
   bn: 'বর্ণমালা',
-};
-
-// Подпись кнопки «Ластик» на десктопе — на языке интерфейса (по тому же
-// принципу, что RULES_LABEL в HelpButton.tsx).
-const ERASER_LABEL: Record<string, string> = {
-  sa: 'मार्जनी',
-  hi: 'रबर',
-  en: 'Eraser',
-  es: 'Borrador',
-  pt: 'Borracha',
-  fr: 'Gomme',
-  id: 'Penghapus',
-  ru: 'Ластик',
-  uk: 'Гумка',
-  ar: 'ممحاة',
-  ur: 'ربڑ',
-  bn: 'রাবার',
 };
 
 const GAME_ICONS: Partial<Record<GameType, LucideIcon>> = {
@@ -103,7 +84,6 @@ export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
   const { language } = useLanguage();
   const alphabetLetter = FIRST_LETTER[language] ?? 'A';
   const alphabetLabel = ALPHABET_LABEL[language] ?? 'Alphabet';
-  const eraserLabel = ERASER_LABEL[language] ?? ERASER_LABEL.en;
 
   const gameTypes: GameType[] = [
     'alphabet-placeholder',
@@ -155,41 +135,8 @@ export function GameMenu({ currentGameType, onGameTypeChange }: GameMenuProps) {
 
       {/* «Правила игры»: ряд 1, 7-я колонка (на sm+ — справа в flex-ряду). */}
       <div className="flex sm:gap-2" style={{ gridRow: 1, gridColumn: HELP_COLUMN }}>
-        {/* «Ластик» (только десктоп, sm+ и только в алфавите): слева от
-            «Правил игры», размеры и стиль — те же, что у HelpButton.
-            На мобильном есть своя иконка-стиралка ниже. */}
-        {currentGameType === 'alphabet-placeholder' && (
-          <motion.button
-            type="button"
-            title={eraserLabel}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => window.dispatchEvent(new Event(ERASE_DRAWING_EVENT))}
-            className="hidden sm:flex sm:w-auto sm:h-16 sm:px-4 bg-amber-300 text-white rounded-xl font-bold hover:bg-amber-400 transition-colors shadow-lg text-center sm:whitespace-nowrap sm:text-sm leading-tight items-center justify-center"
-          >
-            {eraserLabel}
-          </motion.button>
-        )}
         <HelpButton gameType={currentGameType} />
       </div>
-
-      {/* Стиралка (только мобильная версия и только в алфавите, где есть
-          холст): ряд 2, та же 7-я колонка — ровно под «Правилами игры»,
-          та же ширина. Кнопки 8–12 займут колонки 2–6 этого же ряда.
-          Очищает холст DrawingPad через событие. */}
-      {currentGameType === 'alphabet-placeholder' && (
-        <motion.button
-          type="button"
-          aria-label="Стереть рисунок"
-          title="Стереть рисунок"
-          style={{ gridRow: 2, gridColumn: HELP_COLUMN }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => window.dispatchEvent(new Event(ERASE_DRAWING_EVENT))}
-          className="sm:hidden w-full min-h-10 rounded-xl bg-amber-300 hover:bg-amber-400 transition-colors shadow-lg flex items-center justify-center text-white"
-        >
-          <Eraser className="w-5 h-5" strokeWidth={2.5} />
-        </motion.button>
-      )}
     </div>
   );
 }
