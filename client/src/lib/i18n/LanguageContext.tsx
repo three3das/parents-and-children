@@ -15,7 +15,6 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 // ⚠️ Раньше здесь проверялись только 4 жёстко перечисленных кода
 // ('en' | 'ru' | 'uk' | 'sa'), хотя приложение поддерживает 12 языков
-// (см. languageOptions в IshvaraPage.tsx и SUPPORTED_LANGUAGE_CODES в
 // types.ts). Любой другой сохранённый код (например 'hi' для Хинди)
 // проваливал эту проверку и функция возвращала DEFAULT_LANGUAGE ('sa') —
 // поэтому после перезагрузки/новой навигации выбор языка всегда

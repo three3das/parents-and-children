@@ -20,7 +20,6 @@ import { Calculator } from "@/components/calculator/Calculator";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 // ⚠️ УБРАНО (мусор после переноса Settings/Login/CreateAccount/Progress
-// в футер IshvaraPage.tsx): импорты LoginModal, CreateAccountModal,
 // ProgressModal и useToast/toast — они использовались только теми
 // хендлерами и модалками, которые больше нигде не открываются (см.
 // комментарий ниже, у их прежнего места).
@@ -51,7 +50,6 @@ export default function Game() {
   // ⚠️ УБРАНО: showLoginModal / showCreateAccountModal / showProgressModal
   // — ничто их больше не открывает (кнопка в GameHeader, которая это
   // делала, убрана; вход/регистрация/настройки/прогресс теперь только
-  // через футер IshvaraPage.tsx). Модалки ниже по файлу тоже убраны.
   const [sessionId] = useState(() => {
     // Check if we have a session ID in localStorage
     const stored = localStorage.getItem('russian-game-session');
@@ -421,7 +419,6 @@ useEffect(() => {
   // ⚠️ УБРАНО: handleSettingsClick — открывал toast с кнопкой сброса
   // прогресса, вызывался только из onSettingsClick в GameHeader.
   // Настройки/сброс прогресса теперь доступны через футер
-  // IshvaraPage.tsx, а не отсюда.
 
   const handleRestartGame = () => {
     setCurrentWordIndex(0);
@@ -446,7 +443,6 @@ useEffect(() => {
   // ⚠️ УБРАНО: handleLoginClick / handleCreateAccountClick /
   // switchToCreateAccount / switchToLogin — управляли
   // showLoginModal/showCreateAccountModal, которых больше нет; вход и
-  // регистрация теперь только через футер IshvaraPage.tsx.
 
   const handleSyllableAnswer = (isCorrect: boolean) => {
     if (selectedPicture || showCelebration) return;
@@ -551,7 +547,7 @@ useEffect(() => {
           onLoginClick / onCreateAccountClick / onProgressClick — этих
           пропсов больше нет в GameHeaderProps (см. GameHeader.tsx —
           AuthDropdown и связанные с ним пропы убраны из шапки, вход /
-          регистрация / настройки теперь через футер на IshvaraPage.tsx).
+          регистрация / настройки теперь через футер на HomePage.tsx).
           Раньше эти пропы всё ещё передавались сюда по инерции — из-за
           этого TypeScript ругался: "onSettingsClick does not exist on
           type GameHeaderProps". Убрал их из вызова; сам GameHeader
@@ -748,7 +744,7 @@ useEffect(() => {
           showProgressModal, которых больше нет в этом файле. Если эти
           модалки всё ещё нужны где-то в приложении — их должен
           рендерить компонент, который реально их открывает (например,
-          футер на IshvaraPage.tsx или общий layout в App.tsx), а не
+          футер на HomePage.tsx или общий layout в App.tsx), а не
           game.tsx. */}
     </div>
   );

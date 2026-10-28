@@ -674,7 +674,6 @@ export const LANGUAGE_FLAGS: Record<Language, string> = {
   ur: 'UR',
   fr: 'FR',
   hi: 'HI',
-  bg: 'BG',
 };
 export const DEFAULT_LANGUAGE: Language = 'sa';
 export const getTranslations = (lang: Language): Translations =>

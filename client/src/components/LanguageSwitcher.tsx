@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage, LANGUAGE_FLAGS, type Language } from "@/lib/i18n";
 
 const LANGUAGES: Language[] = [
-  'sa', 'uk', 'en', 'ru', 'ar', 'bn', 'es', 'id', 'pt', 'ur', 'fr', 'hi', 'bg',
+  'sa', 'uk', 'en', 'ru', 'ar', 'bn', 'es', 'id', 'pt', 'ur', 'fr', 'hi',
 ];
 
 const LANGUAGE_NAMES: Record<Language, string> = {
@@ -20,7 +20,6 @@ const LANGUAGE_NAMES: Record<Language, string> = {
   ur: 'اردو',
   fr: 'Français',
   hi: 'हिन्दी',
-  bg: 'Български',
 };
 
 export function LanguageSwitcher() {

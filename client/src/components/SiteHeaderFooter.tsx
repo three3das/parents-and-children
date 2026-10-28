@@ -2,7 +2,6 @@
 // Объединённый файл: полные SiteHeader/SiteFooter (логотип, авторизация,
 // инфо-карточки — используются на большинстве страниц) и упрощённые
 // WheelHeader/WheelFooter + WheelPageShell для страниц-«колёс»
-// (PaymentsPage, IshvaraPage и т.п.).
 import { WHEEL_TEXT_COLOR } from "@/lib/colors";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { NavItem } from "@/lib/siteNav";
@@ -510,9 +509,7 @@ export function WheelHeader({
 // key === "languages" ("Меню") сама открывает выпадашку с
 // LanguageScriptMenuPanel внутри — это тот самый компонент
 // последовательного выбора (Шаги 0/2/4), который раньше был
-// захардкожен прямо в IshvaraPage.tsx. Перенос сюда даёт эту кнопку
 // автоматически любой странице, использующей WheelFooter (не только
-// IshvaraPage).
 export function WheelFooter({
   items,
   activeKey,

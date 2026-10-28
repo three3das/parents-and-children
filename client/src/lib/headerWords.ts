@@ -22,7 +22,6 @@ const LANGUAGE_COLUMN: Record<string, string> = {
   en: "english",
   ar: "arabic",
   bn: "bengali",
-  bg: "bulgarian",
   id: "indonesian",
   es: "spanish",
   pt: "portuguese",
@@ -54,7 +53,7 @@ async function fetchHeaderWords(): Promise<HeaderWordsState> {
     const { data: words, error: wordsError } = await supabase
       .from("text_word_languages")
       .select(
-        "id, word_key, sanskrit, english, arabic, bengali, spanish, indonesian, portuguese, russian, ukrainian, urdu, french, hindi, bulgarian"
+        "id, word_key, sanskrit, english, arabic, bengali, spanish, indonesian, portuguese, russian, ukrainian, urdu, french, hindi"
       )
       .in("word_key", HEADER_WORD_KEYS as unknown as string[]);
 

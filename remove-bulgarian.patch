@@ -1,0 +1,148 @@
+diff --git a/client/src/components/LanguageSwitcher.tsx b/client/src/components/LanguageSwitcher.tsx
+index 68ecbe6..41f3ad4 100644
+--- a/client/src/components/LanguageSwitcher.tsx
++++ b/client/src/components/LanguageSwitcher.tsx
+@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
+ import { useLanguage, LANGUAGE_FLAGS, type Language } from "@/lib/i18n";
+ 
+ const LANGUAGES: Language[] = [
+-  'sa', 'uk', 'en', 'ru', 'ar', 'bn', 'es', 'id', 'pt', 'ur', 'fr', 'hi', 'bg',
++  'sa', 'uk', 'en', 'ru', 'ar', 'bn', 'es', 'id', 'pt', 'ur', 'fr', 'hi',
+ ];
+ 
+ const LANGUAGE_NAMES: Record<Language, string> = {
+@@ -20,7 +20,6 @@ const LANGUAGE_NAMES: Record<Language, string> = {
+   ur: 'اردو',
+   fr: 'Français',
+   hi: 'हिन्दी',
+-  bg: 'Български',
+ };
+ 
+ export function LanguageSwitcher() {
+diff --git a/client/src/components/calculator/functionNames.ts b/client/src/components/calculator/functionNames.ts
+index 0b81683..35ebd75 100644
+--- a/client/src/components/calculator/functionNames.ts
++++ b/client/src/components/calculator/functionNames.ts
+@@ -30,12 +30,6 @@ export const FUNCTION_NAMES: Record<string, Record<FnName, string[]>> = {
+     tan: ['тангенс', 'тг'],
+     cot: ['котангенс', 'ктг'],
+   },
+-  bg: {
+-    sin: ['синус'],
+-    cos: ['косинус'],
+-    tan: ['тангенс'],
+-    cot: ['котангенс'],
+-  },
+   es: {
+     sin: ['seno'],
+     cos: ['coseno'],
+diff --git a/client/src/lib/headerWords.ts b/client/src/lib/headerWords.ts
+index 1fd97df..dc1b355 100644
+--- a/client/src/lib/headerWords.ts
++++ b/client/src/lib/headerWords.ts
+@@ -22,7 +22,6 @@ const LANGUAGE_COLUMN: Record<string, string> = {
+   en: "english",
+   ar: "arabic",
+   bn: "bengali",
+-  bg: "bulgarian",
+   id: "indonesian",
+   es: "spanish",
+   pt: "portuguese",
+@@ -54,7 +53,7 @@ async function fetchHeaderWords(): Promise<HeaderWordsState> {
+     const { data: words, error: wordsError } = await supabase
+       .from("text_word_languages")
+       .select(
+-        "id, word_key, sanskrit, english, arabic, bengali, spanish, indonesian, portuguese, russian, ukrainian, urdu, french, hindi, bulgarian"
++        "id, word_key, sanskrit, english, arabic, bengali, spanish, indonesian, portuguese, russian, ukrainian, urdu, french, hindi"
+       )
+       .in("word_key", HEADER_WORD_KEYS as unknown as string[]);
+ 
+diff --git a/client/src/lib/i18n/translations.ts b/client/src/lib/i18n/translations.ts
+index bdd1a16..3e5d676 100644
+--- a/client/src/lib/i18n/translations.ts
++++ b/client/src/lib/i18n/translations.ts
+@@ -674,7 +674,6 @@ export const LANGUAGE_FLAGS: Record<Language, string> = {
+   ur: 'UR',
+   fr: 'FR',
+   hi: 'HI',
+-  bg: 'BG',
+ };
+ export const DEFAULT_LANGUAGE: Language = 'sa';
+ export const getTranslations = (lang: Language): Translations =>
+diff --git a/client/src/lib/i18n/types.ts b/client/src/lib/i18n/types.ts
+index a4c915f..a86b18c 100644
+--- a/client/src/lib/i18n/types.ts
++++ b/client/src/lib/i18n/types.ts
+@@ -16,8 +16,7 @@ export type Language =
+   | 'uk'
+   | 'ur'
+   | 'fr'
+-  | 'hi'
+-  | 'bg';
++  | 'hi';
+ 
+ // Единый список всех поддерживаемых кодов языка — используется в
+ // LanguageContext.tsx для проверки значения, прочитанного из
+@@ -26,7 +25,7 @@ export type Language =
+ // кодом, что и в таблице public.letter_writing_systems в Supabase) —
+ // иначе повторится тот же баг.
+ export const SUPPORTED_LANGUAGE_CODES: readonly Language[] = [
+-  'sa', 'en', 'ar', 'bn', 'id', 'es', 'pt', 'ru', 'uk', 'ur', 'fr', 'hi', 'bg',
++  'sa', 'en', 'ar', 'bn', 'id', 'es', 'pt', 'ru', 'uk', 'ur', 'fr', 'hi',
+ ];
+ 
+ export interface Translations {
+diff --git a/client/src/lib/languageScript.tsx b/client/src/lib/languageScript.tsx
+index 9cca49a..5d599bc 100644
+--- a/client/src/lib/languageScript.tsx
++++ b/client/src/lib/languageScript.tsx
+@@ -7,21 +7,15 @@ import { useLanguage } from "@/lib/i18n";
+ // ниже под каталогом) вычисляется автоматически — это только записи с
+ // active: true, в том порядке, в котором они здесь перечислены.
+ //
+-// Сейчас Бенгальский (bn) отключён (active: false), вместо него в
+-// колесе показывается Болгарский (bg) — это ВРЕМЕННАЯ замена. Чтобы
+-// вернуть Бенгальский обратно, когда понадобится:
+-//   1. У записи "bn" поставьте active: true.
+-//   2. У записи "bg" поставьте active: false (или удалите её совсем,
+-//      если болгарский эксперимент к тому моменту решат не продолжать).
+-// Никаких других правок в файле для этого не требуется — колесо,
+-// FIRST_LETTER/ALPHABET_LABEL ниже не нужно трогать, кроме, собственно,
+-// добавления bg в эти два словаря (уже сделано).
++// Бенгальский (bn) снова включён в колесо (active: true). Болгарский (bg)
++// полностью удалён из проекта: из каталога, из FIRST_LETTER и из
++// ALPHABET_LABEL. Чтобы временно скрыть любой язык, достаточно поставить
++// у его записи active: false — больше ничего менять не нужно.
+ const LANGUAGE_CATALOG: { code: string; label: string; active: boolean }[] = [
+   { code: "sa", label: "Санскрит", active: true },
+   { code: "en", label: "Английский", active: true },
+   { code: "ar", label: "Арабский", active: true },
+-  { code: "bn", label: "Бенгальский", active: false }, // временно выключен — см. пояснение выше
+-  { code: "bg", label: "Болгарский", active: true }, // временная замена бенгальского
++  { code: "bn", label: "Бенгальский", active: true },
+   { code: "id", label: "Индонезийский", active: true },
+   { code: "es", label: "Испанский", active: true },
+   { code: "pt", label: "Португальский", active: true },
+@@ -84,7 +78,6 @@ export const FIRST_LETTER: Record<string, string> = {
+   id: "A",
+   ru: "А",
+   uk: "А",
+-  bg: "А",
+   ar: "ا",
+   ur: "ا",
+   bn: "অ",
+@@ -100,7 +93,6 @@ export const ALPHABET_LABEL: Record<string, string> = {
+   id: "Alfabet",
+   ru: "Алфавит",
+   uk: "Алфавіт",
+-  bg: "Азбука",
+   ar: "الأبجدية",
+   ur: "حروف تہجی",
+   bn: "বর্ণমালা",
+@@ -206,4 +198,4 @@ export function useLanguageScript() {
+     );
+   }
+   return ctx;
+-}
+\ No newline at end of file
++}

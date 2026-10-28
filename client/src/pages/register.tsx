@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useGoogleAuth } from "@/lib/auth/useGoogleAuth";
 
-// --- Та же золотая палитра, что и в IshvaraPage.tsx (колесо сайта) ---
 // GOLD/WHITE/mix() — идентичная формула, просто вычислена здесь один
 // раз в константы, а не через функцию (страница не рисует секторов
 // колеса, нужны только 4 конкретных оттенка).
@@ -141,7 +140,6 @@ export default function RegisterPage() {
         style={{
           flex: 1,
           // Тот же градиент 33% → 67% → 100% золота, что и у секторов
-          // колеса на главной странице сайта (IshvaraPage.tsx).
           background: `linear-gradient(160deg, ${COLOR_33} 0%, ${COLOR_67} 60%, ${COLOR_100} 100%)`,
           display: "flex",
           alignItems: "center",

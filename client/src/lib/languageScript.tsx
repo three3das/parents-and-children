@@ -7,21 +7,15 @@ import { useLanguage } from "@/lib/i18n";
 // ниже под каталогом) вычисляется автоматически — это только записи с
 // active: true, в том порядке, в котором они здесь перечислены.
 //
-// Сейчас Бенгальский (bn) отключён (active: false), вместо него в
-// колесе показывается Болгарский (bg) — это ВРЕМЕННАЯ замена. Чтобы
-// вернуть Бенгальский обратно, когда понадобится:
-//   1. У записи "bn" поставьте active: true.
-//   2. У записи "bg" поставьте active: false (или удалите её совсем,
-//      если болгарский эксперимент к тому моменту решат не продолжать).
-// Никаких других правок в файле для этого не требуется — колесо,
-// FIRST_LETTER/ALPHABET_LABEL ниже не нужно трогать, кроме, собственно,
-// добавления bg в эти два словаря (уже сделано).
+// Бенгальский (bn) снова включён в колесо (active: true). Болгарский (bg)
+// полностью удалён из проекта: из каталога, из FIRST_LETTER и из
+// ALPHABET_LABEL. Чтобы временно скрыть любой язык, достаточно поставить
+// у его записи active: false — больше ничего менять не нужно.
 const LANGUAGE_CATALOG: { code: string; label: string; active: boolean }[] = [
   { code: "sa", label: "Санскрит", active: true },
   { code: "en", label: "Английский", active: true },
   { code: "ar", label: "Арабский", active: true },
-  { code: "bn", label: "Бенгальский", active: false }, // временно выключен — см. пояснение выше
-  { code: "bg", label: "Болгарский", active: true }, // временная замена бенгальского
+  { code: "bn", label: "Бенгальский", active: true },
   { code: "id", label: "Индонезийский", active: true },
   { code: "es", label: "Испанский", active: true },
   { code: "pt", label: "Португальский", active: true },
@@ -72,7 +66,6 @@ export const scriptOptions = [
 export const DEFAULT_LANGUAGE = "en";
 export const DEFAULT_SCRIPT = "latin";
 
-// Перенесено из IshvaraPage.tsx / GameMenu.tsx без изменений — первая
 // буква алфавита и слово "алфавит" на каждом языке.
 export const FIRST_LETTER: Record<string, string> = {
   sa: "अ",
@@ -84,7 +77,6 @@ export const FIRST_LETTER: Record<string, string> = {
   id: "A",
   ru: "А",
   uk: "А",
-  bg: "А",
   ar: "ا",
   ur: "ا",
   bn: "অ",
@@ -100,7 +92,6 @@ export const ALPHABET_LABEL: Record<string, string> = {
   id: "Alfabet",
   ru: "Алфавит",
   uk: "Алфавіт",
-  bg: "Азбука",
   ar: "الأبجدية",
   ur: "حروف تہجی",
   bn: "বর্ণমালা",
@@ -137,7 +128,6 @@ export function LanguageScriptProvider({ children }: { children: ReactNode }) {
 
   // Гарантируем дефолт языка (теперь Английский) прямо здесь, а не
   // полагаясь на внешний компонент (раньше это делал useEffect в
-  // IshvaraPage.tsx — теперь он удалён оттуда, и вся логика дефолта
   // живёт в одном месте). Срабатывает один раз при монтировании: если
   // текущий language не входит в список активных языков колеса —
   // принудительно ставим DEFAULT_LANGUAGE.

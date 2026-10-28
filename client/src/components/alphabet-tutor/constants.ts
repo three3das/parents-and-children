@@ -1,5 +1,4 @@
 // Палитра: mix(goldPct) = GOLD*goldPct + WHITE*(1-goldPct),
-// как sectorColor() в IshvaraPage.tsx.
 export const GOLD_100 = '#FFD700';
 export const GOLD_67 = '#FFE454';
 export const GOLD_33 = '#FFF2AB';

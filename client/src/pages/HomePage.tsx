@@ -57,6 +57,16 @@ import { supabase } from "@/lib/supabase";
 // → «Уже готово для вас». Чтобы кнопка «← Назад» возвращала именно
 // туда, откуда экран открыт, запоминается источник (pathReadyOrigin):
 // "path" (из «Начала пути по сайту») или "sambandha" (из «Дживы»).
+//
+// ⚠️ ПРАВКА (кнопка «Шастра»): на «Домашней странице» (главное колесо,
+// view "main") во втором секторе (индекс 1) стоит кнопка «Шастра».
+// Она открывает форму (view "shastra") с полями canto / chapter /
+// verse (по умолчанию 0, 1, 1) и выбором шастры. Кнопка «Показать
+// стих» читает стих из двух таблиц Supabase — text_shastra_languages
+// (12 столбцов языков) и text_shastra_writting_systems (12 столбцов
+// письменностей) — и открывает отдельный экран (view "shastra-verse"),
+// где в одном поле показывается стих в выбранном сочетании
+// «письменность + язык».
 
 // «Свойства сайта» (ключ "site-page" — та же кнопка на заставке и
 // в футере) теперь открывает колесо из 12 секторов
@@ -97,12 +107,66 @@ function splitLabelIntoLines(label: string): string[] {
 // объявляется здесь — он импортируется из SortRequestForm (см. импорт
 // выше), чтобы колесо тем и поле «Разделы» формы всегда совпадали.
 
-const CATEGORY_CLICKABLE_INDICES = [0];
+// ⚠️ ПРАВКА: сектор №2 (индекс 1) главного колеса — кнопка «Шастра».
+const SHASTRA_INDEX = 1;
+const SHASTRA_LABEL = "Шастра";
+
+// Сектор №1 («Игры») и сектор №2 («Шастра») кликабельны.
+const CATEGORY_CLICKABLE_INDICES = [0, SHASTRA_INDEX];
 
 const CATEGORY_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
-  (_, i) => (i < CATEGORY_ITEMS.length ? splitLabelIntoLines(CATEGORY_ITEMS[i]) : [])
+  (_, i) => {
+    // ⚠️ ПРАВКА: во втором секторе вместо названия раздела — «Шастра».
+    // Список CATEGORY_ITEMS (и поле «Разделы» формы) при этом не
+    // меняется — подмена только на этом колесе.
+    if (i === SHASTRA_INDEX) return [SHASTRA_LABEL];
+    return i < CATEGORY_ITEMS.length ? splitLabelIntoLines(CATEGORY_ITEMS[i]) : [];
+  }
 );
+
+// ─── «Шастра»: стихи из таблиц Supabase ────────────────────────────────────
+// Таблица text_shastra_writting_systems: по одному столбцу на каждую
+// из 12 письменностей. Таблица text_shastra_languages: по одному
+// столбцу на каждый из 12 языков (индонезийский — столбец id_lang,
+// потому что id занят под ключ строки).
+const SHASTRA_OPTIONS: { key: string; label: string }[] = [
+  { key: "bhagavad_gita", label: "Бхагавад-гита" },
+  { key: "srimad_bhagavatam", label: "Шримад-Бхагаватам" },
+];
+
+const SHASTRA_SCRIPTS: { column: string; label: string }[] = [
+  { column: "devanagari", label: "Деванагари" },
+  { column: "arabic", label: "Арабское письмо" },
+  { column: "bengali", label: "Бенгальское письмо" },
+  { column: "gujarati", label: "Гуджарати" },
+  { column: "kannada", label: "Каннада" },
+  { column: "cyrillic", label: "Кириллица" },
+  { column: "hangul", label: "Корейский хангыль" },
+  { column: "latin", label: "Латиница" },
+  { column: "thai", label: "Тайское письмо" },
+  { column: "tamil", label: "Тамильское письмо" },
+  { column: "telugu", label: "Телугу" },
+  { column: "ethiopic", label: "Эфиопское письмо" },
+];
+
+const SHASTRA_LANGUAGES: { column: string; label: string }[] = [
+  { column: "sa", label: "Санскрит" },
+  { column: "hi", label: "Хинди" },
+  { column: "en", label: "Английский" },
+  { column: "ar", label: "Арабский" },
+  { column: "bn", label: "Бенгальский" },
+  { column: "id_lang", label: "Индонезийский" },
+  { column: "es", label: "Испанский" },
+  { column: "pt", label: "Португальский" },
+  { column: "ru", label: "Русский" },
+  { column: "uk", label: "Украинский" },
+  { column: "ur", label: "Урду" },
+  { column: "fr", label: "Французский" },
+];
+
+// Строка таблицы: служебные поля + столбцы с текстом.
+type ShastraRow = Record<string, string | number | null>;
 
 // ─── Колёса, открывающиеся по кнопкам хедера ───────────────────────────────
 // Каждое — по аналогии с CATEGORY_WHEEL_LABELS: заполнены только первые
@@ -328,6 +392,8 @@ function getGameWheelLabels(games: GameDef[]): string[][] {
 type ViewState =
   | "main"
   | "games"
+  | "shastra"
+  | "shastra-verse"
   | "sambandha"
   | "prakriti"
   | "prakriti-sentence"
@@ -356,7 +422,7 @@ interface HomePageProps {
   initialFooterKey?: string;
 }
 
-export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
+export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
   // Язык и система письменности теперь берутся из общего контекста
   // (проксирует useLanguage() из "@/lib/i18n" — тот же язык, что видит
   // весь остальной сайт). Подписи кнопок хедера зависят от обоих
@@ -410,10 +476,11 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   ];
 
   // "main" — колесо тем (категорий), "games" — колесо с 7 играми.
-  // "sambandha"/"abhidheya"/"prayojana" — колёса из трёх кнопок
-  // хедера. "prakriti" — колесо из 12 предложений (подраздел
-  // «Пракрити» раздела «Самбандха»), "prakriti-sentence" — экран с
-  // выбранным предложением. "guide-info" — экран оплаты («Хочу
+  // "shastra" — форма ввода canto/chapter/verse, "shastra-verse" —
+  // экран со стихом. "sambandha"/"abhidheya"/"prayojana" — колёса из
+  // трёх кнопок хедера. "prakriti" — колесо из 12 предложений
+  // (подраздел «Пракрити» раздела «Самбандха»), "prakriti-sentence" —
+  // экран с выбранным предложением. "guide-info" — экран оплаты («Хочу
   // поддержать проект»). "stable" — колесо «Предмет изучения» (первый
   // сектор — игра), "stable-game" — экран с личным результатом игры.
   const [view, setView] = useState<ViewState>("main");
@@ -421,6 +488,83 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   // ⚠️ ДОБАВЛЕНО: источник, из которого открыт экран "path-ready"
   // (см. тип PathReadyOrigin и handleBack).
   const [pathReadyOrigin, setPathReadyOrigin] = useState<PathReadyOrigin>("path");
+
+  // ─── Состояние «Шастры» ──────────────────────────────────────────────────
+  // Значения полей формы храним строками (так удобнее для <input>);
+  // в запрос они уходят числами (canto, chapter) и текстом (verse).
+  const [shastraKey, setShastraKey] = useState<string>("bhagavad_gita");
+  const [cantoInput, setCantoInput] = useState<string>("0");
+  const [chapterInput, setChapterInput] = useState<string>("1");
+  const [verseInput, setVerseInput] = useState<string>("1");
+  const [shastraLoading, setShastraLoading] = useState(false);
+  const [shastraError, setShastraError] = useState<string | null>(null);
+  // Две строки: из таблицы письменностей и из таблицы языков.
+  const [scriptsRow, setScriptsRow] = useState<ShastraRow | null>(null);
+  const [languagesRow, setLanguagesRow] = useState<ShastraRow | null>(null);
+  // Выбранные на экране стиха письменность и язык (по умолчанию —
+  // деванагари и русский).
+  const [selectedScript, setSelectedScript] = useState<string>("devanagari");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("ru");
+
+  // Кнопка «Показать стих»: читаем стих из обеих таблиц и открываем
+  // экран "shastra-verse".
+  const handleShastraSubmit = async () => {
+    const canto = Number(cantoInput);
+    const chapter = Number(chapterInput);
+    const verse = verseInput.trim();
+
+    if (
+      cantoInput.trim() === "" ||
+      chapterInput.trim() === "" ||
+      verse === "" ||
+      !Number.isInteger(canto) ||
+      !Number.isInteger(chapter) ||
+      canto < 0 ||
+      chapter < 0
+    ) {
+      setShastraError("Введите canto и chapter целыми числами, а также номер стиха.");
+      return;
+    }
+
+    setShastraLoading(true);
+    setShastraError(null);
+    try {
+      const fetchRow = (table: string) =>
+        supabase
+          .from(table)
+          .select("*")
+          .eq("shastra", shastraKey)
+          .eq("canto", canto)
+          .eq("chapter", chapter)
+          .eq("verse", verse)
+          .maybeSingle();
+
+      const [scriptsResult, languagesResult] = await Promise.all([
+        fetchRow("text_shastra_writting_systems"),
+        fetchRow("text_shastra_languages"),
+      ]);
+
+      if (scriptsResult.error || languagesResult.error) {
+        setShastraError(
+          (scriptsResult.error ?? languagesResult.error)?.message ??
+            "Не удалось загрузить стих."
+        );
+        return;
+      }
+      if (!scriptsResult.data && !languagesResult.data) {
+        setShastraError("Такой стих пока не найден в базе.");
+        return;
+      }
+
+      setScriptsRow((scriptsResult.data ?? null) as ShastraRow | null);
+      setLanguagesRow((languagesResult.data ?? null) as ShastraRow | null);
+      setView("shastra-verse");
+    } catch (e) {
+      setShastraError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setShastraLoading(false);
+    }
+  };
 
   // ─── Состояние колеса «Пракрити» ─────────────────────────────────────────
   const [prakritiSentences, setPrakritiSentences] = useState<PrakritiSentence[]>([]);
@@ -504,9 +648,15 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
     }
   };
 
+  // Главное колесо («Домашняя страница»): сектор №1 — «Игры»,
+  // сектор №2 — «Шастра».
   const handleSelectCategory = (index: number) => {
     if (index === 0) {
       setView("games");
+    } else if (index === SHASTRA_INDEX) {
+      // ⚠️ ПРАВКА: кнопка «Шастра» открывает форму canto/chapter/verse.
+      setShastraError(null);
+      setView("shastra");
     }
   };
 
@@ -670,7 +820,9 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
   //    "path" (колесо «Начало пути по сайту») или
   //    "sambandha" (колесо «Самбандха», сектор «Джива»);
   //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
-  //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений).
+  //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений);
+  //  • "shastra" → "main" (общее правило: обратно на колесо тем);
+  //  • "shastra-verse" → "shastra" (обратно в форму ввода стиха).
   const handleBack = () => {
     if (view === "guide-info") {
       setView("properties");
@@ -689,6 +841,8 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
       setView("sambandha");
     } else if (view === "prakriti-sentence") {
       setView("prakriti");
+    } else if (view === "shastra-verse") {
+      setView("shastra");
     } else {
       setView("main");
     }
@@ -696,6 +850,18 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
 
   const selectedSentence =
     selectedSentenceIndex !== null ? prakritiSentences[selectedSentenceIndex] : null;
+
+  // Общий вид полей формы «Шастра» и выпадающих списков на экране стиха.
+  const SHASTRA_FIELD_CLASS =
+    "px-3 py-2 rounded-xl border-2 bg-white font-bold text-base outline-none";
+
+  // Текст стиха для выбранного сочетания: сначала письменность
+  // (санскрит в выбранной системе письма), под ней — перевод на
+  // выбранный язык.
+  const verseScriptText = scriptsRow ? (scriptsRow[selectedScript] as string | null) : null;
+  const verseLanguageText = languagesRow
+    ? (languagesRow[selectedLanguage] as string | null)
+    : null;
 
   return (
     <WheelPageShell
@@ -739,6 +905,147 @@ export default function IshvaraPage({ initialFooterKey }: HomePageProps = {}) {
             centerLabel="Игры"
             onSectorClick={handleGameSectorClick}
           />
+        )}
+
+        {view === "shastra" && (
+          // ⚠️ ДОБАВЛЕНО: форма «Шастра» — выбор шастры и три поля
+          // canto / chapter / verse (по умолчанию 0, 1, 1).
+          <div className="w-full h-full flex items-start justify-center px-4 pt-4 bg-white overflow-y-auto">
+            <div className="flex flex-col items-center gap-4 w-full max-w-md text-center">
+              <p className="text-xl font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
+                Шастра
+              </p>
+
+              <label className="flex flex-col gap-1 w-full text-left font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
+                Шастра
+                <select
+                  value={shastraKey}
+                  onChange={(e) => setShastraKey(e.target.value)}
+                  className={SHASTRA_FIELD_CLASS}
+                  style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+                >
+                  {SHASTRA_OPTIONS.map((o) => (
+                    <option key={o.key} value={o.key}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="flex flex-col gap-1 w-full text-left font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
+                canto (песнь; для Бхагавад-гиты — 0)
+                <input
+                  type="number"
+                  min={0}
+                  value={cantoInput}
+                  onChange={(e) => setCantoInput(e.target.value)}
+                  className={SHASTRA_FIELD_CLASS}
+                  style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+                />
+              </label>
+
+              <label className="flex flex-col gap-1 w-full text-left font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
+                chapter (глава)
+                <input
+                  type="number"
+                  min={0}
+                  value={chapterInput}
+                  onChange={(e) => setChapterInput(e.target.value)}
+                  className={SHASTRA_FIELD_CLASS}
+                  style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+                />
+              </label>
+
+              <label className="flex flex-col gap-1 w-full text-left font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
+                verse (стих)
+                <input
+                  type="text"
+                  value={verseInput}
+                  onChange={(e) => setVerseInput(e.target.value)}
+                  className={SHASTRA_FIELD_CLASS}
+                  style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+                />
+              </label>
+
+              {shastraError && (
+                <p className="text-base" style={{ color: WHEEL_TEXT_COLOR }} role="alert">
+                  {shastraError}
+                </p>
+              )}
+
+              <button
+                onClick={handleShastraSubmit}
+                disabled={shastraLoading}
+                className="px-6 py-3 rounded-full border-2 font-bold text-base transition bg-white"
+                style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+              >
+                {shastraLoading ? "Загрузка…" : "Показать стих"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {view === "shastra-verse" && (
+          // ⚠️ ДОБАВЛЕНО: отдельная страница стиха. Два выпадающих
+          // списка (письменность и язык) — 12 × 12 сочетаний; текст
+          // стиха — в одном поле.
+          <div className="w-full h-full flex items-start justify-center px-4 pt-4 bg-white overflow-y-auto">
+            <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
+              <p className="text-xl font-bold text-center" style={{ color: WHEEL_TEXT_COLOR }}>
+                {SHASTRA_OPTIONS.find((o) => o.key === shastraKey)?.label}
+                {" · "}
+                {shastraKey === "srimad_bhagavatam" ? `Песнь ${cantoInput}, ` : ""}
+                Глава {chapterInput}, Текст {verseInput}
+              </p>
+
+              <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+                <label className="flex flex-col gap-1 font-bold text-left" style={{ color: WHEEL_TEXT_COLOR }}>
+                  Письменность
+                  <select
+                    value={selectedScript}
+                    onChange={(e) => setSelectedScript(e.target.value)}
+                    className={SHASTRA_FIELD_CLASS}
+                    style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+                  >
+                    {SHASTRA_SCRIPTS.map((s) => (
+                      <option key={s.column} value={s.column}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="flex flex-col gap-1 font-bold text-left" style={{ color: WHEEL_TEXT_COLOR }}>
+                  Язык
+                  <select
+                    value={selectedLanguage}
+                    onChange={(e) => setSelectedLanguage(e.target.value)}
+                    className={SHASTRA_FIELD_CLASS}
+                    style={{ color: WHEEL_TEXT_COLOR, borderColor: "#FFD700" }}
+                  >
+                    {SHASTRA_LANGUAGES.map((l) => (
+                      <option key={l.column} value={l.column}>
+                        {l.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {/* Одно поле для стиха: письменность + перевод. */}
+              <div
+                className="w-full rounded-3xl border-4 p-5 flex flex-col gap-4"
+                style={{ borderColor: "#FFD700", color: WHEEL_TEXT_COLOR }}
+              >
+                <p className="text-lg font-bold" style={{ whiteSpace: "pre-line" }}>
+                  {verseScriptText ?? "Этого варианта письменности пока нет в базе."}
+                </p>
+                <p className="text-base" style={{ whiteSpace: "pre-line" }} dir="auto">
+                  {verseLanguageText ?? "Этого языка пока нет в базе."}
+                </p>
+              </div>
+            </div>
+          </div>
         )}
 
         {view === "sambandha" && (

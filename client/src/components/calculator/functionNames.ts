@@ -30,12 +30,6 @@ export const FUNCTION_NAMES: Record<string, Record<FnName, string[]>> = {
     tan: ['тангенс', 'тг'],
     cot: ['котангенс', 'ктг'],
   },
-  bg: {
-    sin: ['синус'],
-    cos: ['косинус'],
-    tan: ['тангенс'],
-    cot: ['котангенс'],
-  },
   es: {
     sin: ['seno'],
     cos: ['coseno'],

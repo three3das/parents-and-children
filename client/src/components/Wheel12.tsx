@@ -1,7 +1,5 @@
 import { WHEEL_TEXT_COLOR } from "@/lib/colors";
 // Wheel12 — колесо из 12 секторов. Логика геометрии и отрисовки не
-// менялась при переносе из IshvaraPage.tsx — только вынесена в
-// отдельный файл, чтобы им могли пользоваться и IshvaraPage (колёса
 // категорий/игр), и LanguageScriptWheelOverlay (колёса языка/письма).
 
 const GOLD = { r: 255, g: 215, b: 0 };

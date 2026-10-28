@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useGoogleAuth } from "@/lib/auth/useGoogleAuth";
 
-// --- Та же золотая палитра, что и в IshvaraPage.tsx / RegisterPage.tsx ---
 const GOLD = { r: 255, g: 215, b: 0 };
 const WHITE = { r: 255, g: 255, b: 255 };
 
