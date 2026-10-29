@@ -60,13 +60,14 @@ import { supabase } from "@/lib/supabase";
 //
 // ⚠️ ПРАВКА (кнопка «Шастра»): на «Домашней странице» (главное колесо,
 // view "main") во втором секторе (индекс 1) стоит кнопка «Шастра».
-// Она открывает форму (view "shastra") с полями canto / chapter /
-// verse (по умолчанию 0, 1, 1) и выбором шастры. Кнопка «Показать
+// Она открывает форму (view "shastra") с полями song / chapter /
+// text (по умолчанию 0, 1, 1) и выбором шастры. Кнопка «Показать
 // стих» читает стих из двух таблиц Supabase — text_shastra_languages
 // (12 столбцов языков) и text_shastra_writting_systems (12 столбцов
 // письменностей) — и открывает отдельный экран (view "shastra-verse"),
 // где в одном поле показывается стих в выбранном сочетании
-// «письменность + язык».
+// «письменность + язык». Ключ строки в обеих таблицах:
+// (shastra, song, chapter, text), где text — номер стиха.
 
 // «Свойства сайта» (ключ "site-page" — та же кнопка на заставке и
 // в футере) теперь открывает колесо из 12 секторов
@@ -476,7 +477,7 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
   ];
 
   // "main" — колесо тем (категорий), "games" — колесо с 7 играми.
-  // "shastra" — форма ввода canto/chapter/verse, "shastra-verse" —
+  // "shastra" — форма ввода song/chapter/text, "shastra-verse" —
   // экран со стихом. "sambandha"/"abhidheya"/"prayojana" — колёса из
   // трёх кнопок хедера. "prakriti" — колесо из 12 предложений
   // (подраздел «Пракрити» раздела «Самбандха»), "prakriti-sentence" —
@@ -491,7 +492,9 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
 
   // ─── Состояние «Шастры» ──────────────────────────────────────────────────
   // Значения полей формы храним строками (так удобнее для <input>);
-  // в запрос они уходят числами (canto, chapter) и текстом (verse).
+  // в запрос они уходят числами (song, chapter) и текстом (text —
+  // номер стиха). Имена переменных (cantoInput, verseInput) оставлены
+  // прежними, в базу они уходят под колонками song / text.
   const [shastraKey, setShastraKey] = useState<string>("bhagavad_gita");
   const [cantoInput, setCantoInput] = useState<string>("0");
   const [chapterInput, setChapterInput] = useState<string>("1");
@@ -522,21 +525,25 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
       canto < 0 ||
       chapter < 0
     ) {
-      setShastraError("Введите canto и chapter целыми числами, а также номер стиха.");
+      // ⚠️ ПРАВКА: сообщение без английских названий полей.
+      setShastraError("Введите песнь и главу целыми числами, а также номер стиха.");
       return;
     }
 
     setShastraLoading(true);
     setShastraError(null);
     try {
+      // ⚠️ ПРАВКА: в базе колонки называются song и text (а не
+      // canto и verse). Локальные переменные canto/verse остались
+      // прежними, меняются только имена колонок в запросе.
       const fetchRow = (table: string) =>
         supabase
           .from(table)
           .select("*")
           .eq("shastra", shastraKey)
-          .eq("canto", canto)
+          .eq("song", canto)
           .eq("chapter", chapter)
-          .eq("verse", verse)
+          .eq("text", verse)
           .maybeSingle();
 
       const [scriptsResult, languagesResult] = await Promise.all([
@@ -654,7 +661,7 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
     if (index === 0) {
       setView("games");
     } else if (index === SHASTRA_INDEX) {
-      // ⚠️ ПРАВКА: кнопка «Шастра» открывает форму canto/chapter/verse.
+      // ⚠️ ПРАВКА: кнопка «Шастра» открывает форму song/chapter/text.
       setShastraError(null);
       setView("shastra");
     }
@@ -908,8 +915,9 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
         )}
 
         {view === "shastra" && (
-          // ⚠️ ДОБАВЛЕНО: форма «Шастра» — выбор шастры и три поля
-          // canto / chapter / verse (по умолчанию 0, 1, 1).
+          // ⚠️ ДОБАВЛЕНО: форма «Шастра» — выбор шастры и три поля:
+          // песнь (song), глава (chapter) и номер стиха (text);
+          // по умолчанию 0, 1, 1.
           <div className="w-full h-full flex items-start justify-center px-4 pt-4 bg-white overflow-y-auto">
             <div className="flex flex-col items-center gap-4 w-full max-w-md text-center">
               <p className="text-xl font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
@@ -933,7 +941,7 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
               </label>
 
               <label className="flex flex-col gap-1 w-full text-left font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
-                canto (песнь; для Бхагавад-гиты — 0)
+                Песнь (для Бхагавад-гиты — 0)
                 <input
                   type="number"
                   min={0}
@@ -945,7 +953,7 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
               </label>
 
               <label className="flex flex-col gap-1 w-full text-left font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
-                chapter (глава)
+                Глава
                 <input
                   type="number"
                   min={0}
@@ -957,7 +965,7 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
               </label>
 
               <label className="flex flex-col gap-1 w-full text-left font-bold" style={{ color: WHEEL_TEXT_COLOR }}>
-                verse (стих)
+                Номер стиха
                 <input
                   type="text"
                   value={verseInput}
