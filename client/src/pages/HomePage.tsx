@@ -22,6 +22,8 @@ import SortRequestForm, {
 } from "@/components/SortRequestForm";
 // ⚠️ ДОБАВЛЕНО: экран «Загадки» (client/src/components/RiddlesView.tsx).
 import RiddlesView from "@/components/RiddlesView";
+// ⚠️ ДОБАВЛЕНО: экран «Раскраска» (client/src/components/ColoringView.tsx).
+import ColoringView from "@/components/ColoringView";
 // ⚠️ ДОБАВЛЕНО: тот же supabase-клиент, что и везде в проекте
 // (если файл лежит по другому пути — поправьте только эту строку).
 import { supabase } from "@/lib/supabase";
@@ -122,9 +124,12 @@ const SHASTRA_LABEL = "Шастра";
 // ⚠️ ДОБАВЛЕНО: сектор №3 (индекс 2) главного колеса — кнопка «Загадки».
 const RIDDLES_INDEX = 2;
 const RIDDLES_LABEL = "Загадки";
+// ⚠️ ДОБАВЛЕНО: сектор №4 (индекс 3) главного колеса — кнопка «Культура».
+const CULTURE_INDEX = 3;
+const CULTURE_LABEL = "Разукрашки"
 
-// Сектор №1 («Игры»), №2 («Шастра») и №3 («Загадки») кликабельны.
-const CATEGORY_CLICKABLE_INDICES = [0, SHASTRA_INDEX, RIDDLES_INDEX];
+// Сектор №1 («Игры»), №2 («Шастра»), №3 («Загадки») и №4 («Культура») кликабельны.
+const CATEGORY_CLICKABLE_INDICES = [0, SHASTRA_INDEX, RIDDLES_INDEX, CULTURE_INDEX];
 
 const CATEGORY_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
@@ -135,6 +140,8 @@ const CATEGORY_WHEEL_LABELS: string[][] = Array.from(
     if (i === SHASTRA_INDEX) return [SHASTRA_LABEL];
     // ⚠️ ДОБАВЛЕНО: в третьем секторе — «Загадки».
     if (i === RIDDLES_INDEX) return [RIDDLES_LABEL];
+        // ⚠️ ДОБАВЛЕНО: в четвёртом секторе — «Культура».
+    if (i === CULTURE_INDEX) return [CULTURE_LABEL];
     return i < CATEGORY_ITEMS.length ? splitLabelIntoLines(CATEGORY_ITEMS[i]) : [];
   }
 );
@@ -409,6 +416,7 @@ type ViewState =
   | "shastra"
   | "shastra-verse"
   | "riddles"
+  | "coloring"
   | "sambandha"
   | "prakriti"
   | "prakriti-sentence"
@@ -682,6 +690,9 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
     } else if (index === RIDDLES_INDEX) {
       // ⚠️ ДОБАВЛЕНО: кнопка «Загадки» открывает экран с загадками.
       setView("riddles");
+    } else if (index === CULTURE_INDEX) {
+      // ⚠️ ДОБАВЛЕНО: кнопка «Культура» открывает раскраску.
+      setView("coloring");
     }
   };
 
@@ -935,6 +946,7 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
 
         {view === "riddles" && <RiddlesView />}
 
+        {view === "coloring" && <ColoringView />}
         {view === "shastra" && (
           // ⚠️ ДОБАВЛЕНО: форма «Шастра» — выбор шастры и три поля:
           // песнь (song), глава (chapter) и номер стиха (text);
