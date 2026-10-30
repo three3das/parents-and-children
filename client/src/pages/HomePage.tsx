@@ -20,6 +20,8 @@ import SortRequestForm, {
   CATEGORY_ITEMS,
   type SortValues,
 } from "@/components/SortRequestForm";
+// ⚠️ ДОБАВЛЕНО: экран «Загадки» (client/src/components/RiddlesView.tsx).
+import RiddlesView from "@/components/RiddlesView";
 // ⚠️ ДОБАВЛЕНО: тот же supabase-клиент, что и везде в проекте
 // (если файл лежит по другому пути — поправьте только эту строку).
 import { supabase } from "@/lib/supabase";
@@ -68,6 +70,11 @@ import { supabase } from "@/lib/supabase";
 // где в одном поле показывается стих в выбранном сочетании
 // «письменность + язык». Ключ строки в обеих таблицах:
 // (shastra, song, chapter, text), где text — номер стиха.
+//
+// ⚠️ ПРАВКА (кнопка «Загадки»): на «Домашней странице» (главное колесо,
+// view "main") в третьем секторе (индекс 2) стоит кнопка «Загадки».
+// Она открывает экран с детскими загадками (view "riddles",
+// компонент RiddlesView).
 
 // «Свойства сайта» (ключ "site-page" — та же кнопка на заставке и
 // в футере) теперь открывает колесо из 12 секторов
@@ -112,8 +119,12 @@ function splitLabelIntoLines(label: string): string[] {
 const SHASTRA_INDEX = 1;
 const SHASTRA_LABEL = "Шастра";
 
-// Сектор №1 («Игры») и сектор №2 («Шастра») кликабельны.
-const CATEGORY_CLICKABLE_INDICES = [0, SHASTRA_INDEX];
+// ⚠️ ДОБАВЛЕНО: сектор №3 (индекс 2) главного колеса — кнопка «Загадки».
+const RIDDLES_INDEX = 2;
+const RIDDLES_LABEL = "Загадки";
+
+// Сектор №1 («Игры»), №2 («Шастра») и №3 («Загадки») кликабельны.
+const CATEGORY_CLICKABLE_INDICES = [0, SHASTRA_INDEX, RIDDLES_INDEX];
 
 const CATEGORY_WHEEL_LABELS: string[][] = Array.from(
   { length: SECTOR_COUNT },
@@ -122,6 +133,8 @@ const CATEGORY_WHEEL_LABELS: string[][] = Array.from(
     // Список CATEGORY_ITEMS (и поле «Разделы» формы) при этом не
     // меняется — подмена только на этом колесе.
     if (i === SHASTRA_INDEX) return [SHASTRA_LABEL];
+    // ⚠️ ДОБАВЛЕНО: в третьем секторе — «Загадки».
+    if (i === RIDDLES_INDEX) return [RIDDLES_LABEL];
     return i < CATEGORY_ITEMS.length ? splitLabelIntoLines(CATEGORY_ITEMS[i]) : [];
   }
 );
@@ -313,10 +326,10 @@ const PROPERTIES_WHEEL_LABELS: string[][] = Array.from(
     if (i === PROPERTIES_PATH_INDEX) return PROPERTIES_PATH_LABEL;
     if (i === PROPERTIES_MENU_INDEX) return ["Меню"];
     if (i === PROPERTIES_FEATURES_INDEX) return PROPERTIES_FEATURES_LABEL;
-   // Ручная разбивка на 3 строки — иначе "Оплатить и подключиться"
-   // не помещается в круг (влезает ≈10 символов в строку).
-if (i === PROPERTIES_SUPPORT_INDEX) return ["Оплатить", "и подклю-", "читься"];
-  
+    // Ручная разбивка на 3 строки — иначе "Оплатить и подключиться"
+    // не помещается в круг (влезает ≈10 символов в строку).
+    if (i === PROPERTIES_SUPPORT_INDEX) return ["Оплатить", "и подклю-", "читься"];
+
     return [];
   }
 );
@@ -395,6 +408,7 @@ type ViewState =
   | "games"
   | "shastra"
   | "shastra-verse"
+  | "riddles"
   | "sambandha"
   | "prakriti"
   | "prakriti-sentence"
@@ -478,7 +492,8 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
 
   // "main" — колесо тем (категорий), "games" — колесо с 7 играми.
   // "shastra" — форма ввода song/chapter/text, "shastra-verse" —
-  // экран со стихом. "sambandha"/"abhidheya"/"prayojana" — колёса из
+  // экран со стихом. "riddles" — экран с загадками для детей.
+  // "sambandha"/"abhidheya"/"prayojana" — колёса из
   // трёх кнопок хедера. "prakriti" — колесо из 12 предложений
   // (подраздел «Пракрити» раздела «Самбандха»), "prakriti-sentence" —
   // экран с выбранным предложением. "guide-info" — экран оплаты («Хочу
@@ -656,7 +671,7 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
   };
 
   // Главное колесо («Домашняя страница»): сектор №1 — «Игры»,
-  // сектор №2 — «Шастра».
+  // сектор №2 — «Шастра», сектор №3 — «Загадки».
   const handleSelectCategory = (index: number) => {
     if (index === 0) {
       setView("games");
@@ -664,6 +679,9 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
       // ⚠️ ПРАВКА: кнопка «Шастра» открывает форму song/chapter/text.
       setShastraError(null);
       setView("shastra");
+    } else if (index === RIDDLES_INDEX) {
+      // ⚠️ ДОБАВЛЕНО: кнопка «Загадки» открывает экран с загадками.
+      setView("riddles");
     }
   };
 
@@ -829,6 +847,7 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
   //  • "prakriti" → "sambandha" (обратно в колесо «Самбандха»);
   //  • "prakriti-sentence" → "prakriti" (обратно в колесо предложений);
   //  • "shastra" → "main" (общее правило: обратно на колесо тем);
+  //  • "riddles" → "main" (общее правило: обратно на колесо тем);
   //  • "shastra-verse" → "shastra" (обратно в форму ввода стиха).
   const handleBack = () => {
     if (view === "guide-info") {
@@ -913,6 +932,8 @@ export default function HomePage({ initialFooterKey }: HomePageProps = {}) {
             onSectorClick={handleGameSectorClick}
           />
         )}
+
+        {view === "riddles" && <RiddlesView />}
 
         {view === "shastra" && (
           // ⚠️ ДОБАВЛЕНО: форма «Шастра» — выбор шастры и три поля:
